@@ -1,0 +1,28 @@
+{
+    "id":"combustiblelemon_covenant_remnants", # For the convenience of troubleshooters, include your name and the mod name, not just an acronym.
+	"name":"Covenant Remnants", # Displayed to the player
+	"author":"Wisp",
+    "utility":"false",
+	"version":"0.1.0",
+	"description":"",
+    "gameVersion": "0.96a-RC10",
+  	"jars":["jars/CovenantRemnants.jar"],
+  	"modPlugin":"combustiblelemon.CovenantRemnants.CovenantRemnantsPlugin",
+	  	"dependencies": [
+        #{
+        #    "id": "lw_lazylib",
+        #    "name": "LazyLib",
+        #    #"version": "2.7b"
+        #},
+        #{
+        #    "id": "MagicLib",
+        #    "name": "MagicLib",
+        #    #"version": "0.34"
+        #},
+        #{
+        #    "id": "shaderLib",
+        #    "name": "GraphicsLib",
+        #    #"version": "1.5.1"
+        #}
+    ],
+}

@@ -1,0 +1,58 @@
+{
+  "hullName": "Hauler",
+  "hullId": "covenant_remnants_hauler",
+  "hullSize": "DESTROYER",
+  "spriteName": "graphics/ships/scout.png",
+  "style": "HIGH_TECH",
+  "height": 150,
+  "width": 51,
+  "center": [25.5, 75],
+  "collisionRadius": 101.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 95,
+  "viewOffset": 0,
+  "weaponSlots": [
+    {
+      "id": "WS0002",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [3, 17.5]
+    },
+    {
+      "id": "WS0003",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [1, -19.5]
+    }
+  ],
+  "engineSlots": [
+    {
+      "location": [-65, -0.5],
+      "length": 30,
+      "width": 10,
+      "angle": 180,
+      "contrailSize": 30,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    -71.5, -3,
+    -36.5, -10.5,
+    -4.5, -23,
+    15.5, -23.5,
+    42, -20,
+    71, -4.5,
+    71, 4.5,
+    42, 20,
+    15.5, 23.5,
+    -4.5, 23,
+    -36.5, 10.5,
+    -71.5, 3
+  ]
+}
