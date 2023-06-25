@@ -1,0 +1,18 @@
+{
+  "variantId": "covenant_remnants_cas_base_standard",
+  "hullId": "covenant_remnants_cas_base",
+  "displayName": "Standard",
+  "goalVariant": false,
+  "fluxCapacitors": 0,
+  "fluxVents": 0,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [],
+  "modules": [
+    { "MOD01": "covenant_remnants_cas_wing_left_standard" },
+    { "MOD02": "covenant_remnants_cas_engines_standard" },
+    { "MOD03": "covenant_remnants_cas_wing_right_standard" }
+  ],
+  "wings": []
+}

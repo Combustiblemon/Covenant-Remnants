@@ -1,4 +1,4 @@
-package author.modname;
+package combustiblelemon.CovenantRemnants;
 
 import com.fs.starfarer.api.BaseModPlugin;
 
@@ -8,7 +8,7 @@ public class CovenantRemnantsPlugin extends BaseModPlugin {
         super.onApplicationLoad();
 
         // Test that the .jar is loaded and working, using the most obnoxious way possible.
-        throw new RuntimeException("Template mod loaded! Remove this crash in TemplateModPlugin.");
+//        throw new RuntimeException("Template mod loaded! Remove this crash in TemplateModPlugin.");
     }
 
     @Override

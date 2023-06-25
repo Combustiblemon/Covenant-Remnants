@@ -1,0 +1,49 @@
+{
+  "hullName": "CAS Left Wing",
+  "hullId": "covenant_remnants_cas_wing_left",
+  "hullSize": "CRUISER",
+  "spriteName": "graphics/ships/cr_cas/cas_carrier_wing_left.png",
+  "style": "HIGH_TECH",
+  "height": 304,
+  "width": 162,
+  "center": [81, 152],
+  "collisionRadius": 166.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 0,
+  "viewOffset": 0,
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [60.5, 42.5]
+    },
+    {
+      "id": "WS0002",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [-75.5, -23.5]
+    },
+    {
+      "id": "WS0003",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [118, 28.5]
+    }
+  ],
+  "engineSlots": [],
+  "bounds": [
+    151, 10.5, 133.5, 47.5, 106.5, 70.5, 73, 79, 44, 79, 41.5, 71.5, -31.5, 39,
+    -66.5, 14.5, -100.5, -15, -125, -30.5, -152, -37, -152, -46.5, -94.5, -56,
+    -94.5, -80.5, -81.5, -81, -73.5, -56.5, -31.5, -45, 61.5, 6.5
+  ]
+}

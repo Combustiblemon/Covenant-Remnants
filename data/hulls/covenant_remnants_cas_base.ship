@@ -1,0 +1,116 @@
+{
+  "hullName": "CAS Assault Carrier",
+  "hullId": "covenant_remnants_cas_base",
+  "hullSize": "CAPITAL_SHIP",
+  "spriteName": "graphics/ships/cr_cas/cas_carrier_base.png",
+  "style": "HIGH_TECH",
+  "height": 753,
+  "width": 233,
+  "center": [116, 294.5],
+  "collisionRadius": 598.5,
+  "shieldCenter": [0, -0],
+  "shieldRadius": 546,
+  "viewOffset": 0,
+  "builtInMods": [
+    "advancedshieldemitter",
+    "assault_package",
+    "dedicated_targeting_core",
+    "hardenedshieldemitter",
+    "solar_shielding",
+    "stabilizedshieldemitter"
+  ],
+  "builtInWeapons": {
+    "WS0001": "covenant_remnants_energyprojector",
+    "WS0002": "covenant_remnants_plasmalance",
+    "WS0003": "covenant_remnants_plasmalance"
+  },
+  "weaponSlots": [
+    {
+      "id": "MOD02",
+      "size": "LARGE",
+      "type": "STATION_MODULE",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [-419, -0.5]
+    },
+    {
+      "id": "MOD01",
+      "size": "LARGE",
+      "type": "STATION_MODULE",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [-199.5, 97]
+    },
+    {
+      "id": "MOD03",
+      "size": "LARGE",
+      "type": "STATION_MODULE",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -0,
+      "locations": [-200, -97.5]
+    },
+    {
+      "id": "WS0001",
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 360,
+      "locations": [2, 1]
+    },
+    {
+      "id": "WS0002",
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "mount": "TURRET",
+      "arc": 200,
+      "angle": 100,
+      "locations": [-83.5, 126.5]
+    },
+    {
+      "id": "WS0003",
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "mount": "TURRET",
+      "arc": 200,
+      "angle": -100,
+      "locations": [-83.5, -126.5]
+    }
+  ],
+  "engineSlots": [],
+  "bounds": [
+    -294.5, -13,
+    -281.5, -13,
+    -281.5, -30.5,
+    -268.5, -39.5,
+    -237.5, -48.5,
+    -135.5, -100.5,
+    -47, -107,
+    4, -103.5,
+    65.5, -95,
+    162.5, -65,
+    250.5, -54.5,
+    322.5, -58,
+    412, -65,
+    446, -40.5,
+    458.5, 2,
+    443.5, 40.5,
+    418.5, 61.5,
+    390, 68,
+    325.5, 57,
+    221, 57,
+    160, 66.5,
+    65.5, 95,
+    4, 103.5,
+    -47, 108,
+    -135.5, 105,
+    -238, 51.5,
+    -269.5, 45.5,
+    -281.5, 30.5,
+    -281.5, 16,
+    -295, 16
+  ]
+}
