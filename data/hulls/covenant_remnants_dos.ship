@@ -1,0 +1,90 @@
+{
+  "hullName": "Onura-pattern",
+  "hullId": "covenant_remnants_dos",
+  "hullSize": "CAPITAL_SHIP",
+  "spriteName": "graphics/ships/dos_class.png",
+  "style": "HIGH_TECH",
+  "height": 520,
+  "width": 230,
+  "center": [115, 261.5],
+  "collisionRadius": 299.5,
+  "shieldCenter": [0, -0],
+  "shieldRadius": 275,
+  "viewOffset": 0,
+  "builtInMods": [
+    "advancedshieldemitter",
+    "solar_shielding"
+  ],
+  "builtInWeapons": {
+    "WS0001": "covenant_remnants_energyprojector",
+    "WS0002": "covenant_remnants_plasmalance",
+    "WS0003": "covenant_remnants_plasmalance"
+  },
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "mount": "HARDPOINT",
+      "arc": 20,
+      "angle": 0,
+      "locations": [113, -0]
+    },
+    {
+      "id": "WS0002",
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "mount": "HARDPOINT",
+      "arc": 25,
+      "angle": 0,
+      "locations": [78.5, 19.5]
+    },
+    {
+      "id": "WS0003",
+      "size": "LARGE",
+      "type": "BUILT_IN",
+      "mount": "HARDPOINT",
+      "arc": 25,
+      "angle": -0,
+      "locations": [79, -15.5]
+    }
+  ],
+  "engineSlots": [
+    {
+      "location": [-201, -1],
+      "length": 76.5,
+      "width": 32,
+      "angle": 180,
+      "contrailSize": 48,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-187.5, 22],
+      "length": 61,
+      "width": 22,
+      "angle": 180,
+      "contrailSize": 22,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-187, -27],
+      "length": 61,
+      "width": 22,
+      "angle": -180,
+      "contrailSize": 22,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    -251, -9.5,
+    -76.5, -83,
+    -40, -114,
+    45, -62.5,
+    252.5, -11,
+    252.5, 11,
+    45, 62.5,
+    -40, 114,
+    -76.5, 83,
+    -251, 9.5
+  ]
+}

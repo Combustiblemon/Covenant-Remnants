@@ -1,2 +1,3 @@
 name,id,flux/second,f/s (base rate),f/s (base cap),flux/use,f/u (base rate),f/u (base cap),cr/u,max uses,regen,charge up,active,down,cooldown,toggle,noDissipation,noHardDissipation,hardFlux,noFiring,noTurning,noStrafing,noAccel,noShield,noVent,isPhaseCloak,tags,icon
-Flare Launcher,missilelauncher,,,,,,,,5,1,,,,5,,,,,,,,,,,,,graphics/icons/hullsys/flare_launcher.png
+Plasma Missile Barrage,covenant_remnants_plasmabarrage_capital,,,,,,,,,,,,,30,,,,,,,,,,,,,graphics/icons/hullsys/flare_launcher.png
+Plasma Missile Barrage,covenant_remnants_plasmabarrage_frigate,,,,,,,,,,,,,15,,,,,,,,,,,,,graphics/icons/hullsys/flare_launcher.png

@@ -1,0 +1,32 @@
+{
+  "hullName": "Seraph bomber",
+  "hullId": "covenant_remnants_seraph",
+  "hullSize": "FIGHTER",
+  "spriteName": "graphics/ships/seraph.png",
+  "style": "HIGH_TECH",
+  "height": 62,
+  "width": 30,
+  "center": [15, 44.5],
+  "collisionRadius": 51,
+  "shieldCenter": [-12, -0],
+  "shieldRadius": 35,
+  "viewOffset": 0,
+  "weaponSlots": [],
+  "engineSlots": [
+    {
+      "location": [-17.5, -0],
+      "length": 15.5,
+      "width": 4,
+      "angle": 180,
+      "contrailSize": 4,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    -28, -6.5,
+    5, -14.5,
+    16.5, -0,
+    5, 14.5,
+    -28, 6.5
+  ]
+}

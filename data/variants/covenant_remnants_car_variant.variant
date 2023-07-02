@@ -1,7 +1,7 @@
 {
-  "variantId": "covenant_remnants_cas_wing_right_standard",
-  "hullId": "covenant_remnants_cas_wing_right",
-  "displayName": "Standard",
+  "variantId": "covenant_remnants_car_variant",
+  "hullId": "covenant_remnants_car",
+  "displayName": "New Variant",
   "goalVariant": false,
   "fluxCapacitors": 0,
   "fluxVents": 0,

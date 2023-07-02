@@ -1,0 +1,46 @@
+{
+  "hullName": "ORS Heavy Cruiser",
+  "hullId": "covenant_remnants_ors",
+  "hullSize": "CAPITAL_SHIP",
+  "spriteName": "graphics/ships/ors_heavy_cruiser.png",
+  "style": "HIGH_TECH",
+  "height": 520,
+  "width": 200,
+  "center": [101, 262.5],
+  "collisionRadius": 345,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 300.5,
+  "viewOffset": 0,
+  "weaponSlots": [],
+  "engineSlots": [
+    {
+      "location": [-234, 18.5],
+      "length": 39,
+      "width": 14,
+      "angle": 180,
+      "contrailSize": 14,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-233, -16.5],
+      "length": 40.5,
+      "width": 17,
+      "angle": 180,
+      "contrailSize": 17,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-235, 1],
+      "length": 61.5,
+      "width": 20,
+      "angle": 180,
+      "contrailSize": 20,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    -253, -14, -109, -91.5, -64, -99, 0, -52.5, 47, -42.5, 195, -42.5, 252.5,
+    -14.5, 252.5, 14.5, 195, 44, 47, 44, 0, 55, -64, 100.5, -109, 93.5, -253,
+    16.5
+  ]
+}

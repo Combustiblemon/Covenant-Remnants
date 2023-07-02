@@ -1,0 +1,44 @@
+{
+  "hullName": "SDV Corvette",
+  "hullId": "covenant_remnants_sdv",
+  "hullSize": "DESTROYER",
+  "spriteName": "graphics/ships/sdv_heavy_corvette.png",
+  "style": "HIGH_TECH",
+  "height": 180,
+  "width": 71,
+  "center": [35.5, 90],
+  "collisionRadius": 107.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 102.5,
+  "viewOffset": 0,
+  "weaponSlots": [],
+  "engineSlots": [
+    {
+      "location": [-61, 10],
+      "length": 30,
+      "width": 10,
+      "angle": 180,
+      "contrailSize": 30,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-61, -10],
+      "length": 30,
+      "width": 10,
+      "angle": -180,
+      "contrailSize": 30,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-65.5, -0],
+      "length": 33.5,
+      "width": 16,
+      "angle": 180,
+      "contrailSize": 16,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    -86, -6.5, -11, -35, 75.5, -14.5, 89.5, -0, 75.5, 14.5, -11, 35, -86, 6.5
+  ]
+}

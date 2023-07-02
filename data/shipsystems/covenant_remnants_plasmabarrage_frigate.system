@@ -1,0 +1,9 @@
+{
+  "id": "covenant_remnants_plasmabarrage_frigate",
+  "type": "WEAPON",
+  "aiType": "CUSTOM",
+  "aiScript": "combustiblelemon.CovenantRemnants.ai.PlasmaBarrageAI",
+
+  "weaponDataId": "covenant_remnants_plasmabarrage_frigate",
+  "outOfUsesSound": "gun_out_of_ammo"
+}

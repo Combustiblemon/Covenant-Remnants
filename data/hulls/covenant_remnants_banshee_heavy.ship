@@ -1,0 +1,38 @@
+{
+  "hullName": "Heavy Banshee",
+  "hullId": "covenant_remnants_banshee_heavy",
+  "hullSize": "FIGHTER",
+  "spriteName": "graphics/ships/space banshee.png",
+  "style": "HIGH_TECH",
+  "height": 63,
+  "width": 50,
+  "center": [25, 39.5],
+  "collisionRadius": 42,
+  "shieldCenter": [0, -0],
+  "shieldRadius": 38,
+  "viewOffset": 0,
+  "weaponSlots": [],
+  "engineSlots": [
+    {
+      "location": [-21, 4.5],
+      "length": 14.5,
+      "width": 5,
+      "angle": 180,
+      "contrailSize": 5,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-21, -4.5],
+      "length": 14.5,
+      "width": 5,
+      "angle": -180,
+      "contrailSize": 5,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    12, -25,
+    12, 25,
+    -23.5, 0.5
+  ]
+}

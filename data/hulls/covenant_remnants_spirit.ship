@@ -1,0 +1,42 @@
+{
+  "hullName": "Spirit",
+  "hullId": "covenant_remnants_spirit",
+  "hullSize": "FRIGATE",
+  "spriteName": "graphics/ships/spirit.png",
+  "style": "HIGH_TECH",
+  "height": 119,
+  "width": 56,
+  "center": [28, 59.5],
+  "collisionRadius": 76.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 72.5,
+  "viewOffset": 0,
+  "weaponSlots": [],
+  "engineSlots": [
+    {
+      "location": [-28, 18],
+      "length": 30,
+      "width": 10,
+      "angle": 180,
+      "contrailSize": 30,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-28, -18],
+      "length": 30,
+      "width": 10,
+      "angle": -180,
+      "contrailSize": 30,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    -28.5, -25,
+    44.5, -25.5,
+    58.5, -17,
+    58.5, 17,
+    44.5, 25.5,
+    -28.5, 25,
+    -51.5, -0
+  ]
+}

@@ -1,0 +1,5 @@
+id,variant,tags,tier,rarity,fleet pts,op cost,formation,range,attackRunRange,attackPositionOffset,num,role,role desc,refit,base value,,,,,,,,,,,,,number
+covenant_remnants_banshee_variant_wing,covenant_remnants_banshee_variant,,1,,0,0,CLAW,4000,500,0,4,FIGHTER,Fighter,10,2000,,,,,,,,,,,,,
+covenant_remnants_banshee2_variant_wing,covenant_remnants_banshee2_variant,,1,,0,0,CLAW,4000,500,0,4,FIGHTER,Fighter,10,2000,,,,,,,,,,,,,
+covenant_remnants_banshee_heavy_variant_wing,covenant_remnants_banshee_heavy_variant,,2,,0,0,BOX,4000,500,0,2,FIGHTER,Fighter,10,2000,,,,,,,,,,,,,
+covenant_remnants_seraph_variant_wing,covenant_remnants_seraph_variant,,3,,0,0,V,4000,500,0,1,BOMBER,Bomber,10,2000,,,,,,,,,,,,,

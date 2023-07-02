@@ -1,7 +1,7 @@
 {
-  "variantId": "covenant_remnants_cas_wing_left_standard",
-  "hullId": "covenant_remnants_cas_wing_left",
-  "displayName": "Standard",
+  "variantId": "covenant_remnants_banshee_variant",
+  "hullId": "covenant_remnants_banshee",
+  "displayName": "New Variant",
   "goalVariant": false,
   "fluxCapacitors": 0,
   "fluxVents": 0,

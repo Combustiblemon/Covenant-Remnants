@@ -1,0 +1,53 @@
+{
+  "hullName": "CCS battlecruiser",
+  "hullId": "covenant_remnants_ccs",
+  "hullSize": "CRUISER",
+  "spriteName": "graphics/ships/ccs_battlecruiser.png",
+  "style": "HIGH_TECH",
+  "height": 283,
+  "width": 130,
+  "center": [64.5, 141],
+  "collisionRadius": 156,
+  "shieldCenter": [0, -0],
+  "shieldRadius": 145.5,
+  "viewOffset": 0,
+  "weaponSlots": [],
+  "engineSlots": [
+    {
+      "location": [-121.5, 14],
+      "length": 30,
+      "width": 10,
+      "angle": 180,
+      "contrailSize": 30,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-121.5, -14],
+      "length": 30,
+      "width": 10,
+      "angle": -180,
+      "contrailSize": 30,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-124, -0],
+      "length": 49.5,
+      "width": 19,
+      "angle": 180,
+      "contrailSize": 19,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    -135.5, -16,
+    -20, -63,
+    50, -17.5,
+    111, -17.5,
+    141, -6,
+    141, 6,
+    111, 17.5,
+    50, 17.5,
+    -20, 63,
+    -135.5, 16
+  ]
+}

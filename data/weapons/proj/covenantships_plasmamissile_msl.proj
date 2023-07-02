@@ -9,9 +9,7 @@
 	"collisionClass":"MISSILE_NO_FF",
 	"explosionColor":[150,100,255,255],  # purely visual, will get a white additively blended core on top of this color
 	"explosionRadius":175, # purely visual
-	#"alwaysAccelerate":true,
 	"reduceDamageWhileFading":true,
-	#"noCollisionWhileFading":true,
 	"useHitGlowWhenDestroyed":true,
 	"fizzleOnReachingWeaponRange":true,
 	"dudProbabilityOnFlameout":0,
@@ -26,7 +24,6 @@
 				  "acc":2000,
 				  "dec":2000},
 	"engineSlots":[{"id":"ES1",
-					#"loc":[-7, 0],
 					"loc":[0, 0],
 				    "style":"CUSTOM",
 					"styleSpec":{

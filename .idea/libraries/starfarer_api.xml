@@ -17,6 +17,7 @@
       <root url="jar://$PROJECT_DIR$/../../../../../../../Games/Starsector/starsector-core/starfarer.api.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../../../../../Games/Starsector/starsector-core/xstream-1.4.10.jar!/" />
       <root url="jar://$PROJECT_DIR$/../LazyLib/jars/LazyLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../MagicLib/jars/MagicLib.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="https://fractalsoftworks.com/starfarer.api/" />
@@ -26,6 +27,8 @@
       <root url="jar://$PROJECT_DIR$/../../../../../../../Games/Starsector/starsector-core/starfarer.api.zip!/" />
       <root url="jar://$PROJECT_DIR$/../LazyLib/jars/LazyLib.jar!/" />
       <root url="jar://$PROJECT_DIR$/../LazyLib/jars/LazyLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../MagicLib/jars/MagicLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../MagicLib/jars/MagicLib.jar!/" />
     </SOURCES>
   </library>
 </component>
