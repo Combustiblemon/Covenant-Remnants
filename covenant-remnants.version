@@ -14,9 +14,9 @@
     # created after October 2012 will not have a Public folder, unfortunately.
     #
     # Example links for common hosts:
-    "masterVersionFile":"url goes here",
+    "masterVersionFile":"https://raw.githubusercontent.com/Combustiblemon/Covenant-Remnants/master/covenant-remnants.version",
 
-    "modName":"IntelliJ Template Mod",
+    "modName":"Covenant Remnants",
 
     # The ID of the thread where updates to this mod can be found (optional).
     # This is used to launch directly to the forum thread from in the game.
