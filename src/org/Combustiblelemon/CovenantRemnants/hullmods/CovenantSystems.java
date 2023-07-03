@@ -1,4 +1,4 @@
-package combustiblelemon.CovenantRemnants.hullmods;
+package org.Combustiblelemon.CovenantRemnants.hullmods;
 
 import com.fs.starfarer.api.combat.BaseHullMod;
 import com.fs.starfarer.api.combat.MutableShipStatsAPI;

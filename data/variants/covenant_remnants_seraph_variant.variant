@@ -1,14 +1,22 @@
 {
   "variantId": "covenant_remnants_seraph_variant",
   "hullId": "covenant_remnants_seraph",
-  "displayName": "New Variant",
+  "displayName": "Bomber",
   "goalVariant": false,
-  "fluxCapacitors": 0,
+  "fluxCapacitors": 1,
   "fluxVents": 0,
   "quality": 1,
   "permaMods": [],
   "hullMods": [],
-  "weaponGroups": [],
+  "weaponGroups": [
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "covenant_remnants_plasmamissile_fighter"
+      }
+    }
+  ],
   "modules": [],
   "wings": []
 }
