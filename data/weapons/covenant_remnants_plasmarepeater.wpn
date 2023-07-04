@@ -1,0 +1,29 @@
+{
+  "id": "covenant_remnants_plasmarepeater",
+  "specClass": "projectile",
+  "type": "ENERGY",
+  "size": "SMALL",
+  "turretSprite": "",
+  "turretGunSprite": "",
+  "hardpointSprite": "",
+  "hardpointGunSprite": "",
+  "visualRecoil": 0.0,
+  "turretOffsets": [12, 0],
+  "turretAngleOffsets": [0],
+  "hardpointOffsets": [17, 0],
+  "hardpointAngleOffsets": [0],
+  "renderHints": [],
+  "barrelMode": "ALTERNATING",
+  "animationType": "MUZZLE_FLASH",
+  "muzzleFlashSpec": {
+    "length": 3.0,
+    "spread": 6.0,
+    "particleSizeMin": 6.0,
+    "particleSizeRange": 8.0,
+    "particleDuration": 0.15,
+    "particleCount": 7,
+    "particleColor": [77, 250, 250, 200]
+  },
+  "projectileSpecId": "covenant_remnants_plasmabolt",
+  "fireSoundTwo": "minipulser_fire"
+}
