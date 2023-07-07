@@ -1,0 +1,8 @@
+{
+  "id": "covenant_remnants_slipspacedrive",
+  "type": "STAT_MOD",
+  "aiType": "NONE",
+  "statsScript": "org.Combustiblelemon.CovenantRemnants.systems.SlipspaceDrive",
+
+  "outOfUsesSound": "gun_out_of_ammo"
+}

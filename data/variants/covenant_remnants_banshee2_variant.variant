@@ -8,7 +8,16 @@
   "quality": 1,
   "permaMods": [],
   "hullMods": [],
-  "weaponGroups": [],
+  "weaponGroups": [
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "covenant_remnants_plasmarepeater",
+        "WS0002": "covenant_remnants_plasmarepeater"
+      }
+    }
+  ],
   "modules": [],
   "wings": []
 }

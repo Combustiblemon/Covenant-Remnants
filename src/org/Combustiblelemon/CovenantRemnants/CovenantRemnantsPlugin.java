@@ -13,6 +13,8 @@ public class CovenantRemnantsPlugin extends BaseModPlugin {
         if(!isMagicLibEnabled){
             throw new RuntimeException("This mod required MagicLib to work.");
         }
+
+
     }
 
     @Override

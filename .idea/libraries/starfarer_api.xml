@@ -27,6 +27,8 @@
       <root url="jar://$PROJECT_DIR$/../../../../../../../Games/Starsector/starsector-core/starfarer.api.zip!/" />
       <root url="jar://$PROJECT_DIR$/../MagicLib/jars/MagicLib.jar!/" />
       <root url="jar://$PROJECT_DIR$/../MagicLib/jars/MagicLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../LazyLib/jars/LazyLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../LazyLib/jars/LazyLib.jar!/" />
     </SOURCES>
   </library>
 </component>
