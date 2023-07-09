@@ -2,7 +2,7 @@
   "hullName": "ORS Heavy Cruiser",
   "hullId": "covenant_remnants_ors",
   "hullSize": "CAPITAL_SHIP",
-  "spriteName": "graphics/ships/ors_heavy_cruiser.png",
+  "spriteName": "graphics/covenant_remnants/ships/ors_heavy_cruiser.png",
   "style": "HIGH_TECH",
   "height": 520,
   "width": 200,

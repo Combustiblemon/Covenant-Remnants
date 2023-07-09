@@ -2,7 +2,7 @@
   "hullName": "Heavy Banshee",
   "hullId": "covenant_remnants_banshee_heavy",
   "hullSize": "FIGHTER",
-  "spriteName": "graphics/ships/space banshee.png",
+  "spriteName": "graphics/covenant_remnants/ships/space banshee.png",
   "style": "HIGH_TECH",
   "height": 63,
   "width": 50,
@@ -30,9 +30,5 @@
       "style": "HIGH_TECH"
     }
   ],
-  "bounds": [
-    12, -25,
-    12, 25,
-    -23.5, 0.5
-  ]
+  "bounds": [12, -25, 12, 25, -23.5, 0.5]
 }

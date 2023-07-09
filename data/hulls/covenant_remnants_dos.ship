@@ -2,7 +2,7 @@
   "hullName": "Onura-pattern",
   "hullId": "covenant_remnants_dos",
   "hullSize": "CAPITAL_SHIP",
-  "spriteName": "graphics/ships/dos_class.png",
+  "spriteName": "graphics/covenant_remnants/ships/dos_class.png",
   "style": "HIGH_TECH",
   "height": 520,
   "width": 230,
@@ -11,10 +11,7 @@
   "shieldCenter": [0, -0],
   "shieldRadius": 275,
   "viewOffset": 0,
-  "builtInMods": [
-    "advancedshieldemitter",
-    "solar_shielding"
-  ],
+  "builtInMods": ["advancedshieldemitter", "solar_shielding"],
   "builtInWeapons": {
     "WS0001": "covenant_remnants_energyprojector",
     "WS0002": "covenant_remnants_plasmalance",
@@ -76,15 +73,7 @@
     }
   ],
   "bounds": [
-    -251, -9.5,
-    -76.5, -83,
-    -40, -114,
-    45, -62.5,
-    252.5, -11,
-    252.5, 11,
-    45, 62.5,
-    -40, 114,
-    -76.5, 83,
-    -251, 9.5
+    -251, -9.5, -76.5, -83, -40, -114, 45, -62.5, 252.5, -11, 252.5, 11, 45,
+    62.5, -40, 114, -76.5, 83, -251, 9.5
   ]
 }

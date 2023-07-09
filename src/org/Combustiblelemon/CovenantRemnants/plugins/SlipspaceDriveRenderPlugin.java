@@ -6,11 +6,13 @@ import com.fs.starfarer.api.util.Misc;
 import org.Combustiblelemon.CovenantRemnants.utils.CubicCurve2D;
 import org.Combustiblelemon.CovenantRemnants.utils.Utils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
 
 import java.awt.*;
 import java.util.EnumSet;
+
+import static org.lwjgl.opengl.GL11.*;
 
 public class SlipspaceDriveRenderPlugin implements CombatLayeredRenderingPlugin {
     protected CombatEngineLayers layer = CombatEngineLayers.JUST_BELOW_WIDGETS;
@@ -82,31 +84,29 @@ public class SlipspaceDriveRenderPlugin implements CombatLayeredRenderingPlugin 
 
 
         if(isPortalActive){
-            float x = portalLocation.x;
-            float y = portalLocation.y;
-
-
-
             float effectLevel = attachedTo.getSystem().getEffectLevel();
 
 
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
+            glDisable(GL_TEXTURE_2D);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+//            glAccum(GL_ACCUM, 1f);
+
+            Misc.setColor(Color.white);
+            Utils.drawDonut(portalLocation, portalRadius * cubicFunction.getTime(effectLevel), 50, 0.05f);
+
+            Misc.setColor(new Color(139,130,251));
+            Utils.drawDonut(portalLocation, (portalRadius * 0.96f) * cubicFunction.getTime(effectLevel), 50, 0.04f);
 
 
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
-            Misc.setColor(Color.WHITE,1f);
-            DrawUtils.drawCircle(x, y, portalRadius * cubicFunction.getTime(effectLevel), 50, true);
+            Misc.setColor(new Color(60,14,70));
+            Utils.drawDonut(portalLocation, (portalRadius * 0.92f) * cubicFunction.getTime(effectLevel), 50, 1f);
+            glDisable(GL_BLEND);
+//            DrawUtils.drawCircle(portalLocation.x,portalLocation.y, (portalRadius * 0.88f) * cubicFunction.getTime(effectLevel), 50, true);
 
-            Misc.setColor(new Color(139,130,251),1f);
-            DrawUtils.drawCircle(x, y, (float)(portalRadius * 0.9) * cubicFunction.getTime(effectLevel) , 50, true);
-
-            Misc.setColor(new Color(21,14,22),1f);
-            DrawUtils.drawCircle(x, y, (float)(portalRadius * 0.86) * cubicFunction.getTime(effectLevel) , 50, true);
-
-
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
+            glEnable(GL_TEXTURE_2D);
         }
 
     }

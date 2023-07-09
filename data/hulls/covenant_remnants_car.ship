@@ -2,7 +2,7 @@
   "hullName": "CAR Frigate",
   "hullId": "covenant_remnants_car",
   "hullSize": "DESTROYER",
-  "spriteName": "graphics/ships/car_frigate.png",
+  "spriteName": "graphics/covenant_remnants/ships/car_frigate.png",
   "style": "HIGH_TECH",
   "height": 189,
   "width": 105,

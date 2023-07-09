@@ -2,7 +2,7 @@
   "hullName": "Hauler",
   "hullId": "covenant_remnants_hauler",
   "hullSize": "DESTROYER",
-  "spriteName": "graphics/ships/scout.png",
+  "spriteName": "graphics/covenant_remnants/ships/scout.png",
   "style": "HIGH_TECH",
   "height": 150,
   "width": 51,
@@ -42,17 +42,7 @@
     }
   ],
   "bounds": [
-    -71.5, -3,
-    -36.5, -10.5,
-    -4.5, -23,
-    15.5, -23.5,
-    42, -20,
-    71, -4.5,
-    71, 4.5,
-    42, 20,
-    15.5, 23.5,
-    -4.5, 23,
-    -36.5, 10.5,
-    -71.5, 3
+    -71.5, -3, -36.5, -10.5, -4.5, -23, 15.5, -23.5, 42, -20, 71, -4.5, 71, 4.5,
+    42, 20, 15.5, 23.5, -4.5, 23, -36.5, 10.5, -71.5, 3
   ]
 }

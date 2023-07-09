@@ -1,5 +1,10 @@
 {
   "designTypeColors": {
     "Covenant": [89, 55, 122, 255]
+  },
+  "graphics": {
+    "covenant_remnants": {
+      "portal_inner_loop": "graphics/covenant_remnants/fx/slipspace/slipspace_portal_ring_inner.png"
+    }
   }
 }

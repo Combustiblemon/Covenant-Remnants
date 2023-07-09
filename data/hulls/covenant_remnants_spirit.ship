@@ -2,7 +2,7 @@
   "hullName": "Spirit",
   "hullId": "covenant_remnants_spirit",
   "hullSize": "FRIGATE",
-  "spriteName": "graphics/ships/spirit.png",
+  "spriteName": "graphics/covenant_remnants/ships/spirit.png",
   "style": "HIGH_TECH",
   "height": 119,
   "width": 56,
@@ -77,12 +77,7 @@
     }
   ],
   "bounds": [
-    -28.5, -25,
-    44.5, -25.5,
-    58.5, -17,
-    58.5, 17,
-    44.5, 25.5,
-    -28.5, 25,
-    -51.5, -0
+    -28.5, -25, 44.5, -25.5, 58.5, -17, 58.5, 17, 44.5, 25.5, -28.5, 25, -51.5,
+    -0
   ]
 }

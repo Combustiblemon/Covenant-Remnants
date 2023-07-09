@@ -2,7 +2,7 @@
 	"id":"covenant_remnants_plasmamissile_msl",
 	"specClass":"missile",
 	"missileType":"MISSILE",
-	"sprite":"graphics/missiles/covenant_remnants_plasmamissile_msl.png",
+	"sprite":"graphics/covenant_remnants/missiles/covenant_remnants_plasmamissile_msl.png",
 	"size":[18,25],
 	"center":[9,12],
 	"collisionRadius":8,

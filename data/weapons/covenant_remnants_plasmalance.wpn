@@ -7,8 +7,8 @@
   "collisionClass": "RAY",
   "collisionClassByFighter": "RAY_FIGHTER",
   "turretSprite": "",
-  "hardpointSprite": "graphics/weapons/covenant_remnants_plasmalance_turret_base.png",
-  "hardpointGlowSprite": "graphics/weapons/covenant_remnants_plasmalance_turret_glow.png",
+  "hardpointSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmalance_turret_base.png",
+  "hardpointGlowSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmalance_turret_glow.png",
   "glowColor": [
     165,
     100,

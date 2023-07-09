@@ -17,5 +17,5 @@
 	"hitGlowRadius":80,
 	"textureScrollSpeed":64.0,
 	"pixelsPerTexel":5.0,
-	"bulletSprite":"graphics/missiles/covenant_remnants_plasmacannon_plasma.png"
+	"bulletSprite":"graphics/covenant_remnants/missiles/covenant_remnants_plasmacannon_plasma.png"
 }

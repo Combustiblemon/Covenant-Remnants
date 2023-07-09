@@ -21,7 +21,7 @@ public class SlipspaceDrive extends BaseShipSystemScript {
 //    ACTIVE
     boolean isActive = false;
     float launchStartTime;
-    final float LAUNCH_SPEED = 900;
+    final float LAUNCH_SPEED = 1500;
     final float PORTAL_DURATION = 14;
 
     float PORTAL_DISTANCE = 1000;
