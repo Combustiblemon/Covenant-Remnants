@@ -3,14 +3,19 @@ package org.Combustiblelemon.CovenantRemnants.systems;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.MutableShipStatsAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.ShipSystemAPI;
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript;
 import org.Combustiblelemon.CovenantRemnants.plugins.SlipspaceDriveRenderPlugin;
 import org.Combustiblelemon.CovenantRemnants.utils.CubicCurve2D;
 import org.Combustiblelemon.CovenantRemnants.utils.Utils;
+import org.lazywizard.lazylib.MathUtils;
+import org.lazywizard.lazylib.combat.CombatUtils;
 import org.lwjgl.util.vector.Vector2f;
 
+import java.awt.*;
+
 public class SlipspaceDrive extends BaseShipSystemScript {
-    Vector2f mouseTarget;
+    Vector2f portalExit;
     float facing;
     private SlipspaceDriveRenderPlugin renderPlugin;
     final private CubicCurve2D cubicFunction = new CubicCurve2D(1,0,0,1);
@@ -25,12 +30,18 @@ public class SlipspaceDrive extends BaseShipSystemScript {
     final float PORTAL_DURATION = 14;
 
     float PORTAL_DISTANCE = 1000;
-    float PORTAL_RADIUS = 400;
+    float PORTAL_RADIUS = 500;
+    float SYSTEM_USE_DISTANCE = 1800;
 
 //    OUT
     boolean isOut = false;
 
-
+    public boolean isUsable(ShipSystemAPI system, ShipAPI ship) {
+                // Distance to exit is larger than SYSTEM_USE_DISTANCE
+        return MathUtils.getDistance(ship, ship.getMouseTarget()) > SYSTEM_USE_DISTANCE &&
+                // No ships within the exit radius
+                CombatUtils.getShipsWithinRange(ship.getMouseTarget(), ship.getShield().getRadius()).size() == 0;
+    }
 
     @Override
     public void apply(MutableShipStatsAPI stats, String id, State state, float effectLevel) {
@@ -52,8 +63,8 @@ public class SlipspaceDrive extends BaseShipSystemScript {
         if (state == State.IN && !isIn) {
             isIn = true;
 
-            mouseTarget = new Vector2f(ship.getMouseTarget());
             facing = ship.getFacing();
+            portalExit = new Vector2f(ship.getMouseTarget());
 
             ship.setAngularVelocity(0);
             ship.getVelocity().set(new Vector2f(0,0));
@@ -77,17 +88,18 @@ public class SlipspaceDrive extends BaseShipSystemScript {
         if (state == State.OUT ){
             if (!isOut){
 
-            isOut = true;
+                isOut = true;
 
-            stats.getMaxSpeed().unmodify(id);
-            stats.getAcceleration().unmodify(id);
-            stats.getCombatEngineRepairTimeMult().unmodify(id);
-            ship.getLocation().set(mouseTarget);
+                stats.getMaxSpeed().unmodify(id);
+                stats.getAcceleration().unmodify(id);
+                stats.getCombatEngineRepairTimeMult().unmodify(id);
+                ship.getLocation().set(portalExit);
 
+                ship.getVelocity().set(Utils.getVelocityVectorInFacing(ship, 15));
 
             }
+            ship.setJitter(this, Color.white, ship.getSystem().getEffectLevel(), 4, 40f);
 
-            ship.getVelocity().set(Utils.getVelocityVectorInFacing(ship, 0));
         }
     }
 

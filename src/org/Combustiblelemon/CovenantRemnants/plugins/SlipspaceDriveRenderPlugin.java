@@ -2,34 +2,40 @@ package org.Combustiblelemon.CovenantRemnants.plugins;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.*;
+import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.impl.campaign.terrain.RingRenderer;
 import com.fs.starfarer.api.util.Misc;
 import org.Combustiblelemon.CovenantRemnants.utils.CubicCurve2D;
 import org.Combustiblelemon.CovenantRemnants.utils.Utils;
+import org.lazywizard.lazylib.MathUtils;
 import org.lazywizard.lazylib.opengl.DrawUtils;
-import org.lwjgl.opengl.GL11.*;
 import org.lwjgl.util.vector.Vector2f;
+import org.magiclib.util.MagicRender;
 
 import java.awt.*;
 import java.util.EnumSet;
+import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public class SlipspaceDriveRenderPlugin implements CombatLayeredRenderingPlugin {
     protected CombatEngineLayers layer = CombatEngineLayers.JUST_BELOW_WIDGETS;
     protected CombatEntityAPI entity;
-
     final private ShipAPI attachedTo;
-
 	private Vector2f portalLocation;
-	private float facing;
 	private float startTime = 0;
     final private float portalDuration;
-    private boolean isExpired;
     private boolean isPortalActive = false;
     float portalDistance;
     float portalRadius;
 
     final private CubicCurve2D cubicFunction = new CubicCurve2D(.77,.17,.82,.41);
+    final private RingRenderer outerRingRenderer = new RingRenderer("covenant_remnants", "portal_outer_loop");
+    final private RingRenderer innerRingRenderer = new RingRenderer("covenant_remnants", "portal_inner_loop");
+
+    final private SpriteAPI noiseSprite = Global.getSettings().getSprite("covenant_remnants", "portal_noise_long");
+
+    final Vector2f[] texturePoints = MathUtils.getPointsAlongCircumference(new Vector2f(0.5F, 0.5F), 0.5F, 40, 0).toArray(new Vector2f[0]);
 
     public SlipspaceDriveRenderPlugin(ShipAPI attachedTo, float portalDuration, float portalDistance, float portalRadius) {
 	    this.portalDuration = portalDuration;
@@ -87,29 +93,70 @@ public class SlipspaceDriveRenderPlugin implements CombatLayeredRenderingPlugin 
             float effectLevel = attachedTo.getSystem().getEffectLevel();
 
 
+
+            float radius = portalRadius * cubicFunction.getTime(Math.min(effectLevel * 2, 1));
+            float innerRadius = radius * 0.95f;
+            float noiseRadius = innerRadius - 10;
+
+            // Render the outer white ring
+            outerRingRenderer.render(portalLocation, radius, radius* 0.9f, Color.white, false, 1, 1);
+            // Render the inner purple-black ring
+            innerRingRenderer.render(portalLocation, innerRadius, radius * 0.88f, Color.white, false, 1, 1);
+
+            // Fill the inner ring with color
             glDisable(GL_TEXTURE_2D);
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-//            glAccum(GL_ACCUM, 1f);
-
-            Misc.setColor(Color.white);
-            Utils.drawDonut(portalLocation, portalRadius * cubicFunction.getTime(effectLevel), 50, 0.05f);
-
-            Misc.setColor(new Color(139,130,251));
-            Utils.drawDonut(portalLocation, (portalRadius * 0.96f) * cubicFunction.getTime(effectLevel), 50, 0.04f);
-
-
-
-            Misc.setColor(new Color(60,14,70));
-            Utils.drawDonut(portalLocation, (portalRadius * 0.92f) * cubicFunction.getTime(effectLevel), 50, 1f);
-            glDisable(GL_BLEND);
-//            DrawUtils.drawCircle(portalLocation.x,portalLocation.y, (portalRadius * 0.88f) * cubicFunction.getTime(effectLevel), 50, true);
-
+            Misc.setColor(new Color(20,23,34));
+            DrawUtils.drawCircle(portalLocation.x, portalLocation.y, radius * 0.9f , 50, true);
             glEnable(GL_TEXTURE_2D);
+
+            // Get points so we can map the noise texture
+            Vector2f[] points = MathUtils.getPointsAlongCircumference(portalLocation, noiseRadius, 40, 0).toArray(new Vector2f[0]);
+
+            noiseSprite.bindTexture();
+            Misc.setColor(new Color(139,130,251));
+            glBegin(GL_POLYGON);
+
+            for (int i = 0; i < points.length; i++){
+                // use stencil mask?
+                glTexCoord2f(texturePoints[i].x, texturePoints[i].y);
+                glVertex2f(points[i].x, points[i].y);
+
+                // Walk the texture
+                if (!Global.getCombatEngine().isPaused()){
+                    texturePoints[i] = new Vector2f((float) (texturePoints[i].x + 0.004),texturePoints[i].y);
+                }
+            }
+
+            glEnd();
         }
 
-    }
+        // stencil
+        //reset the whole stencil mask to 0s
+//        glClearStencil(0);
+//        glStencilMask(0xff);
+//        //set everything to 0
+//        glClear(GL_STENCIL_BUFFER_BIT);
+//
+//        //disable drawing colour, enable stencil testing
+//        glColorMask(false, false, false, false); //disable colour
+//        glEnable(GL_STENCIL_TEST); //enable stencil
+//
+//        // ... here you render the part of the scene you want masked, this may be a simple triangle or square, or for example a monitor on a computer in your spaceship ...
+//        //begin masking
+//        //put 1s where I want to draw
+//        glStencilFunc(GL_ALWAYS, 1, 0xff); // Do not test the current value in the stencil buffer, always accept any value on there for drawing
+//        glStencilMask(0xff);
+//        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // Make every test succeed
+//
+//        <draw a quad that dictates you want the boundaries of the panel to be>
+//
+//        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Make sure you will no longer (over)write stencil values, even if any test succeeds
+//        glColorMask(true, true, true, true); // Make sure we draw on the backbuffer again.
+//        glStencilFunc(GL_EQUAL, 1, 0xFF); // Now we will only draw pixels where the corresponding stencil buffer value equals 1
+//
+//        <draw the lines>
+//
+//                glDisable(GL_STENCIL_TEST);
 
-//    private void createCircle()
+    }
 }

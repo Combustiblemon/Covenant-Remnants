@@ -1,10 +1,10 @@
 {
   "id": "combustiblelemon_covenant_remnants",
   "name": "Covenant Remnants",
-  "author": "Wisp",
+  "author": "Combustiblelemon",
   "utility": "false",
   "version": "0.1.0",
-  "description": "",
+  "description": "Adds some Covenant ships from Halo to the game.",
   "gameVersion": "0.96a-RC10",
   "jars": ["jars/CovenantRemnants.jar"],
   "modPlugin": "org.Combustiblelemon.CovenantRemnants.CovenantRemnantsPlugin",
