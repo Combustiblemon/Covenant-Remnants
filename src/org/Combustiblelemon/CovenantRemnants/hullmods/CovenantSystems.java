@@ -24,11 +24,24 @@ public class CovenantSystems extends BaseHullMod {
 
 	private static final Set<String> BLOCKED_HULLMODS = new HashSet<>(2);
 	
-	private static final float ARMOR_BONUS_MULT = 1.1f;
-	private static final float ARMOR_BONUS = 100f;
-	private static final float CAPACITY_MULT = 1.05f;
-	private static final float DISSIPATION_MULT = 1.05f;
-	private static final float HANDLING_MULT = 0.92f;
+	private enum ENERGY_WEAPON_RANGE_MULT {
+		CAPITAL_SHIP(1.8f),
+		CRUISER(1.6f),
+		DESTROYER(1.5f),
+		FRIGATE(1.3f),
+		FIGHTER(1.3f);
+
+		private final float value;
+
+		private ENERGY_WEAPON_RANGE_MULT(float value) {
+			this.value = value;
+		}
+
+		public float getValue() {
+			return value;
+		}
+	};
+
 
 	static {
 		BLOCKED_HULLMODS.add("dedicated_targeting_core");
@@ -37,11 +50,7 @@ public class CovenantSystems extends BaseHullMod {
 
 	@Override
 	public boolean isApplicableToShip(ShipAPI ship) {
-		return true;
-	}
-
-	public String getUnapplicableReason(ShipAPI ship) {
-		return null;
+		return false;
 	}
 
 	@Override
@@ -54,25 +63,33 @@ public class CovenantSystems extends BaseHullMod {
 	}
 
 	public void applyEffectsBeforeShipCreation(HullSize hullSize, MutableShipStatsAPI stats, String id) {
-		
-		// just generally better armour - and structure!
-		//stats.getArmorBonus().modifyMult(id, (Float) mag.get(hullSize) + 1.00f); // * ARMOR_BONUS_MULT); 
-		//stats.getHullBonus().modifyPercent(id, (Float) mag.get(hullSize) * 0.5f); // some hull. 
-		stats.getArmorBonus().modifyFlat(id, (Float) ARMOR_BONUS);
-		
-		// 5% better flux stats
-		stats.getFluxCapacity().modifyMult(id, CAPACITY_MULT);
-		stats.getFluxDissipation().modifyMult(id, DISSIPATION_MULT);
+		float rangeMult = 1f;
+		float ENERGY_WEAPON_FLUX_MULT = 0.80f;
 
-		stats.getShieldAbsorptionMult();
-		stats.getShieldDamageTakenMult();
-		
-		// 8% worse handling
-		stats.getMaxSpeed().modifyMult(id, HANDLING_MULT);
-		stats.getAcceleration().modifyMult(id, HANDLING_MULT);
-		stats.getDeceleration().modifyMult(id, HANDLING_MULT);
-		stats.getMaxTurnRate().modifyMult(id, HANDLING_MULT);
-		stats.getTurnAcceleration().modifyMult(id, HANDLING_MULT);
+		switch (hullSize) {
+			case CAPITAL_SHIP:
+				rangeMult = ENERGY_WEAPON_RANGE_MULT.CAPITAL_SHIP.value;
+				break;
+
+			case CRUISER:
+				rangeMult = ENERGY_WEAPON_RANGE_MULT.CRUISER.value;
+				break;
+
+			case DESTROYER:
+				rangeMult = ENERGY_WEAPON_RANGE_MULT.DESTROYER.value;
+				break;
+
+			case FRIGATE:
+				rangeMult = ENERGY_WEAPON_RANGE_MULT.FRIGATE.value;
+				break;
+
+			case FIGHTER:
+				rangeMult = ENERGY_WEAPON_RANGE_MULT.FIGHTER.value;
+				break;
+		}
+
+		stats.getEnergyWeaponRangeBonus().modifyMult(id, rangeMult);
+		stats.getEnergyWeaponFluxCostMod().modifyMult(id, ENERGY_WEAPON_FLUX_MULT);
 	}
 	
 	public String getDescriptionParam(int index, HullSize hullSize) {
@@ -84,9 +101,9 @@ public class CovenantSystems extends BaseHullMod {
 		//if (index == 1) return Misc.getRoundedValue((Float) mag.get(HullSize.DESTROYER) + 1f);
 		//if (index == 2) return Misc.getRoundedValue((Float) mag.get(HullSize.CRUISER) + 1f);
 		//if (index == 3) return Misc.getRoundedValue((Float) mag.get(HullSize.CAPITAL_SHIP) + 1f);
-		if (index == 0) return Misc.getRoundedValue(ARMOR_BONUS);
-		if (index == 1) return "" + (int) Math.round((1f - HANDLING_MULT) * 100f) + "%"; // + Strings.X;
-		if (index == 2) return "" + (int) Math.round((CAPACITY_MULT - 1f) * 100f) + "%"; 
+//		if (index == 0) return Misc.getRoundedValue(ARMOR_BONUS);
+//		if (index == 1) return "" + (int) Math.round((1f - HANDLING_MULT) * 100f) + "%"; // + Strings.X;
+//		if (index == 2) return "" + (int) Math.round((CAPACITY_MULT - 1f) * 100f) + "%";
 		return null;
 	}
 }

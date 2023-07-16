@@ -11,11 +11,13 @@
   "shieldCenter": [0, -0],
   "shieldRadius": 275,
   "viewOffset": 0,
-  "builtInMods": ["advancedshieldemitter", "solar_shielding"],
+  "builtInMods": [
+    "advancedshieldemitter",
+    "solar_shielding",
+    "covenant_remnants_covenantsystems"
+  ],
   "builtInWeapons": {
-    "WS0001": "covenant_remnants_energyprojector",
-    "WS0002": "covenant_remnants_plasmalance",
-    "WS0003": "covenant_remnants_plasmalance"
+    "WS0001": "covenant_remnants_energyprojector"
   },
   "weaponSlots": [
     {
@@ -23,27 +25,126 @@
       "size": "LARGE",
       "type": "BUILT_IN",
       "mount": "HARDPOINT",
-      "arc": 20,
+      "arc": 60,
       "angle": 0,
       "locations": [113, -0]
     },
     {
       "id": "WS0002",
       "size": "LARGE",
-      "type": "BUILT_IN",
-      "mount": "HARDPOINT",
-      "arc": 25,
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 30,
       "angle": 0,
-      "locations": [78.5, 19.5]
+      "locations": [94, 16.5]
     },
     {
       "id": "WS0003",
       "size": "LARGE",
-      "type": "BUILT_IN",
-      "mount": "HARDPOINT",
-      "arc": 25,
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 30,
       "angle": -0,
-      "locations": [79, -15.5]
+      "locations": [94, -16.5]
+    },
+    {
+      "id": "WS0004",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 114,
+      "angle": 30.5,
+      "locations": [63.5, 27.5]
+    },
+    {
+      "id": "WS0005",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 114,
+      "angle": -30.5,
+      "locations": [63.5, -27.5]
+    },
+    {
+      "id": "WS0008",
+      "size": "LARGE",
+      "type": "SYNERGY",
+      "mount": "HARDPOINT",
+      "arc": 30,
+      "angle": 135,
+      "locations": [-47, 73]
+    },
+    {
+      "id": "WS0009",
+      "size": "LARGE",
+      "type": "SYNERGY",
+      "mount": "TURRET",
+      "arc": 30,
+      "angle": -135,
+      "locations": [-47, -73]
+    },
+    {
+      "id": "WS0010",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 292,
+      "angle": 123.5,
+      "locations": [-162, 26]
+    },
+    {
+      "id": "WS0011",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 292,
+      "angle": -123.5,
+      "locations": [-162, -26]
+    },
+    {
+      "id": "WS0014",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": 0,
+      "locations": [191, 13.5]
+    },
+    {
+      "id": "WS0015",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": -0,
+      "locations": [191, -13.5]
+    },
+    {
+      "id": "WS0016",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": 0,
+      "locations": [25, 42.5]
+    },
+    {
+      "id": "WS0017",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": -0,
+      "locations": [25, -42.5]
+    },
+    {
+      "id": "WS0012",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 243,
+      "angle": -175,
+      "locations": [-69, -0]
     }
   ],
   "engineSlots": [
@@ -73,7 +174,15 @@
     }
   ],
   "bounds": [
-    -251, -9.5, -76.5, -83, -40, -114, 45, -62.5, 252.5, -11, 252.5, 11, 45,
-    62.5, -40, 114, -76.5, 83, -251, 9.5
+    -251, -9.5,
+    -76.5, -83,
+    -40, -114,
+    45, -62.5,
+    252.5, -11,
+    252.5, 11,
+    45, 62.5,
+    -40, 114,
+    -76.5, 83,
+    -251, 9.5
   ]
 }

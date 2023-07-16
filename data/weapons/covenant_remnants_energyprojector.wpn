@@ -3,8 +3,8 @@
   "specClass": "beam",
   "type": "ENERGY",
   "size": "LARGE",
-  "beamEffect": "com.fs.starfarer.api.impl.combat.TachyonLanceEffect",
   "collisionClass": "RAY",
+  "everyFrameEffect":"org.Combustiblelemon.CovenantRemnants.weapons.EnergyProjectorEffect",
   "collisionClassByFighter": "RAY_FIGHTER",
   "turretSprite": "graphics/covenant_remnants/weapons/covenant_remnants_energyprojector_turret_base.png",
   "turretGlowSprite": "graphics/covenant_remnants/weapons/covenant_remnants_energyprojector_turret_glow.png",
@@ -32,9 +32,7 @@
     0
   ],
   "fringeColor": [
-    85,
-    25,
-    215,
+    139,130,251,
     255
   ],
   "coreColor": [
@@ -43,7 +41,7 @@
     255,
     255
   ],
-  "width": 25,
+  "width": 30,
   "textureType": ROUGH,
   "textureScrollSpeed": 292,
   "pixelsPerTexel": 5,

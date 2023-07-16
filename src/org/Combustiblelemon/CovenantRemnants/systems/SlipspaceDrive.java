@@ -31,14 +31,16 @@ public class SlipspaceDrive extends BaseShipSystemScript {
 
     float PORTAL_DISTANCE = 1000;
     float PORTAL_RADIUS = 500;
-    float SYSTEM_USE_DISTANCE = 1800;
+    float SYSTEM_USE_DISTANCE = 1000;
 
 //    OUT
     boolean isOut = false;
 
     public boolean isUsable(ShipSystemAPI system, ShipAPI ship) {
+
+        return !system.isActive() &&
                 // Distance to exit is larger than SYSTEM_USE_DISTANCE
-        return MathUtils.getDistance(ship, ship.getMouseTarget()) > SYSTEM_USE_DISTANCE &&
+                MathUtils.getDistance(ship, ship.getMouseTarget()) > SYSTEM_USE_DISTANCE &&
                 // No ships within the exit radius
                 CombatUtils.getShipsWithinRange(ship.getMouseTarget(), ship.getShield().getRadius()).size() == 0;
     }

@@ -1,0 +1,44 @@
+{
+  "id": "covenant_remnants_plasmaartillery",
+  "specClass": "projectile",
+  "projectileSpecId": "covenant_remnants_plasmacannon_plasma_big",
+  "type": "ENERGY",
+  "size": "LARGE",
+  "displayArcRadius": 450,
+  "turretSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmaartillery_turret.png",
+  "hardpointSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmaartillery_hardpoint.png",
+  "renderHints": [
+    RENDER_BARREL_BELOW
+  ],
+  "turretOffsets": [
+    29,
+    0
+  ],
+  "turretAngleOffsets": [
+    0
+  ],
+  "hardpointOffsets": [
+    36,
+    0
+  ],
+  "hardpointAngleOffsets": [
+    0
+  ],
+  "barrelMode": "LINKED",
+  "animationType": "MUZZLE_FLASH",
+  "muzzleFlashSpec": {
+    "length": 34,
+    "spread": 10,
+    "particleSizeMin": 18,
+    "particleSizeRange": 24,
+    "particleDuration": 0.12,
+    "particleCount": 12,
+    "particleColor": [
+      255,
+      185,
+      215,
+      215
+    ]
+  },
+  "fireSoundTwo": "mjolnir_fire"
+}

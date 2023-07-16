@@ -2,4 +2,4 @@ name,id,flux/second,f/s (base rate),f/s (base cap),flux/use,f/u (base rate),f/u 
 Plasma Missile Barrage,covenant_remnants_plasmabarrage_capital,,,,,,,,,,,,,30,,,,,,,,,,,,,graphics/icons/hullsys/flare_launcher.png
 Plasma Missile,covenant_remnants_plasmabarrage_frigate,,,,,,,,,,,,,15,,,,,,,,,,,,,graphics/icons/hullsys/flare_launcher.png
 EMP System,covenant_remnants_pd_frigate,1,,,,,0.2,,,,0.5,4,0.5,3,,,,,TRUE,,,,,,,,graphics/icons/hullsys/emp_emitter.png
-Slipspace Drive,covenant_remnants_slipspacedrive,,,,,,,,,,5,2,3,1,,,,,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,,,graphics/icons/hullsys/flare_launcher.png
+Slipspace Drive,covenant_remnants_slipspacedrive,,,,,,,,,,8,2,3,1,,,,,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,,,graphics/icons/hullsys/flare_launcher.png
