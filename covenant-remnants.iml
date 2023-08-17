@@ -11,5 +11,6 @@
     <orderEntry type="library" name="CombatActivators" level="project" />
     <orderEntry type="library" name="MagicLib" level="project" />
     <orderEntry type="library" name="LazyLib" level="project" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>
