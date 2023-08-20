@@ -1,4 +1,4 @@
-package org.Combustiblelemon.CovenantRemnants.utils
+package org.combustiblelemon.covenantremnants.utils
 
 import org.lwjgl.util.vector.Vector2f
 

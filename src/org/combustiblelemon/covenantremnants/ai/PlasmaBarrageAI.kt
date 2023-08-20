@@ -1,9 +1,9 @@
-package org.Combustiblelemon.CovenantRemnants.ai
+package org.combustiblelemon.covenantremnants.ai
 
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.api.util.Misc
-import org.Combustiblelemon.CovenantRemnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.util.vector.Vector2f
 
 class PlasmaBarrageAI : ShipSystemAIScript {

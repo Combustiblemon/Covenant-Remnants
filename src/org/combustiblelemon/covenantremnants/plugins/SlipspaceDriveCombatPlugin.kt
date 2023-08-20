@@ -1,4 +1,4 @@
-package org.Combustiblelemon.CovenantRemnants.plugins
+package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin
 import com.fs.starfarer.api.combat.CombatEngineAPI

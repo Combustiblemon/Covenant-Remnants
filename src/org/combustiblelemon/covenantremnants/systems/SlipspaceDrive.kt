@@ -1,4 +1,4 @@
-package org.Combustiblelemon.CovenantRemnants.systems
+package org.combustiblelemon.covenantremnants.systems
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
@@ -6,9 +6,9 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
-import org.Combustiblelemon.CovenantRemnants.plugins.SlipspaceDriveRenderPlugin
-import org.Combustiblelemon.CovenantRemnants.utils.CubicCurve2D
-import org.Combustiblelemon.CovenantRemnants.utils.Utils
+import org.combustiblelemon.covenantremnants.plugins.SlipspaceDriveRenderPlugin
+import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
+import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.combat.CombatUtils
 import org.lwjgl.util.vector.Vector2f
@@ -37,7 +37,9 @@ class SlipspaceDrive : BaseShipSystemScript() {
     override fun isUsable(system: ShipSystemAPI, ship: ShipAPI): Boolean {
         // Distance to exit is larger than SYSTEM_USE_DISTANCE
         // No ships within the exit radius
-        return !system.isActive && MathUtils.getDistance(ship, ship.mouseTarget) > systemUseDistance && CombatUtils.getShipsWithinRange(ship.mouseTarget, ship.shield.radius).size == 0
+        return !system.isActive && MathUtils.getDistance(ship, ship.mouseTarget) > systemUseDistance && CombatUtils.getShipsWithinRange(ship.mouseTarget,
+            ship.shieldRadiusEvenIfNoShield
+        ).size == 0
     }
 
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effectLevel: Float) {
@@ -49,8 +51,8 @@ class SlipspaceDrive : BaseShipSystemScript() {
         }
         val currentTime = Global.getCombatEngine().getTotalElapsedTime(false)
         if (renderPlugin == null) {
-            renderPlugin = SlipspaceDriveRenderPlugin(ship, portalDuration, portalDistance, portalRadius)
-            Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
+            renderPlugin = SlipspaceDriveRenderPlugin(ship, portalDuration, portalDistance, portalRadius);
+            Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin);
         }
         if (state == ShipSystemStatsScript.State.IN && !isIn) {
             isIn = true

@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="CombatActivators">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../Combat-Activators-v1.1.0/jars/CombatActivators.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>

@@ -1,0 +1,25 @@
+{
+	"id":"covenant_remnants_covenantshield",
+	"type":"STAT_MOD",
+	"aiType":"DAMPER_FIELD",
+
+	"statsScript":"org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats",
+
+	#"weaponGlowColor":[255,165,90,0],
+	#"weaponTypes":[ENERGY, BALLISTIC, MISSILE],
+
+	#"engineGlowColor":[255,90,255,255],
+
+	"soundFilterType":"LOWPASS",
+	"soundFilterGain":0.75,
+	"soundFilterGainHF":0.25,
+
+	"fadeActivationSoundOnChargedown":true,
+	"useSound":"system_damper",
+	"loopSound":"system_damper_loop",
+	"deactivateSound":"system_damper_off",
+	"outOfUsesSound":"gun_out_of_ammo",
+
+	"aiHints":{
+	}
+}

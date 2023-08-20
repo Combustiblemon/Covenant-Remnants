@@ -4,7 +4,7 @@
   "type": "ENERGY",
   "size": "LARGE",
   "collisionClass": "RAY",
-  "everyFrameEffect":"weapons.org.combustiblelemon.covenantRemnants.EnergyProjectorEffect",
+  "everyFrameEffect":"org.combustiblelemon.covenantremnants.weapons.EnergyProjectorEffect",
   "collisionClassByFighter": "RAY_FIGHTER",
   "turretSprite": "graphics/covenant_remnants/weapons/covenant_remnants_energyprojector_turret_base.png",
   "turretGlowSprite": "graphics/covenant_remnants/weapons/covenant_remnants_energyprojector_turret_glow.png",

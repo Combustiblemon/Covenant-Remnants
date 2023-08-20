@@ -1,4 +1,4 @@
-package org.Combustiblelemon.CovenantRemnants
+package org.combustiblelemon.covenantremnants
 
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global

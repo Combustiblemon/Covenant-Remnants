@@ -1,11 +1,11 @@
-package org.Combustiblelemon.CovenantRemnants.plugins
+package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.impl.campaign.terrain.RingRenderer
 import com.fs.starfarer.api.util.Misc
-import org.Combustiblelemon.CovenantRemnants.utils.CubicCurve2D
-import org.Combustiblelemon.CovenantRemnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
+import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lwjgl.opengl.GL11
@@ -13,9 +13,9 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
 
-class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val portalDuration: Float, var portalDistance: Float, var portalRadius: Float) : CombatLayeredRenderingPlugin {
-    protected var layer = CombatEngineLayers.JUST_BELOW_WIDGETS
-    protected var entity: CombatEntityAPI? = null
+class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val portalDuration: Float, private var portalDistance: Float, private var portalRadius: Float) : CombatLayeredRenderingPlugin {
+    private var layer = CombatEngineLayers.JUST_BELOW_WIDGETS
+    private var entity: CombatEntityAPI? = null
     private var portalLocation: Vector2f? = null
     private var startTime = 0f
     private val startUpTime = 3f
@@ -24,7 +24,7 @@ class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val p
     private val outerRingRenderer = RingRenderer("covenant_remnants", "portal_outer_loop")
     private val innerRingRenderer = RingRenderer("covenant_remnants", "portal_inner_loop")
     private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "portal_noise_long")
-    val texturePoints = MathUtils.getPointsAlongCircumference(Vector2f(0.5f, 0.5f), 0.5f, 40, 0f).toTypedArray<Vector2f>()
+    private val texturePoints = MathUtils.getPointsAlongCircumference(Vector2f(0.5f, 0.5f), 0.5f, 40, 0f).toTypedArray<Vector2f>()
     private var effectLevelExtra = 0f
     private var counter = 0
     private var reverse = false
@@ -33,6 +33,7 @@ class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val p
         if (!attachedTo!!.system.isActive) {
             return
         }
+
         val currentTime = Global.getCombatEngine().getTotalElapsedTime(false)
 
         // RENDER PORTAL
@@ -71,15 +72,15 @@ class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val p
                 if (effectLevelExtra == 0f) {
                     effectLevelExtra = effectLevel
                 }
-                renderPortal(Math.min(Math.max(effectLevel - effectLevelExtra, 0f) * 3, 1f))
+                renderPortal(((effectLevel - effectLevelExtra).coerceAtLeast(0f) * 3).coerceAtMost(1f))
             }
         }
     }
 
     private fun renderPortal(radiusMultiplier: Float) {
-        val radius = portalRadius * cubicFunction.getTime(Math.min(radiusMultiplier, 1f))
+        val radius = portalRadius * cubicFunction.getTime(radiusMultiplier.coerceAtMost(1f))
         val innerRadius = radius * 0.95f
-        val noiseRadius = Math.max(innerRadius - 10, 0f)
+        val noiseRadius = (innerRadius - 10).coerceAtLeast(0f)
 
         // Render the outer white ring
         outerRingRenderer.render(portalLocation, radius, radius * 0.9f, Color.white, false, 1f, 1f)

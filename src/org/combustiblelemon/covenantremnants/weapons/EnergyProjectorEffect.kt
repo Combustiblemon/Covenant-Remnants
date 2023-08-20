@@ -1,4 +1,4 @@
-package org.Combustiblelemon.CovenantRemnants.weapons
+package org.combustiblelemon.covenantremnants.weapons
 
 import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.EveryFrameWeaponEffectPlugin
