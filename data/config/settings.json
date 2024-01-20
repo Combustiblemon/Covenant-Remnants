@@ -6,13 +6,9 @@
     "covenant_remnants": {
       "portal_outer_loop": "graphics/covenant_remnants/fx/slipspace/slipspace_portal_ring_outer.png",
       "portal_inner_loop": "graphics/covenant_remnants/fx/slipspace/slipspace_portal_ring_inner.png",
-      "portal_noise1": "graphics/covenant_remnants/fx/slipspace/noise1.png",
-      "portal_noise2": "graphics/covenant_remnants/fx/slipspace/noise2.png",
-      "portal_noise3": "graphics/covenant_remnants/fx/slipspace/noise3.png",
-      "portal_noise4": "graphics/covenant_remnants/fx/slipspace/noise4.png",
-      "portal_noise5": "graphics/covenant_remnants/fx/slipspace/noise5.png",
-      "portal_noise6": "graphics/covenant_remnants/fx/slipspace/noise6.png",
-      "portal_noise_long": "graphics/covenant_remnants/fx/slipspace/noiseTexture.png"
+      "portal_noise_long": "graphics/covenant_remnants/fx/slipspace/noiseTexture.png",
+      "shield_noise": "graphics/covenant_remnants/fx/shield/noise.png",
+      "shield_noise2": "graphics/covenant_remnants/fx/shield/shield_tex.png"
     }
   }
 }

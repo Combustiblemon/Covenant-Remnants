@@ -1,7 +1,8 @@
 name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,script,desc,short,sModDesc,sprite
 #Fourteenth Battlegroup,,,,,,,,,TRUE,,0,0,0,0,,,,,
 #Militarized Hegemony Auxiliary,,,,,,,,,TRUE,,0,0,0,0,,,,,
-Covenant Systems,covenant_remnants_covenantsystems,,,The Covenant,,,,,TRUE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantSystems,"This ship’s systems are incoprehensible and are clearly not domain technology.
+Covenant Systems,covenant_remnants_covenantsystems,,,Covenant,,,,,TRUE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantSystems,"This ship’s systems are incoprehensible and are clearly not domain technology.
+
 Improves energy weapon stats:
-    Improves range by %s/%s/%s/%s depending on hull size.
-    Reduces flux generation by %s.",,,
+ Increase range by %s/%s/%s/%s depending on hull size.
+ Reduce weapon flux generation by %s.",,,

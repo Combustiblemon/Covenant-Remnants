@@ -3,7 +3,7 @@
   "hullId": "covenant_remnants_banshee",
   "hullSize": "FIGHTER",
   "spriteName": "graphics/covenant_remnants/ships/banshee_h3.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 38,
   "width": 44,
   "center": [22, 19],

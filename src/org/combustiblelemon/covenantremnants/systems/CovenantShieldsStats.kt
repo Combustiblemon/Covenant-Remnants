@@ -15,11 +15,8 @@ import org.lwjgl.util.vector.Vector2f
 class CovenantShieldsStats : BaseShipSystemScript() {
     private var statuskey = Any()
     private var renderPlugin: CovenantShieldsRenderPlugin? = null
+    private var damageListener: ShieldDamageListener? = null
 
-    private var damageListener: ShieldDamageListener?  = null
-
-    //public static final float INCOMING_DAMAGE_MULT = 0.25f;
-    //public static final float INCOMING_DAMAGE_CAPITAL = 0.5f;
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effLevel: Float) {
         var ship: ShipAPI? = null
         var player = false
@@ -28,23 +25,24 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             ship = stats.entity as ShipAPI
             player = ship === Global.getCombatEngine().playerShip
         } else {
-            return;
+            return
         }
 
         if (renderPlugin == null) {
-            renderPlugin = CovenantShieldsRenderPlugin(ship);
-            Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin);
+            renderPlugin = CovenantShieldsRenderPlugin(ship)
+            Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
         }
 
         if (damageListener == null) {
-            damageListener  = ShieldDamageListener(ship)
+            damageListener = ShieldDamageListener(ship)
             ship.addListener(damageListener)
         }
 
         if (player) {
             val system = getShield(ship)
 
-            Global.getCombatEngine().maintainStatusForPlayerShip(statuskey, system.specAPI.iconSpriteName, "Shield active", "", false)
+            Global.getCombatEngine()
+                .maintainStatusForPlayerShip(statuskey, system.specAPI.iconSpriteName, "Shield active", "", false)
         }
     }
 
@@ -57,10 +55,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             point: Vector2f?,
             shieldHit: Boolean
         ): String {
-            if (attachedTo.phaseCloak.isActive){
-                val damageNumber = damage!!.damage * 0.5f
+            if (attachedTo.phaseCloak.isActive) {
+                val damageNumber = damage!!.damage * 0.6f
 
-                if (attachedTo.fluxTracker.currFlux + damageNumber >= attachedTo.fluxTracker.maxFlux ){
+
+                if (attachedTo.fluxTracker.currFlux + damageNumber >= attachedTo.fluxTracker.maxFlux) {
                     attachedTo.fluxTracker.forceOverload(0f)
                 }
 

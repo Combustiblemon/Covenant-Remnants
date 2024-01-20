@@ -3,7 +3,7 @@
   "hullId": "covenant_remnants_phantom",
   "hullSize": "FRIGATE",
   "spriteName": "graphics/covenant_remnants/ships/phantom.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 117,
   "width": 72,
   "center": [36, 58.5],

@@ -3,4 +3,4 @@ Plasma Missile Barrage,covenant_remnants_plasmabarrage_capital,,,,,,,,,,,,,30,,,
 Plasma Missile,covenant_remnants_plasmabarrage_frigate,,,,,,,,,,,,,15,,,,,,,,,,,,,graphics/icons/hullsys/flare_launcher.png
 EMP System,covenant_remnants_pd_frigate,,,,,,0.2,,,,0.5,4,0.5,3,,,,,TRUE,,,,,,,,graphics/icons/hullsys/emp_emitter.png
 Slipspace Drive,covenant_remnants_slipspacedrive,,,,,,,,,,8,2,3,1,,,,,TRUE,TRUE,TRUE,TRUE,TRUE,TRUE,,,graphics/icons/hullsys/flare_launcher.png
-Covenant Shield,covenant_remnants_covenantshield,,,,,,,,,,1,,0.25,0,TRUE,,,,,,,,TRUE,TRUE,,,graphics/icons/hullsys/damper_field.png
+Covenant Shield,covenant_remnants_covenantshield,,,,,,,,,,1,,0.25,0,TRUE,,,,,,,,TRUE,,,,graphics/icons/hullsys/damper_field.png

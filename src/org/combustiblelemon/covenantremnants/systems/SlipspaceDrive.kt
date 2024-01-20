@@ -37,9 +37,17 @@ class SlipspaceDrive : BaseShipSystemScript() {
     override fun isUsable(system: ShipSystemAPI, ship: ShipAPI): Boolean {
         // Distance to exit is larger than SYSTEM_USE_DISTANCE
         // No ships within the exit radius
-        return !system.isActive && MathUtils.getDistance(ship, ship.mouseTarget) > systemUseDistance && CombatUtils.getShipsWithinRange(ship.mouseTarget,
-            ship.shieldRadiusEvenIfNoShield
-        ).size == 0
+        return !system.isActive &&
+                MathUtils.getDistance(
+                    ship,
+                    ship.mouseTarget
+                ) > systemUseDistance &&
+
+                ship.fluxTracker.currFlux / ship.fluxTracker.maxFlux < 0.7 &&
+                CombatUtils.getShipsWithinRange(
+                    ship.mouseTarget,
+                    ship.shieldRadiusEvenIfNoShield
+                ).size == 0
     }
 
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effectLevel: Float) {
@@ -50,20 +58,22 @@ class SlipspaceDrive : BaseShipSystemScript() {
             return
         }
         val currentTime = Global.getCombatEngine().getTotalElapsedTime(false)
+
         if (renderPlugin == null) {
-            renderPlugin = SlipspaceDriveRenderPlugin(ship, portalDuration, portalDistance, portalRadius);
-            Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin);
+            renderPlugin = SlipspaceDriveRenderPlugin(ship, portalDuration, portalDistance, portalRadius)
+            Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
         }
+
         if (state == ShipSystemStatsScript.State.IN && !isIn) {
             isIn = true
             facing = ship.facing
             portalExit = Vector2f(ship.mouseTarget)
             ship.angularVelocity = 0f
             ship.velocity.set(Vector2f(0f, 0f))
-            ship.fluxTracker.currFlux = 0f
             stats.combatEngineRepairTimeMult.modifyMult(id, 0f)
             stats.maxSpeed.modifyFlat(id, 300f)
         }
+
         if (state == ShipSystemStatsScript.State.ACTIVE) {
             if (!isActive) {
                 isActive = true
@@ -75,6 +85,7 @@ class SlipspaceDrive : BaseShipSystemScript() {
         }
         if (state == ShipSystemStatsScript.State.OUT) {
             if (!isOut) {
+                ship.fluxTracker.currFlux = ship.fluxTracker.maxFlux * 0.8f
                 isOut = true
                 stats.maxSpeed.unmodify(id)
                 stats.acceleration.unmodify(id)

@@ -3,7 +3,7 @@
   "hullId": "covenant_remnants_hauler",
   "hullSize": "DESTROYER",
   "spriteName": "graphics/covenant_remnants/ships/scout.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 150,
   "width": 51,
   "center": [25.5, 75],

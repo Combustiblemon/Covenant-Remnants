@@ -9,11 +9,17 @@ import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL14
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
 
-class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val portalDuration: Float, private var portalDistance: Float, private var portalRadius: Float) : CombatLayeredRenderingPlugin {
+class SlipspaceDriveRenderPlugin(
+    private val attachedTo: ShipAPI?,
+    private val portalDuration: Float,
+    private var portalDistance: Float,
+    private var portalRadius: Float
+) : CombatLayeredRenderingPlugin {
     private var layer = CombatEngineLayers.JUST_BELOW_WIDGETS
     private var entity: CombatEntityAPI? = null
     private var portalLocation: Vector2f? = null
@@ -24,12 +30,15 @@ class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val p
     private val outerRingRenderer = RingRenderer("covenant_remnants", "portal_outer_loop")
     private val innerRingRenderer = RingRenderer("covenant_remnants", "portal_inner_loop")
     private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "portal_noise_long")
-    private val texturePoints = MathUtils.getPointsAlongCircumference(Vector2f(0.5f, 0.5f), 0.5f, 40, 0f).toTypedArray<Vector2f>()
+    private val texturePoints =
+        MathUtils.getPointsAlongCircumference(Vector2f(0.5f, 0.5f), 0.5f, 40, 0f).toTypedArray<Vector2f>()
     private var effectLevelExtra = 0f
     private var counter = 0
     private var reverse = false
     private var reverseLevel = 0f
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
+        // TODO: IMPROVE VISUALS
+        // TODO: APPLY DAMAGE TO NON SHIELDED SHIPS IN RADIUS
         if (!attachedTo!!.system.isActive) {
             return
         }
@@ -58,9 +67,11 @@ class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val p
                 GL11.glEnable(GL11.GL_TEXTURE_2D)
                 if (counter > 9) {
                     counter = 0
-                    Global.getCombatEngine().spawnEmpArcVisual(portalLocation, null,
-                            MathUtils.getRandomPointInCircle(portalLocation, radius * 1.1f),
-                            null, 5f, Color(139, 130, 251), Color.white)
+                    Global.getCombatEngine().spawnEmpArcVisual(
+                        portalLocation, null,
+                        MathUtils.getRandomPointInCircle(portalLocation, radius * 1.1f),
+                        null, 5f, Color(139, 130, 251), Color.white
+                    )
                 } else {
                     counter++
                 }
@@ -98,6 +109,9 @@ class SlipspaceDriveRenderPlugin(private val attachedTo: ShipAPI?, private val p
         noiseSprite.bindTexture()
         Misc.setColor(Color(139, 130, 251))
         GL11.glBegin(GL11.GL_POLYGON)
+        GL11.glEnable(GL11.GL_BLEND)
+        GL14.glBlendEquation(GL14.GL_FUNC_ADD)
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
         for (i in points.indices) {
             // use stencil mask?
             GL11.glTexCoord2f(texturePoints[i].x, texturePoints[i].y)

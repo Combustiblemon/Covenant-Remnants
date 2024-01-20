@@ -3,7 +3,7 @@
   "hullId": "covenant_remnants_sdv",
   "hullSize": "DESTROYER",
   "spriteName": "graphics/covenant_remnants/ships/sdv_heavy_corvette.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 180,
   "width": 71,
   "center": [35.5, 90],
