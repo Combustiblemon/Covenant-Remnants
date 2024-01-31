@@ -12,5 +12,5 @@ Energy Projector,covenant_remnants_energyprojector,3,,8000,1000,3000,,,0,5,0,,,,
 Plasma Missile Launcher (F),covenant_remnants_plasmamissile_fighter,3,,40000,1000,,1500,,15,50,0,1,,,HIGH_EXPLOSIVE,0,,0,5,1,,0,0,0,0,,1000,200,10,400,,,STRIKE,"no_drop, no_drop_salvage",,The Covenant,,Torpedo,Fast,Excellent,,,,,,,,1
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 #SYSTEM,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-Plasma Torpedo Launcher,covenant_remnants_plasmabarrage_capital,,,40000,1800,,1000,200,0,30,0,3,0.1,,ENERGY,1000,,0,0,1,10,0,0,0,0,,400,200,15,600,,,"DO_NOT_AIM, DO_NOT_CONSERVE, SYSTEM","no_drop, no_drop_salvage",,The Covenant,,Anti Capital,Extremely Fast,Excellent,,,,,,,,1
+Plasma Torpedo Launcher,covenant_remnants_plasmabarrage_capital,,,40000,1800,,1000,200,0,30,0,3,0.05,,ENERGY,1000,,2,10,1,10,0,0,0,0,,400,200,15,600,,,"DO_NOT_AIM, DO_NOT_CONSERVE, SYSTEM","no_drop, no_drop_salvage",,The Covenant,,Anti Capital,Extremely Fast,Excellent,,,,,,,,1
 ,covenant_remnants_plasmabarrage_frigate,,,40000,1000,,1000,,0,50,0,1,2,,FRAGMENTATION,1000,,0,1,1,,0,0,0,0,,500,200,15,10000,,,"DO_NOT_AIM, DO_NOT_CONSERVE, SYSTEM","no_drop, no_drop_salvage",,The Covenant,,Anti Hull,Extremely Fast,Excellent,,,,,,,,1

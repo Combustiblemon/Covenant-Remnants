@@ -2,20 +2,33 @@ package org.combustiblelemon.covenantremnants.systems
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.combat.listeners.ApplyDamageResultAPI
-import com.fs.starfarer.api.combat.listeners.DamageListener
+import com.fs.starfarer.api.combat.listeners.AdvanceableListener
 import com.fs.starfarer.api.combat.listeners.DamageTakenModifier
-import com.fs.starfarer.api.combat.listeners.HullDamageAboutToBeTakenListener
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
-import com.thoughtworks.xstream.mapper.Mapper.Null
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
+import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.util.vector.Vector2f
 
 class CovenantShieldsStats : BaseShipSystemScript() {
     private var statuskey = Any()
     private var renderPlugin: CovenantShieldsRenderPlugin? = null
     private var damageListener: ShieldDamageListener? = null
+    private var overloadListenerInstance: OverloadListener? = null
+
+    private class OverloadListener(private val ship: ShipAPI) : AdvanceableListener {
+        private var overloaded: Boolean = false
+        override fun advance(amount: Float) {
+            if (ship.fluxTracker.isOverloaded && !overloaded) {
+                Utils.logText("OVERLOADED")
+                overloaded = true
+            } else if (
+                !ship.fluxTracker.isOverloaded && overloaded
+            ) {
+                overloaded = false
+            }
+        }
+    }
 
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effLevel: Float) {
         var ship: ShipAPI? = null
@@ -28,6 +41,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             return
         }
 
+
         if (renderPlugin == null) {
             renderPlugin = CovenantShieldsRenderPlugin(ship)
             Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
@@ -38,8 +52,15 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             ship.addListener(damageListener)
         }
 
+        if (overloadListenerInstance == null) {
+            overloadListenerInstance = OverloadListener(ship)
+            ship.addListener(overloadListenerInstance)
+        }
+
         if (player) {
             val system = getShield(ship)
+
+
 
             Global.getCombatEngine()
                 .maintainStatusForPlayerShip(statuskey, system.specAPI.iconSpriteName, "Shield active", "", false)
@@ -56,8 +77,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             shieldHit: Boolean
         ): String {
             if (attachedTo.phaseCloak.isActive) {
-                val damageNumber = damage!!.damage * 0.6f
-
+                val damageNumber = damage!!.damage
 
                 if (attachedTo.fluxTracker.currFlux + damageNumber >= attachedTo.fluxTracker.maxFlux) {
                     attachedTo.fluxTracker.forceOverload(0f)
