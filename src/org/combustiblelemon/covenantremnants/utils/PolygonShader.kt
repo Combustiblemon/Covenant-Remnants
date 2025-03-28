@@ -13,7 +13,12 @@ class PolygonShader(
     private var borderColorRGBA: FloatArray = floatArrayOf(1f, 1f, 1f, 1f),
     private var borderWidth: Float = 10f,
     private var glowIntensity: Float = 0f,
-    private var glowWidth: Float = 20f  // New parameter for glow width
+    private var glowWidth: Float = 20f,  // New parameter for glow width
+    private var rippleCenter: Pair<Float, Float>? = null,
+    private var rippleRadius: Float = 0f,
+    private var rippleWidth: Float = 10f,
+    private var rippleColor: FloatArray = floatArrayOf(1f, 1f, 1f, 0.5f),
+    private var rippleTime: Float = 0f
 ) {
     private var tess: GLUtessellator = GLU.gluNewTess()
     private var vbo: Int = 0
@@ -22,6 +27,7 @@ class PolygonShader(
     private var rotation: Float = 0f
     private var centerX: Float = 0f
     private var centerY: Float = 0f
+    private var rippleActive = false
 
     init {
         init()
@@ -102,6 +108,25 @@ class PolygonShader(
     fun updateGlow(intensity: Float, width: Float) {
         glowIntensity = intensity.coerceIn(0f, 1f)
         glowWidth = width
+    }
+
+    fun startRipple(x: Float, y: Float, width: Float, r: Int, g: Int, b: Int, a: Int) {
+        rippleCenter = Pair(x, y)
+        rippleWidth = width
+        rippleRadius = 1f  // Start with small non-zero radius
+        rippleColor = floatArrayOf(r / 255f, g / 255f, b / 255f, a / 100f)
+        rippleTime = 0f
+    }
+
+    fun updateRipple(deltaTime: Float, speed: Float = 400f) {  // Increased speed
+        if (rippleCenter != null) {
+            rippleTime += deltaTime
+            rippleRadius += speed * deltaTime
+
+            if (rippleRadius > 1000f) {
+                rippleCenter = null
+            }
+        }
     }
 
     private fun calculateCenter(points: List<Float>): Pair<Float, Float> {
@@ -317,6 +342,80 @@ class PolygonShader(
         return result
     }
 
+    private fun drawRipple(points: List<Float>) {
+        if (rippleCenter == null) return
+
+        val center = rippleCenter!!
+
+        // Find bounds of the shape
+        var minX = Float.MAX_VALUE
+        var minY = Float.MAX_VALUE
+        var maxX = Float.MIN_VALUE
+        var maxY = Float.MIN_VALUE
+
+        for (i in points.indices step 2) {
+            val x = points[i]
+            val y = points[i + 1]
+            minX = minX.coerceAtMost(x)
+            minY = minY.coerceAtMost(y)
+            maxX = maxX.coerceAtLeast(x)
+            maxY = maxY.coerceAtLeast(y)
+        }
+
+        // Enable stencil testing
+        glEnable(GL_STENCIL_TEST)
+        glClear(GL_STENCIL_BUFFER_BIT)
+
+        // Create mask
+        glStencilFunc(GL_ALWAYS, 1, 1)
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
+        glColorMask(false, false, false, false)
+
+        // Draw shape mask
+        tess.gluTessBeginPolygon(null)
+        tess.gluTessBeginContour()
+        for (i in points.indices step 2) {
+            val vertexArray = doubleArrayOf(points[i].toDouble(), points[i + 1].toDouble(), 0.0)
+            tess.gluTessVertex(vertexArray, 0, vertexArray)
+        }
+        tess.gluTessEndContour()
+        tess.gluTessEndPolygon()
+
+        // Setup for ripple drawing
+        glStencilFunc(GL_EQUAL, 1, 1)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        glColorMask(true, true, true, true)
+
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+
+        // Draw ripple using concentric rings
+        val numRings = 16
+        val ringSpacing = rippleWidth / numRings
+
+        glBegin(GL_TRIANGLE_STRIP)
+        for (i in 0..numRings) {
+            val radius = rippleRadius + (i - numRings/2) * ringSpacing
+            val t = 1.0f - kotlin.math.abs(i - numRings/2) / (numRings/2f)
+            val alpha = rippleColor[3] * t
+
+            // Draw points around the circle
+            for (angle in 0..360 step 10) {
+                val radian = Math.toRadians(angle.toDouble()).toFloat()
+                val x = center.first + radius * kotlin.math.cos(radian)
+                val y = center.second + radius * kotlin.math.sin(radian)
+
+                glColor4f(rippleColor[0], rippleColor[1], rippleColor[2], alpha)
+                glVertex2f(x, y)
+            }
+        }
+        glEnd()
+
+        // Restore states
+        glDisable(GL_STENCIL_TEST)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    }
+
     fun drawPolygon() {
         if (polygonPoints.isEmpty()) return
 
@@ -392,6 +491,9 @@ class PolygonShader(
 
         tess.gluTessEndContour()
         tess.gluTessEndPolygon()
+
+        // Draw ripple effect on top
+        drawRipple(smoothBase)
 
         // Restore state
         glEnable(GL_TEXTURE_2D)

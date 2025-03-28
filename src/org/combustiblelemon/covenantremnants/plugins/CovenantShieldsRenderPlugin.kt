@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.plugins
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.utils.PolygonShader
+import org.lwjgl.input.Keyboard
 import org.lwjgl.util.vector.Vector2f
 import java.util.*
 import kotlin.math.abs
@@ -27,12 +28,24 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
 
     private lateinit var entity: CombatEntityAPI
 
-    override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
-        if (!attachedTo.phaseCloak.isActive) {
-            return
-        }
+    private var rippleStarted = false
+    private var rippleActive = false
+    private var wasKeyPressed = false
+    private var rippleStartTime = 0f
+    private var currentTime = 0f
 
-        renderShield()
+    override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
+        // Debug: Check for R key press
+        if (Keyboard.isKeyDown(Keyboard.KEY_R) && !wasKeyPressed) {
+            this.triggerRippleAtAngle(45f)
+        }
+        wasKeyPressed = Keyboard.isKeyDown(Keyboard.KEY_R)
+
+        val isPhaseActive = attachedTo.phaseCloak.isActive
+
+        if (isPhaseActive) {
+            renderShield()
+        }
     }
 
     private fun renderShield() {
@@ -104,9 +117,18 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
         }
     }
 
-    override fun advance(amount: Float) {}
+    override fun advance(amount: Float) {
+        currentTime += amount
+
+        if (rippleActive) {
+            // Start ripple immediately at current radius
+            shader.updateRipple(amount, 1000f)
+        }
+    }
+
     override fun cleanup() {
         shader.cleanup()
+        rippleStarted = false
     }
 
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> {
@@ -123,5 +145,40 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
 
     override fun isExpired(): Boolean {
         return false
+    }
+
+    /**
+     * Triggers a ripple effect at the shield's edge based on an angle
+     * @param angleInDegrees The angle in degrees (0-360) where 0 is right, 90 is up
+     * @param alpha The opacity of the ripple (0-100)
+     */
+    fun triggerRippleAtAngle(angleInDegrees: Float, alpha: Int = 80) {
+        val radians = Math.toRadians(angleInDegrees.toDouble())
+
+        // Get the shield's dimensions
+        val radiusX = (maxX - minX) / 2
+        val radiusY = abs(maxY - minY) / 2
+        val centerX = attachedTo.location.x
+        val centerY = attachedTo.location.y
+
+        // Calculate point on edge of shield (approximating as ellipse)
+        val x = centerX + radiusX * cos(radians).toFloat()
+        val y = centerY + radiusY * sin(radians).toFloat()
+
+        // Start the ripple at calculated position
+        rippleStartTime = currentTime
+        shader.startRipple(x, y, 40f, 255, 255, 255, alpha)
+        rippleStarted = true
+        rippleActive = true
+    }
+
+    /**
+     * Alternative version that directly accepts x,y coordinates
+     */
+    fun triggerRippleAtPoint(x: Float, y: Float, alpha: Int = 80) {
+        rippleStartTime = currentTime
+        shader.startRipple(x, y, 40f, 255, 255, 255, alpha)
+        rippleStarted = true
+        rippleActive = true
     }
 }
