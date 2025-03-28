@@ -29,6 +29,19 @@ class PolygonShader(
     private var centerY: Float = 0f
     private var rippleActive = false
 
+    // Replace single ripple properties with a data class and list
+    private data class Ripple(
+        var center: Pair<Float, Float>,
+        var radius: Float,
+        var width: Float,
+        var color: FloatArray,
+        var time: Float,
+        var intensity: Float,  // New parameter (0.0f to 1.0f)
+        var maxDistance: Float // New parameter for how far the ripple travels
+    )
+
+    private val activeRipples = mutableListOf<Ripple>()
+
     init {
         init()
         initTessellator()
@@ -110,22 +123,24 @@ class PolygonShader(
         glowWidth = width
     }
 
-    fun startRipple(x: Float, y: Float, width: Float, r: Int, g: Int, b: Int, a: Int) {
-        rippleCenter = Pair(x, y)
-        rippleWidth = width
-        rippleRadius = 1f  // Start with small non-zero radius
-        rippleColor = floatArrayOf(r / 255f, g / 255f, b / 255f, a / 100f)
-        rippleTime = 0f
+    fun startRipple(x: Float, y: Float, width: Float, r: Int, g: Int, b: Int, a: Int, intensity: Float = 1f) {
+        val ripple = Ripple(
+            center = Pair(x, y),
+            radius = 1f,
+            width = width,
+            color = floatArrayOf(r / 255f, g / 255f, b / 255f, a / 100f),
+            time = 0f,
+            intensity = intensity.coerceIn(0f, 1f),
+            maxDistance = 1000f * intensity.coerceIn(0.2f, 1f) // Minimum travel distance is 20% of max
+        )
+        activeRipples.add(ripple)
     }
 
-    fun updateRipple(deltaTime: Float, speed: Float = 400f) {  // Increased speed
-        if (rippleCenter != null) {
-            rippleTime += deltaTime
-            rippleRadius += speed * deltaTime
-
-            if (rippleRadius > 1000f) {
-                rippleCenter = null
-            }
+    fun updateRipple(deltaTime: Float, speed: Float = 400f) {
+        activeRipples.removeAll { ripple ->
+            ripple.time += deltaTime
+            ripple.radius += speed * deltaTime
+            ripple.radius > ripple.maxDistance  // Remove when reaching max distance
         }
     }
 
@@ -343,9 +358,7 @@ class PolygonShader(
     }
 
     private fun drawRipple(points: List<Float>) {
-        if (rippleCenter == null) return
-
-        val center = rippleCenter!!
+        if (activeRipples.isEmpty()) return
 
         // Find bounds of the shape
         var minX = Float.MAX_VALUE
@@ -389,27 +402,34 @@ class PolygonShader(
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
 
-        // Draw ripple using concentric rings
-        val numRings = 16
-        val ringSpacing = rippleWidth / numRings
+        // Draw each active ripple
+        for (ripple in activeRipples) {
+            val numRings = 16
+            val ringSpacing = ripple.width / numRings
 
-        glBegin(GL_TRIANGLE_STRIP)
-        for (i in 0..numRings) {
-            val radius = rippleRadius + (i - numRings/2) * ringSpacing
-            val t = 1.0f - kotlin.math.abs(i - numRings/2) / (numRings/2f)
-            val alpha = rippleColor[3] * t
+            // Calculate fade based on distance traveled
+            val distanceFade = 1f - (ripple.radius / ripple.maxDistance)
 
-            // Draw points around the circle
-            for (angle in 0..360 step 10) {
-                val radian = Math.toRadians(angle.toDouble()).toFloat()
-                val x = center.first + radius * kotlin.math.cos(radian)
-                val y = center.second + radius * kotlin.math.sin(radian)
+            glBegin(GL_TRIANGLE_STRIP)
+            for (i in 0..numRings) {
+                val radius = ripple.radius + (i - numRings/2) * ringSpacing
+                val t = 1.0f - kotlin.math.abs(i - numRings/2) / (numRings/2f)
 
-                glColor4f(rippleColor[0], rippleColor[1], rippleColor[2], alpha)
-                glVertex2f(x, y)
+                // Combine ring fade (t), distance fade, and intensity for final alpha
+                val alpha = ripple.color[3] * t * distanceFade * ripple.intensity
+
+                // Draw points around the circle
+                for (angle in 0..360 step 10) {
+                    val radian = Math.toRadians(angle.toDouble()).toFloat()
+                    val x = ripple.center.first + radius * kotlin.math.cos(radian)
+                    val y = ripple.center.second + radius * kotlin.math.sin(radian)
+
+                    glColor4f(ripple.color[0], ripple.color[1], ripple.color[2], alpha)
+                    glVertex2f(x, y)
+                }
             }
+            glEnd()
         }
-        glEnd()
 
         // Restore states
         glDisable(GL_STENCIL_TEST)

@@ -37,7 +37,9 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
         // Debug: Check for R key press
         if (Keyboard.isKeyDown(Keyboard.KEY_R) && !wasKeyPressed) {
-            this.triggerRippleAtAngle(45f)
+            val r = Random()
+            val random: Float = 0 + r.nextFloat() * (360 - 0)
+            this.triggerRippleAtAngle(random, 80, 0.4f)
         }
         wasKeyPressed = Keyboard.isKeyDown(Keyboard.KEY_R)
 
@@ -152,22 +154,19 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
      * @param angleInDegrees The angle in degrees (0-360) where 0 is right, 90 is up
      * @param alpha The opacity of the ripple (0-100)
      */
-    fun triggerRippleAtAngle(angleInDegrees: Float, alpha: Int = 80) {
+    fun triggerRippleAtAngle(angleInDegrees: Float, alpha: Int = 80, intensity: Float = 1f) {
         val radians = Math.toRadians(angleInDegrees.toDouble())
 
-        // Get the shield's dimensions
-        val radiusX = (maxX - minX) / 2
-        val radiusY = abs(maxY - minY) / 2
-        val centerX = attachedTo.location.x
-        val centerY = attachedTo.location.y
+        val radiusX = attachedTo.shieldRadiusEvenIfNoShield
+        val radiusY = radiusX
+        val centerX = attachedTo.shieldCenterEvenIfNoShield.x
+        val centerY = attachedTo.shieldCenterEvenIfNoShield.y
 
-        // Calculate point on edge of shield (approximating as ellipse)
         val x = centerX + radiusX * cos(radians).toFloat()
         val y = centerY + radiusY * sin(radians).toFloat()
 
-        // Start the ripple at calculated position
         rippleStartTime = currentTime
-        shader.startRipple(x, y, 40f, 255, 255, 255, alpha)
+        shader.startRipple(x, y, 40f, 255, 255, 255, alpha, intensity)
         rippleStarted = true
         rippleActive = true
     }
@@ -175,9 +174,9 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
     /**
      * Alternative version that directly accepts x,y coordinates
      */
-    fun triggerRippleAtPoint(x: Float, y: Float, alpha: Int = 80) {
+    fun triggerRippleAtPoint(x: Float, y: Float, alpha: Int = 80, intensity: Float = 1f) {
         rippleStartTime = currentTime
-        shader.startRipple(x, y, 40f, 255, 255, 255, alpha)
+        shader.startRipple(x, y, 40f, 255, 255, 255, alpha, intensity)
         rippleStarted = true
         rippleActive = true
     }
