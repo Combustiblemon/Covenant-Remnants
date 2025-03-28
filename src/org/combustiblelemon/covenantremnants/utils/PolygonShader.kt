@@ -9,7 +9,11 @@ import org.lwjgl.util.glu.GLUtessellatorCallbackAdapter
 
 class PolygonShader(
     private var polygonPoints: List<Float> = listOf(),
-    private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 1f)
+    private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 1f),
+    private var borderColorRGBA: FloatArray = floatArrayOf(1f, 1f, 1f, 1f),
+    private var borderWidth: Float = 10f,
+    private var glowIntensity: Float = 0f,
+    private var glowWidth: Float = 20f  // New parameter for glow width
 ) {
     private var tess: GLUtessellator = GLU.gluNewTess()
     private var vbo: Int = 0
@@ -62,8 +66,13 @@ class PolygonShader(
         glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
     }
 
-    fun updateColor(r: Float, g: Float, b: Float, a: Float) {
-        colorRGBA = floatArrayOf(r, g, b, a)
+    fun updateColor(r: Int, g: Int, b: Int, a: Int) {
+        colorRGBA = floatArrayOf(
+            r / 255f,
+            g / 255f,
+            b / 255f,
+            a / 100f
+        )
     }
 
     fun updateScale(x: Float, y: Float) {
@@ -78,6 +87,21 @@ class PolygonShader(
     fun updateCenter(x: Float, y: Float) {
         centerX = x
         centerY = y
+    }
+
+    fun updateBorder(r: Int, g: Int, b: Int, a: Int, width: Float, blend: Float) {
+        borderColorRGBA = floatArrayOf(
+            r / 255f,
+            g / 255f,
+            b / 255f,
+            a / 100f
+        )
+        borderWidth = width
+    }
+
+    fun updateGlow(intensity: Float, width: Float) {
+        glowIntensity = intensity.coerceIn(0f, 1f)
+        glowWidth = width
     }
 
     private fun calculateCenter(points: List<Float>): Pair<Float, Float> {
@@ -110,23 +134,55 @@ class PolygonShader(
         )
     }
 
-    private fun transformPoints(points: List<Float>): List<Float> {
-        if (scaleX == 1.0f && scaleY == 1.0f && rotation == 0f) return points
-
+    private fun transformPoints(points: List<Float>, outwardOffset: Float): List<Float> {
         val result = mutableListOf<Float>()
+        val numPoints = points.size / 2
 
-        for (i in points.indices step 2) {
-            // Get point
-            val x = points[i]
-            val y = points[i + 1]
+        for (i in 0 until numPoints) {
+            val curr = i * 2
+            val next = ((i + 1) % numPoints) * 2
+            val prev = ((i - 1 + numPoints) % numPoints) * 2
 
-            // Translate to origin
-            val localX = x - centerX
-            val localY = y - centerY
+            // Get current point
+            val x = points[curr]
+            val y = points[curr + 1]
 
-            // Scale in local space (swap X and Y scales)
-            val scaledX = localX * scaleY  // Using scaleY for X
-            val scaledY = localY * scaleX  // Using scaleX for Y
+            // Calculate vectors to previous and next points
+            val prevX = points[prev]
+            val prevY = points[prev + 1]
+            val nextX = points[next]
+            val nextY = points[next + 1]
+
+            // Calculate normals for both edges
+            val toPrevX = prevX - x
+            val toPrevY = prevY - y
+            val toNextX = nextX - x
+            val toNextY = nextY - y
+
+            // Calculate average normal
+            val normalX = -(toPrevY + toNextY)
+            val normalY = toPrevX + toNextX
+
+            // Normalize the normal vector
+            val length = kotlin.math.sqrt(normalX * normalX + normalY * normalY)
+
+            // Base point position (before any offset)
+            var finalX = x
+            var finalY = y
+
+            // Apply outward offset if needed and if we have a valid normal
+            if (outwardOffset > 0 && length > 0) {
+                finalX += (normalX / length) * outwardOffset
+                finalY += (normalY / length) * outwardOffset
+            }
+
+            // Now apply regular transformations (translate to origin, scale, rotate, translate back)
+            val localX = finalX - centerX
+            val localY = finalY - centerY
+
+            // Scale in local space
+            val scaledX = localX * scaleY
+            val scaledY = localY * scaleX
 
             // Rotate in local space
             val cos = kotlin.math.cos(rotation)
@@ -166,9 +222,11 @@ class PolygonShader(
         return result
     }
 
-    private fun catmullRomSpline(p0: Pair<Float, Float>, p1: Pair<Float, Float>,
-                                p2: Pair<Float, Float>, p3: Pair<Float, Float>,
-                                t: Float): Pair<Float, Float> {
+    private fun catmullRomSpline(
+        p0: Pair<Float, Float>, p1: Pair<Float, Float>,
+        p2: Pair<Float, Float>, p3: Pair<Float, Float>,
+        t: Float
+    ): Pair<Float, Float> {
         val t2 = t * t
         val t3 = t2 * t
 
@@ -215,36 +273,119 @@ class PolygonShader(
         return result
     }
 
+    private fun createBorderStrip(points: List<Float>, offset: Float): List<Float> {
+        val result = mutableListOf<Float>()
+        val numPoints = points.size / 2
+
+        val scaledOffset = offset * 0.1f
+
+        // Create strip by alternating inner and outer points
+        for (i in 0..numPoints) {
+            val idx = i % numPoints
+            val x = points[idx * 2]
+            val y = points[idx * 2 + 1]
+
+            val prevIdx = ((idx - 1 + numPoints) % numPoints) * 2
+            val nextIdx = ((idx + 1) % numPoints) * 2
+
+            val dx = points[nextIdx] - points[prevIdx]
+            val dy = points[nextIdx + 1] - points[prevIdx + 1]
+
+            // Flip normal direction to go outward
+            val normalX = dy  // Removed the negative
+            val normalY = -dx // Added the negative
+
+            val length = kotlin.math.sqrt(normalX * normalX + normalY * normalY)
+            if (length > 0) {
+                // Add inner point first (base point)
+                result.add(x)
+                result.add(y)
+                // Then add outer point (base point + offset)
+                result.add(x + (normalX / length) * scaledOffset)
+                result.add(y + (normalY / length) * scaledOffset)
+            }
+        }
+
+        // Add first two points again to close the strip properly
+        if (result.size >= 4) {
+            result.add(result[0])
+            result.add(result[1])
+            result.add(result[2])
+            result.add(result[3])
+        }
+
+        return result
+    }
+
     fun drawPolygon() {
         if (polygonPoints.isEmpty()) return
 
-        // Enable smoothing
+        // Enable required OpenGL states
         glEnable(GL_POLYGON_SMOOTH)
         glEnable(GL_LINE_SMOOTH)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
-
-        // Enable blending
+        glDisable(GL_TEXTURE_2D)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glDisable(GL_TEXTURE_2D)
 
-        // Set the color
+        val transformedBase = transformPoints(polygonPoints, 0f)
+        val smoothBase = subdividePointsWithSplines(transformedBase)
+
+        // Draw glow layers if intensity > 0
+        if (borderWidth > 0 && glowIntensity > 0) {
+            val numLayers = 5
+            for (i in numLayers downTo 1) {
+                val t = i.toFloat() / numLayers
+                val layerWidth = borderWidth + (glowWidth * (1f - t))  // Use separate glow width
+                val alpha = borderColorRGBA[3] * t * glowIntensity * 0.5f
+
+                glColor4f(
+                    borderColorRGBA[0],
+                    borderColorRGBA[1],
+                    borderColorRGBA[2],
+                    alpha
+                )
+
+                val borderStrip = createBorderStrip(smoothBase, layerWidth)
+
+                glBegin(GL_TRIANGLE_STRIP)
+                for (i in borderStrip.indices step 2) {
+                    glVertex2f(borderStrip[i], borderStrip[i + 1])
+                }
+                glEnd()
+            }
+        }
+
+        // Draw main border
+        if (borderWidth > 0) {
+            glColor4f(
+                borderColorRGBA[0],
+                borderColorRGBA[1],
+                borderColorRGBA[2],
+                borderColorRGBA[3]
+            )
+
+            val borderStrip = createBorderStrip(smoothBase, borderWidth)
+
+            glBegin(GL_TRIANGLE_STRIP)
+            for (i in borderStrip.indices step 2) {
+                glVertex2f(borderStrip[i], borderStrip[i + 1])
+            }
+            glEnd()
+        }
+
+        // Draw main shape
         glColor4f(colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3])
 
-        // Start tessellation
         tess.gluTessBeginPolygon(null)
         tess.gluTessBeginContour()
 
-        // Apply scaling and rotation, then smooth
-        val transformedPoints = transformPoints(polygonPoints)
-        val smoothPoints = subdividePointsWithSplines(transformedPoints)
-
-        for (i in smoothPoints.indices step 2) {
+        for (i in smoothBase.indices step 2) {
             val vertexArray = doubleArrayOf(
-                smoothPoints[i].toDouble(),
-                smoothPoints[i + 1].toDouble(),
-                0.0  // z coordinate
+                smoothBase[i].toDouble(),
+                smoothBase[i + 1].toDouble(),
+                0.0
             )
             tess.gluTessVertex(vertexArray, 0, vertexArray)
         }
@@ -257,6 +398,48 @@ class PolygonShader(
         glDisable(GL_BLEND)
         glDisable(GL_POLYGON_SMOOTH)
         glDisable(GL_LINE_SMOOTH)
+    }
+
+    private fun expandPoints(points: List<Float>, amount: Float): List<Float> {
+        val result = mutableListOf<Float>()
+        val numPoints = points.size / 2
+
+        for (i in 0 until numPoints) {
+            val curr = i * 2
+            val next = ((i + 1) % numPoints) * 2
+            val prev = ((i - 1 + numPoints) % numPoints) * 2
+
+            // Get current point
+            val x = points[curr]
+            val y = points[curr + 1]
+
+            // Calculate vectors to previous and next points
+            val toPrevX = points[prev] - x
+            val toPrevY = points[prev + 1] - y
+            val toNextX = points[next] - x
+            val toNextY = points[next + 1] - y
+
+            // Calculate normal by averaging the normals of adjacent edges
+            val normalX = -(toPrevY + toNextY)
+            val normalY = toPrevX + toNextX
+
+            // Normalize
+            val length = kotlin.math.sqrt(normalX * normalX + normalY * normalY)
+            if (length > 0) {
+                val nx = normalX / length
+                val ny = normalY / length
+
+                // Add expanded point
+                result.add(x + nx * amount)
+                result.add(y + ny * amount)
+            } else {
+                // If we can't calculate normal, just use original point
+                result.add(x)
+                result.add(y)
+            }
+        }
+
+        return result
     }
 
     fun cleanup() {

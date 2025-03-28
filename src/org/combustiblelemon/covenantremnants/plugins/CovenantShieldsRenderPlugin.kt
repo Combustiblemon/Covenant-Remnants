@@ -56,9 +56,11 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
         // Update shader with center position and other parameters
         shader.updateCenter(shipX, shipY)  // Set ship's center as the transform center
         shader.updatePolygon(vertexData)
-        shader.updateScale(1.2f, 1.05f)
+        shader.updateScale(1.05f, 1.02f)
         shader.updateRotation(Math.toRadians(attachedTo.facing.toDouble()).toFloat())
-        shader.updateColor(0.5f, 1f, 0.5f, 0.3f)
+        shader.updateColor(133, 237, 255, 30)
+        shader.updateBorder(255, 255, 255, 60, 20f, 5f)  // White border at 50% opacity
+        shader.updateGlow(1f, 40f)
 
         shader.drawPolygon()
     }
