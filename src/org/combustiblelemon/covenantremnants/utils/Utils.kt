@@ -1,6 +1,9 @@
 package org.combustiblelemon.covenantremnants.utils
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
+import org.apache.log4j.Level
+import org.apache.log4j.Logger
 import org.lazywizard.lazylib.MathUtils
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11
@@ -71,4 +74,8 @@ object Utils {
     fun logText(text: String?) {
         println(text)
     }
+}
+
+fun Any.logger(): Logger {
+    return Global.getLogger(this::class.java).apply { level = Level.ALL }
 }

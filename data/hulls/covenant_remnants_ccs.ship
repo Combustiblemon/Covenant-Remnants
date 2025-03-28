@@ -12,6 +12,7 @@
   "shieldRadius": 145.5,
   "viewOffset": 0,
   "weaponSlots": [],
+  "builtInMods": ["covenant_remnants_testhullmod"],
   "engineSlots": [
     {
       "location": [-121.5, 14],

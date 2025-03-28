@@ -5,7 +5,7 @@
   "utility": "false",
   "version": "0.1.0",
   "description": "Adds some Covenant ships from Halo to the game.",
-  "gameVersion": "0.96a-RC10",
+  "gameVersion": "0.98a",
   "jars": ["jars/CovenantRemnants.jar"],
   "modPlugin": "org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin",
   "dependencies": [

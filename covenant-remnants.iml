@@ -12,5 +12,8 @@
     <orderEntry type="library" name="LazyLib" level="project" />
     <orderEntry type="library" name="jetbrains.kotlin.stdlib" level="project" />
     <orderEntry type="library" name="Graphics" level="project" />
+    <orderEntry type="library" name="lw_Console" level="project" />
+    <orderEntry type="library" name="jetbrains.kotlin.reflect" level="project" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>

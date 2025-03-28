@@ -6,3 +6,4 @@ Covenant Systems,covenant_remnants_covenantsystems,,,Covenant,,,,,TRUE,,0,0,0,0,
 Improves energy weapon stats:
  Increase range by %s/%s/%s/%s depending on hull size.
  Reduce weapon flux generation by %s.",,,
+Covenant Test,covenant_remnants_testhullmod,,,Covenant,,,,,TRUE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.TestHull,Testing shit,,,
