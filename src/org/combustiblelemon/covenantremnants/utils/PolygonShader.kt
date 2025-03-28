@@ -1,173 +1,266 @@
 package org.combustiblelemon.covenantremnants.utils
 
 import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL20
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL15.*
+import org.lwjgl.util.glu.GLU
+import org.lwjgl.util.glu.GLUtessellator
+import org.lwjgl.util.glu.GLUtessellatorCallbackAdapter
 
 class PolygonShader(
     private var polygonPoints: List<Float> = listOf(),
-    private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 0.5f)
+    private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 1f)
 ) {
-    private var programId: Int = 0
-    private var vertexShaderId: Int = 0
-    private var fragmentShaderId: Int = 0
-    private var vertexBuffer: ByteBuffer? = null
+    private var tess: GLUtessellator = GLU.gluNewTess()
+    private var vbo: Int = 0
+    private var scaleX: Float = 1.0f
+    private var scaleY: Float = 1.0f
+    private var rotation: Float = 0f
+    private var centerX: Float = 0f
+    private var centerY: Float = 0f
 
-    // Shader source code with dynamic color support
-    private val vertexShaderSource = """
-        #version 120
-        uniform mat4 projectionMatrix;
-        uniform mat4 modelViewMatrix;
-        attribute vec3 position;
-
-        void main() {
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-    """.trimIndent()
-
-    private val fragmentShaderSource = """
-        #version 120
-        uniform vec4 customColor;
-        
-        void main() {
-            gl_FragColor = customColor;
-        }
-    """.trimIndent()
-
-    // Shader compilation method
-    private fun compileShader(source: String, type: Int): Int {
-        val shaderId = GL20.glCreateShader(type)
-        GL20.glShaderSource(shaderId, source)
-        GL20.glCompileShader(shaderId)
-
-        if (GL20.glGetShaderi(shaderId, GL20.GL_COMPILE_STATUS) == GL11.GL_FALSE) {
-            val infoLogLength = GL20.glGetShaderi(shaderId, GL20.GL_INFO_LOG_LENGTH)
-            val infoLog = ByteBuffer.allocateDirect(infoLogLength)
-                .order(ByteOrder.nativeOrder())
-            GL20.glGetShaderInfoLog(shaderId, null, infoLog)
-            throw RuntimeException("Shader compilation failed: ${String(infoLog.array())}")
-        }
-
-        return shaderId
+    init {
+        init()
+        initTessellator()
     }
 
-    // Initialize shader program
-    fun init() {
-        // Compile shaders
-        vertexShaderId = compileShader(vertexShaderSource, GL20.GL_VERTEX_SHADER)
-        fragmentShaderId = compileShader(fragmentShaderSource, GL20.GL_FRAGMENT_SHADER)
-
-        // Create program
-        programId = GL20.glCreateProgram()
-        GL20.glAttachShader(programId, vertexShaderId)
-        GL20.glAttachShader(programId, fragmentShaderId)
-        GL20.glLinkProgram(programId)
-
-        // Check linking status
-        if (GL20.glGetProgrami(programId, GL20.GL_LINK_STATUS) == GL11.GL_FALSE) {
-            val infoLogLength = GL20.glGetProgrami(programId, GL20.GL_INFO_LOG_LENGTH)
-            val infoLog = ByteBuffer.allocateDirect(infoLogLength)
-                .order(ByteOrder.nativeOrder())
-            GL20.glGetProgramInfoLog(programId, null, infoLog)
-            throw RuntimeException("Shader program linking failed: ${String(infoLog.array())}")
-        }
-
-        // Prepare vertex buffer
-        prepareVertexBuffer()
+    private fun init() {
+        // Create VBO
+        vbo = glGenBuffers()
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        glVertexPointer(2, GL_FLOAT, 0, 0)
+        glEnableClientState(GL_VERTEX_ARRAY)
     }
 
-    // Prepare vertex buffer for the polygon
-    private fun prepareVertexBuffer() {
-        // Allocate a new byte buffer
-        vertexBuffer = BufferUtils.createByteBuffer(polygonPoints.size * 4) // 4 bytes per float
+    private fun initTessellator() {
+        tess.gluTessCallback(GLU.GLU_TESS_BEGIN, object : GLUtessellatorCallbackAdapter() {
+            override fun begin(type: Int) {
+                glBegin(type)
+            }
+        })
 
-        // Create a float view of the byte buffer
-        val floatBuffer = vertexBuffer?.asFloatBuffer()
+        tess.gluTessCallback(GLU.GLU_TESS_VERTEX, object : GLUtessellatorCallbackAdapter() {
+            override fun vertex(data: Any) {
+                val vertex = data as DoubleArray
+                glVertex2d(vertex[0], vertex[1])
+            }
+        })
 
-        // Put polygon points into the float buffer
-        floatBuffer?.put(polygonPoints.toFloatArray())
-        floatBuffer?.flip()
+        tess.gluTessCallback(GLU.GLU_TESS_END, object : GLUtessellatorCallbackAdapter() {
+            override fun end() {
+                glEnd()
+            }
+        })
     }
 
-    // Update polygon points
     fun updatePolygon(newPoints: List<Float>) {
         polygonPoints = newPoints
-        prepareVertexBuffer()
+        val buffer = BufferUtils.createFloatBuffer(polygonPoints.size)
+        buffer.put(polygonPoints.toFloatArray()).flip()
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
     }
 
-    // Update color
     fun updateColor(r: Float, g: Float, b: Float, a: Float) {
         colorRGBA = floatArrayOf(r, g, b, a)
     }
 
-    // Draw the polygon
-    fun drawPolygon() {
-        // Ensure we have points to draw
-        if (polygonPoints.isEmpty()) return
-
-        // Use the shader program
-        GL20.glUseProgram(programId)
-
-        // Set custom color uniform
-        val colorUniformLocation = GL20.glGetUniformLocation(programId, "customColor")
-        GL20.glUniform4f(
-            colorUniformLocation,
-            colorRGBA[0],
-            colorRGBA[1],
-            colorRGBA[2],
-            colorRGBA[3]
-        )
-
-        // Get position attribute location
-        val positionAttributeLocation = GL20.glGetAttribLocation(programId, "position")
-
-        // Enable blending for transparency
-        GL11.glEnable(GL11.GL_BLEND)
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-
-        // Enable vertex attribute array
-        GL20.glEnableVertexAttribArray(positionAttributeLocation)
-
-        // Specify vertex attribute pointer
-        GL20.glVertexAttribPointer(
-            positionAttributeLocation,
-            3,              // 3 components per vertex (x, y, z)
-            GL11.GL_FLOAT,  // Data type
-            false,          // Normalized
-            0,              // Stride (tightly packed)
-            vertexBuffer!!  // Vertex buffer
-        )
-
-        // Draw the polygon
-        GL11.glBegin(GL11.GL_POLYGON)
-        for (i in 0 until polygonPoints.size / 3) {
-            GL11.glVertex3f(
-                polygonPoints[i * 3],
-                polygonPoints[i * 3 + 1],
-                polygonPoints[i * 3 + 2]
-            )
-        }
-        GL11.glEnd()
-
-        // Disable vertex attribute array
-        GL20.glDisableVertexAttribArray(positionAttributeLocation)
-
-        // Unbind shader program
-        GL20.glUseProgram(0)
+    fun updateScale(x: Float, y: Float) {
+        scaleX = x
+        scaleY = y
     }
 
-    // Cleanup method
-    fun cleanup() {
-        // Clear vertex buffer
-        vertexBuffer?.clear()
+    fun updateRotation(angleRadians: Float) {
+        rotation = angleRadians
+    }
 
-        // Delete shader resources
-        GL20.glDetachShader(programId, vertexShaderId)
-        GL20.glDetachShader(programId, fragmentShaderId)
-        GL20.glDeleteShader(vertexShaderId)
-        GL20.glDeleteShader(fragmentShaderId)
-        GL20.glDeleteProgram(programId)
+    fun updateCenter(x: Float, y: Float) {
+        centerX = x
+        centerY = y
+    }
+
+    private fun calculateCenter(points: List<Float>): Pair<Float, Float> {
+        var sumX = 0f
+        var sumY = 0f
+        for (i in points.indices step 2) {
+            sumX += points[i]
+            sumY += points[i + 1]
+        }
+        val count = points.size / 2
+        return Pair(sumX / count, sumY / count)
+    }
+
+    private fun rotatePoint(x: Float, y: Float, centerX: Float, centerY: Float, angle: Float): Pair<Float, Float> {
+        val cos = kotlin.math.cos(angle)
+        val sin = kotlin.math.sin(angle)
+
+        // Translate point to origin
+        val dx = x - centerX
+        val dy = y - centerY
+
+        // Rotate
+        val rotatedX = dx * cos - dy * sin
+        val rotatedY = dx * sin + dy * cos
+
+        // Translate back
+        return Pair(
+            rotatedX + centerX,
+            rotatedY + centerY
+        )
+    }
+
+    private fun transformPoints(points: List<Float>): List<Float> {
+        if (scaleX == 1.0f && scaleY == 1.0f && rotation == 0f) return points
+
+        val result = mutableListOf<Float>()
+
+        for (i in points.indices step 2) {
+            // Get point
+            val x = points[i]
+            val y = points[i + 1]
+
+            // Translate to origin
+            val localX = x - centerX
+            val localY = y - centerY
+
+            // Scale in local space (swap X and Y scales)
+            val scaledX = localX * scaleY  // Using scaleY for X
+            val scaledY = localY * scaleX  // Using scaleX for Y
+
+            // Rotate in local space
+            val cos = kotlin.math.cos(rotation)
+            val sin = kotlin.math.sin(rotation)
+            val rotatedX = scaledX * cos - scaledY * sin
+            val rotatedY = scaledX * sin + scaledY * cos
+
+            // Translate back to world space
+            result.add(rotatedX + centerX)
+            result.add(rotatedY + centerY)
+        }
+
+        return result
+    }
+
+    private fun subdividePoints(points: List<Float>, subdivisions: Int = 4): List<Float> {
+        val result = mutableListOf<Float>()
+
+        for (i in points.indices step 2) {
+            val x1 = points[i]
+            val y1 = points[i + 1]
+            val x2 = points[(i + 2) % points.size]
+            val y2 = points[(i + 3) % points.size]
+
+            // Add original point
+            result.add(x1)
+            result.add(y1)
+
+            // Add interpolated points
+            for (j in 1 until subdivisions) {
+                val t = j.toFloat() / subdivisions
+                result.add(x1 + (x2 - x1) * t)
+                result.add(y1 + (y2 - y1) * t)
+            }
+        }
+
+        return result
+    }
+
+    private fun catmullRomSpline(p0: Pair<Float, Float>, p1: Pair<Float, Float>,
+                                p2: Pair<Float, Float>, p3: Pair<Float, Float>,
+                                t: Float): Pair<Float, Float> {
+        val t2 = t * t
+        val t3 = t2 * t
+
+        // Catmull-Rom matrix coefficients
+        val a = -0.5f * t3 + t2 - 0.5f * t
+        val b = 1.5f * t3 - 2.5f * t2 + 1.0f
+        val c = -1.5f * t3 + 2.0f * t2 + 0.5f * t
+        val d = 0.5f * t3 - 0.5f * t2
+
+        return Pair(
+            a * p0.first + b * p1.first + c * p2.first + d * p3.first,
+            a * p0.second + b * p1.second + c * p2.second + d * p3.second
+        )
+    }
+
+    private fun subdividePointsWithSplines(points: List<Float>, subdivisions: Int = 8): List<Float> {
+        val result = mutableListOf<Float>()
+        val numPoints = points.size / 2
+
+        if (numPoints < 4) return points.toList() // Not enough points for spline
+
+        // Convert to pairs for easier handling
+        val pairs = points.chunked(2) { Pair(it[0], it[1]) }
+
+        for (i in 0 until numPoints) {
+            val p0 = pairs[(i - 1 + numPoints) % numPoints]
+            val p1 = pairs[i]
+            val p2 = pairs[(i + 1) % numPoints]
+            val p3 = pairs[(i + 2) % numPoints]
+
+            // Add original point
+            result.add(p1.first)
+            result.add(p1.second)
+
+            // Add interpolated points
+            for (j in 1 until subdivisions) {
+                val t = j.toFloat() / subdivisions
+                val splinePoint = catmullRomSpline(p0, p1, p2, p3, t)
+                result.add(splinePoint.first)
+                result.add(splinePoint.second)
+            }
+        }
+
+        return result
+    }
+
+    fun drawPolygon() {
+        if (polygonPoints.isEmpty()) return
+
+        // Enable smoothing
+        glEnable(GL_POLYGON_SMOOTH)
+        glEnable(GL_LINE_SMOOTH)
+        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+
+        // Enable blending
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glDisable(GL_TEXTURE_2D)
+
+        // Set the color
+        glColor4f(colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3])
+
+        // Start tessellation
+        tess.gluTessBeginPolygon(null)
+        tess.gluTessBeginContour()
+
+        // Apply scaling and rotation, then smooth
+        val transformedPoints = transformPoints(polygonPoints)
+        val smoothPoints = subdividePointsWithSplines(transformedPoints)
+
+        for (i in smoothPoints.indices step 2) {
+            val vertexArray = doubleArrayOf(
+                smoothPoints[i].toDouble(),
+                smoothPoints[i + 1].toDouble(),
+                0.0  // z coordinate
+            )
+            tess.gluTessVertex(vertexArray, 0, vertexArray)
+        }
+
+        tess.gluTessEndContour()
+        tess.gluTessEndPolygon()
+
+        // Restore state
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_POLYGON_SMOOTH)
+        glDisable(GL_LINE_SMOOTH)
+    }
+
+    fun cleanup() {
+        tess.gluDeleteTess()
+        glDeleteBuffers(vbo)
     }
 }
