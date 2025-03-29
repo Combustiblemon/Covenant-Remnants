@@ -28,19 +28,28 @@ class PolygonShader(
     private var centerX: Float = 0f
     private var centerY: Float = 0f
     private var rippleActive = false
+    private var currentTime: Float = 0f  // Added for ripple tracking
 
-    // Replace single ripple properties with a data class and list
     private data class Ripple(
         var center: Pair<Float, Float>,
         var radius: Float,
         var width: Float,
         var color: FloatArray,
         var time: Float,
-        var intensity: Float,  // New parameter (0.0f to 1.0f)
-        var maxDistance: Float // New parameter for how far the ripple travels
+        var intensity: Float,
+        var maxDistance: Float
     )
 
     private val activeRipples = mutableListOf<Ripple>()
+
+    private data class StaticCircle(
+        var center: Pair<Float, Float>,
+        var color: FloatArray,
+        var intensity: Float,    // Controls opacity and radius
+        var baseRadius: Float    // Base radius before intensity scaling
+    )
+
+    private val activeCircles = mutableListOf<StaticCircle>()
 
     init {
         init()
@@ -131,7 +140,7 @@ class PolygonShader(
             color = floatArrayOf(r / 255f, g / 255f, b / 255f, a / 100f),
             time = 0f,
             intensity = intensity.coerceIn(0f, 1f),
-            maxDistance = 1000f * intensity.coerceIn(0.2f, 1f) // Minimum travel distance is 20% of max
+            maxDistance = 1000f * intensity.coerceIn(0.2f, 1f)
         )
         activeRipples.add(ripple)
     }
@@ -140,7 +149,7 @@ class PolygonShader(
         activeRipples.removeAll { ripple ->
             ripple.time += deltaTime
             ripple.radius += speed * deltaTime
-            ripple.radius > ripple.maxDistance  // Remove when reaching max distance
+            ripple.radius > ripple.maxDistance
         }
     }
 
@@ -360,65 +369,35 @@ class PolygonShader(
     private fun drawRipple(points: List<Float>) {
         if (activeRipples.isEmpty()) return
 
-        // Find bounds of the shape
-        var minX = Float.MAX_VALUE
-        var minY = Float.MAX_VALUE
-        var maxX = Float.MIN_VALUE
-        var maxY = Float.MIN_VALUE
-
-        for (i in points.indices step 2) {
-            val x = points[i]
-            val y = points[i + 1]
-            minX = minX.coerceAtMost(x)
-            minY = minY.coerceAtMost(y)
-            maxX = maxX.coerceAtLeast(x)
-            maxY = maxY.coerceAtLeast(y)
-        }
-
         // Enable stencil testing
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
+
         glEnable(GL_STENCIL_TEST)
-        glClear(GL_STENCIL_BUFFER_BIT)
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
 
-        // Create mask
-        glStencilFunc(GL_ALWAYS, 1, 1)
-        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
-        glColorMask(false, false, false, false)
-
-        // Draw shape mask
-        tess.gluTessBeginPolygon(null)
-        tess.gluTessBeginContour()
-        for (i in points.indices step 2) {
-            val vertexArray = doubleArrayOf(points[i].toDouble(), points[i + 1].toDouble(), 0.0)
-            tess.gluTessVertex(vertexArray, 0, vertexArray)
-        }
-        tess.gluTessEndContour()
-        tess.gluTessEndPolygon()
-
-        // Setup for ripple drawing
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
         glStencilFunc(GL_EQUAL, 1, 1)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-        glColorMask(true, true, true, true)
-
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
 
         // Draw each active ripple
         for (ripple in activeRipples) {
             val numRings = 16
             val ringSpacing = ripple.width / numRings
 
-            // Calculate fade based on distance traveled
-            val distanceFade = 1f - (ripple.radius / ripple.maxDistance)
-
             glBegin(GL_TRIANGLE_STRIP)
             for (i in 0..numRings) {
                 val radius = ripple.radius + (i - numRings/2) * ringSpacing
-                val t = 1.0f - kotlin.math.abs(i - numRings/2) / (numRings/2f)
 
-                // Combine ring fade (t), distance fade, and intensity for final alpha
-                val alpha = ripple.color[3] * t * distanceFade * ripple.intensity
+                // Calculate ring fade (original fade for ripple thickness)
+                val ringFade = 1.0f - kotlin.math.abs(i - numRings/2) / (numRings/2f)
 
-                // Draw points around the circle
+                // Calculate distance fade (new fade based on distance traveled)
+                val distanceFade = 1.0f - (ripple.radius / ripple.maxDistance)
+
+                // Combine both fades and apply intensity
+                val alpha = ripple.color[3] * ringFade * distanceFade * ripple.intensity
+
                 for (angle in 0..360 step 10) {
                     val radian = Math.toRadians(angle.toDouble()).toFloat()
                     val x = ripple.center.first + radius * kotlin.math.cos(radian)
@@ -431,9 +410,124 @@ class PolygonShader(
             glEnd()
         }
 
-        // Restore states
-        glDisable(GL_STENCIL_TEST)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glPopAttrib()
+    }
+
+    fun addStaticCircle(x: Float, y: Float, radius: Float, r: Int, g: Int, b: Int, a: Int, intensity: Float = 1f) {
+        val circle = StaticCircle(
+            center = Pair(x, y),
+            color = floatArrayOf(r / 255f, g / 255f, b / 255f, a / 100f),
+            intensity = intensity.coerceIn(0f, 1f),
+            baseRadius = radius
+        )
+        activeCircles.add(circle)
+    }
+
+    fun clearStaticCircles() {
+        activeCircles.clear()
+    }
+
+    private fun drawStaticCircles(points: List<Float>) {
+        if (activeCircles.isEmpty()) return
+
+        // Save current OpenGL states
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
+
+        // Enable required states
+        glEnable(GL_BLEND)
+        glEnable(GL_STENCIL_TEST)
+        glDisable(GL_TEXTURE_2D)
+
+        // Use additive blending for glow effect
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+
+        // Use existing stencil mask
+        glStencilFunc(GL_EQUAL, 1, 1)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+
+        for (circle in activeCircles) {
+            val finalRadius = circle.baseRadius * circle.intensity
+            val numRings = 32  // Increased for smoother sphere effect
+
+            // Draw main sphere body
+            glBegin(GL_TRIANGLE_STRIP)
+
+            for (i in 0..numRings) {
+                val t = i.toFloat() / numRings
+                val radius = finalRadius * t
+
+                // Spherical falloff using sqrt for more realistic sphere look
+                val sphereFade = kotlin.math.sqrt(1.0 - (t * t)).toFloat()
+                // Combine with exponential falloff for outer glow
+                val gradientFade = sphereFade * kotlin.math.exp(-2.0 * t).toFloat()
+                val alpha = circle.color[3] * circle.intensity * gradientFade
+
+                // Draw points around the circle
+                for (angle in 0..360 step 5) {  // Smaller step for smoother circles
+                    val radian = Math.toRadians(angle.toDouble()).toFloat()
+                    val x = circle.center.first + radius * kotlin.math.cos(radian)
+                    val y = circle.center.second + radius * kotlin.math.sin(radian)
+
+                    glColor4f(circle.color[0], circle.color[1], circle.color[2], alpha)
+                    glVertex2f(x, y)
+                }
+            }
+            glEnd()
+
+            // Draw highlight
+            glBegin(GL_TRIANGLE_FAN)
+
+            // Center point of highlight (slightly offset)
+            val highlightOffsetX = -finalRadius * 0.2f
+            val highlightOffsetY = -finalRadius * 0.2f
+            val highlightX = circle.center.first + highlightOffsetX
+            val highlightY = circle.center.second + highlightOffsetY
+
+            // Center of highlight (brightest point)
+            glColor4f(1f, 1f, 1f, circle.intensity * 0.5f)
+            glVertex2f(highlightX, highlightY)
+
+            // Fade highlight to transparent
+            val highlightRadius = finalRadius * 0.4f
+            for (angle in 0..360 step 5) {
+                val radian = Math.toRadians(angle.toDouble()).toFloat()
+                val x = highlightX + highlightRadius * kotlin.math.cos(radian)
+                val y = highlightY + highlightRadius * kotlin.math.sin(radian)
+
+                glColor4f(1f, 1f, 1f, 0f)  // Transparent at edge
+                glVertex2f(x, y)
+            }
+
+            glEnd()
+
+            // Draw core glow
+            glBegin(GL_TRIANGLE_FAN)
+
+            // Bright center
+            glColor4f(
+                kotlin.math.min(1f, circle.color[0] * 1.5f),
+                kotlin.math.min(1f, circle.color[1] * 1.5f),
+                kotlin.math.min(1f, circle.color[2] * 1.5f),
+                circle.intensity
+            )
+            glVertex2f(circle.center.first, circle.center.second)
+
+            // Fade to normal color
+            val coreRadius = finalRadius * 0.3f
+            for (angle in 0..360 step 5) {
+                val radian = Math.toRadians(angle.toDouble()).toFloat()
+                val x = circle.center.first + coreRadius * kotlin.math.cos(radian)
+                val y = circle.center.second + coreRadius * kotlin.math.sin(radian)
+
+                glColor4f(circle.color[0], circle.color[1], circle.color[2], 0f)
+                glVertex2f(x, y)
+            }
+
+            glEnd()
+        }
+
+        // Restore all OpenGL states
+        glPopAttrib()
     }
 
     fun drawPolygon() {
@@ -512,8 +606,11 @@ class PolygonShader(
         tess.gluTessEndContour()
         tess.gluTessEndPolygon()
 
-        // Draw ripple effect on top
+        // Draw ripple effect
         drawRipple(smoothBase)
+
+        // Draw static circles
+        drawStaticCircles(smoothBase)
 
         // Restore state
         glEnable(GL_TEXTURE_2D)
@@ -567,5 +664,13 @@ class PolygonShader(
     fun cleanup() {
         tess.gluDeleteTess()
         glDeleteBuffers(vbo)
+    }
+
+    fun clearRipples() {
+        activeRipples.clear()
+    }
+
+    fun hasActiveRipples(): Boolean {
+        return activeRipples.isNotEmpty()
     }
 }
