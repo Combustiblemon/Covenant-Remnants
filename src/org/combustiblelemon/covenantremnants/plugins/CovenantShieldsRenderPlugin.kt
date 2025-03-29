@@ -34,15 +34,6 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
     private var rippleStartTime = 0f
     private var currentTime = 0f
 
-    private data class CircleData(
-        val angle: Float,
-        val radius: Float,
-        val alpha: Int,
-        val intensity: Float
-    )
-
-    private val staticCircles = mutableListOf<CircleData>()
-
     private data class RippleData(
         val angle: Float,
         val alpha: Int,
@@ -54,16 +45,9 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
         // Debug: Check for R key press
-        if (Keyboard.isKeyDown(Keyboard.KEY_R) && !wasKeyPressed) {
-            val r = Random()
-            val random: Float = 0 + r.nextFloat() * (360 - 0)
-            this.triggerRippleAtAngle(random, 80, 0.6f)
-
-            addStaticCircleOnEdge(86f, 40f, 80, 1.0f)     // Full intensity circle at 86 degrees
-            addStaticCircleOnEdge(180f, 40f, 80, 0.5f)    // Half intensity circle at 180 degrees
-            addStaticCircleOnEdge(270f, 40f, 80, 0.25f)   // Quarter intensity circle at 270 degrees
+        if (Keyboard.isKeyDown(Keyboard.KEY_R)) {
+            addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
         }
-        wasKeyPressed = Keyboard.isKeyDown(Keyboard.KEY_R)
 
         val isPhaseActive = attachedTo.phaseCloak.isActive
 
@@ -149,8 +133,8 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
             rippleActive = shader.hasActiveRipples()
         }
 
-        // Update circle positions every frame
-        updateCirclePositions()
+        // Clear circles from previous frame
+        shader.clearStaticCircles()
     }
 
     override fun cleanup() {
@@ -222,11 +206,6 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
         shader.addStaticCircle(x, y, radius, 255, 255, 255, alpha, intensity)
     }
 
-    fun clearStaticCircles() {
-        staticCircles.clear()
-        shader.clearStaticCircles()
-    }
-
     /**
      * Creates a static circle on the edge of the shield at the specified angle
      * @param angleInDegrees The angle in degrees (0-360) where 0 is right, 90 is up
@@ -235,51 +214,19 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
      * @param intensity The intensity of the circle (0.0-1.0) affecting size and opacity
      */
     fun addStaticCircleOnEdge(angleInDegrees: Float, radius: Float, alpha: Int = 80, intensity: Float = 1f) {
-        // Store the circle data instead of creating it immediately
-        staticCircles.add(CircleData(angleInDegrees, radius, alpha, intensity))
-        updateCirclePositions() // Initial position update
-    }
+        // Add ship's facing angle to the input angle to account for rotation
+        val totalAngle = angleInDegrees + attachedTo.facing - 90f  // Subtract 90 to align with ship's forward direction
+        val radians = Math.toRadians(totalAngle.toDouble())
 
-    private fun updateCirclePositions() {
-        shader.clearStaticCircles()
+        // Get the shield's dimensions and center
+        val shieldRadius = attachedTo.shieldRadiusEvenIfNoShield
+        val centerX = attachedTo.location.x
+        val centerY = attachedTo.location.y
 
-        for (circle in staticCircles) {
-            val radians = Math.toRadians(circle.angle.toDouble())
+        // Calculate point on edge of shield
+        val x = centerX + shieldRadius * cos(radians).toFloat()
+        val y = centerY + shieldRadius * sin(radians).toFloat()
 
-            // Get the shield's current dimensions and position
-            val radiusX = attachedTo.shieldRadiusEvenIfNoShield
-            val radiusY = radiusX
-            val centerX = attachedTo.shieldCenterEvenIfNoShield.x
-            val centerY = attachedTo.shieldCenterEvenIfNoShield.y
-
-            // Calculate point on edge of shield
-            val x = centerX + radiusX * cos(radians).toFloat()
-            val y = centerY + radiusY * sin(radians).toFloat()
-
-            // Add the static circle at the updated position
-            shader.addStaticCircle(x, y, circle.radius, 255, 255, 255, circle.alpha, circle.intensity)
-        }
-    }
-
-    private fun updateRipplePositions() {
-        // Clear existing ripples in shader
-        shader.clearRipples()
-
-        // Update positions for all active ripples
-        for (ripple in activeRipples) {
-            if (!ripple.active) continue
-
-            val radians = Math.toRadians(ripple.angle.toDouble())
-
-            val radiusX = attachedTo.shieldRadiusEvenIfNoShield
-            val radiusY = radiusX
-            val centerX = attachedTo.shieldCenterEvenIfNoShield.x
-            val centerY = attachedTo.shieldCenterEvenIfNoShield.y
-
-            val x = centerX + radiusX * cos(radians).toFloat()
-            val y = centerY + radiusY * sin(radians).toFloat()
-
-            shader.startRipple(x, y, 40f, 255, 255, 255, ripple.alpha, ripple.intensity)
-        }
+        shader.addStaticCircle(x, y, radius, 255, 255, 255, alpha, intensity)
     }
 }

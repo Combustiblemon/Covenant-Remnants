@@ -441,7 +441,7 @@ class PolygonShader(
         // Use additive blending for glow effect
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
 
-        // Use existing stencil mask
+        // Use existing stencil mask from the shield shape
         glStencilFunc(GL_EQUAL, 1, 1)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
@@ -450,76 +450,55 @@ class PolygonShader(
             val numRings = 32  // Increased for smoother sphere effect
 
             // Draw main sphere body
-            glBegin(GL_TRIANGLE_STRIP)
+            glBegin(GL_TRIANGLE_FAN)
 
-            for (i in 0..numRings) {
-                val t = i.toFloat() / numRings
-                val radius = finalRadius * t
+            // Center point
+            glColor4f(
+                circle.color[0],
+                circle.color[1],
+                circle.color[2],
+                circle.color[3] * circle.intensity
+            )
+            glVertex2f(circle.center.first, circle.center.second)
 
-                // Spherical falloff using sqrt for more realistic sphere look
-                val sphereFade = kotlin.math.sqrt(1.0 - (t * t)).toFloat()
-                // Combine with exponential falloff for outer glow
-                val gradientFade = sphereFade * kotlin.math.exp(-2.0 * t).toFloat()
-                val alpha = circle.color[3] * circle.intensity * gradientFade
+            // Draw the sphere with radial gradient
+            for (angle in 0..360 step 5) {
+                val radian = Math.toRadians(angle.toDouble()).toFloat()
+                val x = circle.center.first + finalRadius * kotlin.math.cos(radian)
+                val y = circle.center.second + finalRadius * kotlin.math.sin(radian)
 
-                // Draw points around the circle
-                for (angle in 0..360 step 5) {  // Smaller step for smoother circles
-                    val radian = Math.toRadians(angle.toDouble()).toFloat()
-                    val x = circle.center.first + radius * kotlin.math.cos(radian)
-                    val y = circle.center.second + radius * kotlin.math.sin(radian)
-
-                    glColor4f(circle.color[0], circle.color[1], circle.color[2], alpha)
-                    glVertex2f(x, y)
-                }
+                glColor4f(
+                    circle.color[0],
+                    circle.color[1],
+                    circle.color[2],
+                    0f  // Fade to transparent at edges
+                )
+                glVertex2f(x, y)
             }
+
             glEnd()
 
             // Draw highlight
             glBegin(GL_TRIANGLE_FAN)
 
-            // Center point of highlight (slightly offset)
+            // Highlight position (offset from center)
             val highlightOffsetX = -finalRadius * 0.2f
             val highlightOffsetY = -finalRadius * 0.2f
             val highlightX = circle.center.first + highlightOffsetX
             val highlightY = circle.center.second + highlightOffsetY
 
-            // Center of highlight (brightest point)
+            // Center of highlight
             glColor4f(1f, 1f, 1f, circle.intensity * 0.5f)
             glVertex2f(highlightX, highlightY)
 
-            // Fade highlight to transparent
+            // Fade highlight out
             val highlightRadius = finalRadius * 0.4f
             for (angle in 0..360 step 5) {
                 val radian = Math.toRadians(angle.toDouble()).toFloat()
                 val x = highlightX + highlightRadius * kotlin.math.cos(radian)
                 val y = highlightY + highlightRadius * kotlin.math.sin(radian)
 
-                glColor4f(1f, 1f, 1f, 0f)  // Transparent at edge
-                glVertex2f(x, y)
-            }
-
-            glEnd()
-
-            // Draw core glow
-            glBegin(GL_TRIANGLE_FAN)
-
-            // Bright center
-            glColor4f(
-                kotlin.math.min(1f, circle.color[0] * 1.5f),
-                kotlin.math.min(1f, circle.color[1] * 1.5f),
-                kotlin.math.min(1f, circle.color[2] * 1.5f),
-                circle.intensity
-            )
-            glVertex2f(circle.center.first, circle.center.second)
-
-            // Fade to normal color
-            val coreRadius = finalRadius * 0.3f
-            for (angle in 0..360 step 5) {
-                val radian = Math.toRadians(angle.toDouble()).toFloat()
-                val x = circle.center.first + coreRadius * kotlin.math.cos(radian)
-                val y = circle.center.second + coreRadius * kotlin.math.sin(radian)
-
-                glColor4f(circle.color[0], circle.color[1], circle.color[2], 0f)
+                glColor4f(1f, 1f, 1f, 0f)
                 glVertex2f(x, y)
             }
 
@@ -545,7 +524,31 @@ class PolygonShader(
         val transformedBase = transformPoints(polygonPoints, 0f)
         val smoothBase = subdividePointsWithSplines(transformedBase)
 
-        // Draw glow layers if intensity > 0
+        // Create stencil mask for the shield shape
+        glEnable(GL_STENCIL_TEST)
+        glClear(GL_STENCIL_BUFFER_BIT)
+        glStencilFunc(GL_ALWAYS, 1, 1)
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
+        glColorMask(false, false, false, false)
+
+        // Draw shield shape into stencil buffer
+        tess.gluTessBeginPolygon(null)
+        tess.gluTessBeginContour()
+        for (i in smoothBase.indices step 2) {
+            val vertexArray = doubleArrayOf(
+                smoothBase[i].toDouble(),
+                smoothBase[i + 1].toDouble(),
+                0.0
+            )
+            tess.gluTessVertex(vertexArray, 0, vertexArray)
+        }
+        tess.gluTessEndContour()
+        tess.gluTessEndPolygon()
+
+        // Re-enable color writing
+        glColorMask(true, true, true, true)
+
+        // Draw the actual shield shape and effects
         if (borderWidth > 0 && glowIntensity > 0) {
             val numLayers = 5
             for (i in numLayers downTo 1) {
@@ -570,7 +573,6 @@ class PolygonShader(
             }
         }
 
-        // Draw main border
         if (borderWidth > 0) {
             glColor4f(
                 borderColorRGBA[0],
@@ -590,10 +592,8 @@ class PolygonShader(
 
         // Draw main shape
         glColor4f(colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3])
-
         tess.gluTessBeginPolygon(null)
         tess.gluTessBeginContour()
-
         for (i in smoothBase.indices step 2) {
             val vertexArray = doubleArrayOf(
                 smoothBase[i].toDouble(),
@@ -602,17 +602,15 @@ class PolygonShader(
             )
             tess.gluTessVertex(vertexArray, 0, vertexArray)
         }
-
         tess.gluTessEndContour()
         tess.gluTessEndPolygon()
 
-        // Draw ripple effect
+        // Draw effects using the stencil mask
         drawRipple(smoothBase)
-
-        // Draw static circles
         drawStaticCircles(smoothBase)
 
-        // Restore state
+        // Cleanup
+        glDisable(GL_STENCIL_TEST)
         glEnable(GL_TEXTURE_2D)
         glDisable(GL_BLEND)
         glDisable(GL_POLYGON_SMOOTH)
