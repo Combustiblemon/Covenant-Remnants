@@ -1,12 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
-import org.apache.log4j.Level
-import org.apache.log4j.Logger
-import org.lazywizard.lazylib.MathUtils
-import org.lwjgl.BufferUtils
-import org.lwjgl.opengl.GL11
 import org.lwjgl.util.vector.Vector2f
 import java.awt.geom.AffineTransform
 import kotlin.math.abs
@@ -74,8 +68,32 @@ object Utils {
     fun logText(text: String?) {
         println(text)
     }
-}
 
-fun Any.logger(): Logger {
-    return Global.getLogger(this::class.java).apply { level = Level.ALL }
+    fun getShipDimensions(ship: ShipAPI): Array<Vector2f> {
+
+        val max = Vector2f(0f, 0f)
+        val min = Vector2f(10000f, 10000f)
+
+        ship.exactBounds.origSegments.forEach { segment ->
+            // max
+            if (segment.p1.x > max.y) {
+                max.y = segment.p1.x
+            }
+
+            if (segment.p1.y > max.x) {
+                max.x = segment.p1.y
+            }
+
+            // min
+            if (segment.p1.x < min.y) {
+                min.y = segment.p1.x
+            }
+
+            if (segment.p1.y < min.x) {
+                min.x = segment.p1.y
+            }
+        }
+
+        return arrayOf(max, min)
+    }
 }

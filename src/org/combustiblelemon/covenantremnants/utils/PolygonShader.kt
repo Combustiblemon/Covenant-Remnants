@@ -6,19 +6,16 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.util.glu.GLU
 import org.lwjgl.util.glu.GLUtessellator
 import org.lwjgl.util.glu.GLUtessellatorCallbackAdapter
+import org.lwjgl.util.vector.Vector2f
 
 class PolygonShader(
+    private var shipDimensions: Array<Vector2f>,
     private var polygonPoints: List<Float> = listOf(),
     private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 1f),
     private var borderColorRGBA: FloatArray = floatArrayOf(1f, 1f, 1f, 1f),
     private var borderWidth: Float = 10f,
     private var glowIntensity: Float = 0f,
     private var glowWidth: Float = 20f,  // New parameter for glow width
-    private var rippleCenter: Pair<Float, Float>? = null,
-    private var rippleRadius: Float = 0f,
-    private var rippleWidth: Float = 10f,
-    private var rippleColor: FloatArray = floatArrayOf(1f, 1f, 1f, 0.5f),
-    private var rippleTime: Float = 0f
 ) {
     private var tess: GLUtessellator = GLU.gluNewTess()
     private var vbo: Int = 0
@@ -27,8 +24,8 @@ class PolygonShader(
     private var rotation: Float = 0f
     private var centerX: Float = 0f
     private var centerY: Float = 0f
-    private var rippleActive = false
-    private var currentTime: Float = 0f  // Added for ripple tracking
+    private var chargeProgress: Float = 1f
+    private var shipFacing: Float = 0f
 
     private data class Ripple(
         var center: Pair<Float, Float>,
@@ -387,10 +384,10 @@ class PolygonShader(
 
             glBegin(GL_TRIANGLE_STRIP)
             for (i in 0..numRings) {
-                val radius = ripple.radius + (i - numRings/2) * ringSpacing
+                val radius = ripple.radius + (i - numRings / 2) * ringSpacing
 
                 // Calculate ring fade (original fade for ripple thickness)
-                val ringFade = 1.0f - kotlin.math.abs(i - numRings/2) / (numRings/2f)
+                val ringFade = 1.0f - kotlin.math.abs(i - numRings / 2) / (numRings / 2f)
 
                 // Calculate distance fade (new fade based on distance traveled)
                 val distanceFade = 1.0f - (ripple.radius / ripple.maxDistance)
@@ -509,51 +506,73 @@ class PolygonShader(
         glPopAttrib()
     }
 
+    fun updateChargeProgress(progress: Float, facing: Float) {
+        chargeProgress = progress
+        shipFacing = facing
+    }
+
     fun drawPolygon() {
         if (polygonPoints.isEmpty()) return
 
-        // Enable required OpenGL states
+        val transformedBase = transformPoints(polygonPoints, 0f)
+        val smoothBase = subdividePointsWithSplines(transformedBase)
+
+        // Set up basic OpenGL state
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glEnable(GL_POLYGON_SMOOTH)
         glEnable(GL_LINE_SMOOTH)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
         glDisable(GL_TEXTURE_2D)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        val transformedBase = transformPoints(polygonPoints, 0f)
-        val smoothBase = subdividePointsWithSplines(transformedBase)
-
-        // Create stencil mask for the shield shape
+        // Create the charge-up mask first
         glEnable(GL_STENCIL_TEST)
         glClear(GL_STENCIL_BUFFER_BIT)
         glStencilFunc(GL_ALWAYS, 1, 1)
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
         glColorMask(false, false, false, false)
 
-        // Draw shield shape into stencil buffer
-        tess.gluTessBeginPolygon(null)
-        tess.gluTessBeginContour()
-        for (i in smoothBase.indices step 2) {
-            val vertexArray = doubleArrayOf(
-                smoothBase[i].toDouble(),
-                smoothBase[i + 1].toDouble(),
-                0.0
-            )
-            tess.gluTessVertex(vertexArray, 0, vertexArray)
-        }
-        tess.gluTessEndContour()
-        tess.gluTessEndPolygon()
+        // Draw the charge-up area (everything behind the sweep line)
+        val facingRad = Math.toRadians(shipFacing.toDouble()).toFloat()
+        val sin = kotlin.math.sin(facingRad)
+        val cos = kotlin.math.cos(facingRad)
 
-        // Re-enable color writing
+        val sweepDistance = shipDimensions[0].y * scaleY + 5f
+        val progress = chargeProgress
+
+        glBegin(GL_QUADS)
+        glVertex2f(
+            centerX + (-progress * 2f + 1f) * sweepDistance * cos - sweepDistance * sin,
+            centerY + (-progress * 2f + 1f) * sweepDistance * sin + sweepDistance * cos
+        )
+        glVertex2f(
+            centerX + (-progress * 2f + 1f) * sweepDistance * cos + sweepDistance * sin,
+            centerY + (-progress * 2f + 1f) * sweepDistance * sin - sweepDistance * cos
+        )
+        glVertex2f(
+            centerX + sweepDistance * cos + sweepDistance * sin,
+            centerY + sweepDistance * sin - sweepDistance * cos
+        )
+        glVertex2f(
+            centerX + sweepDistance * cos - sweepDistance * sin,
+            centerY + sweepDistance * sin + sweepDistance * cos
+        )
+        glEnd()
+
+        // Set up stencil for actual rendering
+        glStencilFunc(GL_EQUAL, 1, 1)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
         glColorMask(true, true, true, true)
 
-        // Draw the actual shield shape and effects
+        // Now only render where the stencil is set (behind the sweep line)
+
+        // Draw glow
         if (borderWidth > 0 && glowIntensity > 0) {
             val numLayers = 5
             for (i in numLayers downTo 1) {
                 val t = i.toFloat() / numLayers
-                val layerWidth = borderWidth + (glowWidth * (1f - t))  // Use separate glow width
+                val layerWidth = borderWidth + (glowWidth * (1f - t))
                 val alpha = borderColorRGBA[3] * t * glowIntensity * 0.5f
 
                 glColor4f(
@@ -573,6 +592,7 @@ class PolygonShader(
             }
         }
 
+        // Draw border
         if (borderWidth > 0) {
             glColor4f(
                 borderColorRGBA[0],
@@ -605,7 +625,7 @@ class PolygonShader(
         tess.gluTessEndContour()
         tess.gluTessEndPolygon()
 
-        // Draw effects using the stencil mask
+        // Draw effects
         drawRipple(smoothBase)
         drawStaticCircles(smoothBase)
 

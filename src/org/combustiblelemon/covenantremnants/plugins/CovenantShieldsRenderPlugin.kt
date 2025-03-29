@@ -6,19 +6,13 @@ import org.combustiblelemon.covenantremnants.utils.PolygonShader
 import org.lwjgl.input.Keyboard
 import org.lwjgl.util.vector.Vector2f
 import java.util.*
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayeredRenderingPlugin {
-    private var minX: Float = attachedTo.shieldCenterEvenIfNoShield.x - attachedTo.shieldRadiusEvenIfNoShield
-    private var maxX: Float = attachedTo.shieldCenterEvenIfNoShield.x + attachedTo.shieldRadiusEvenIfNoShield
-    private var minY: Float = 0F
-    private var maxY: Float = 0F
+class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val shipDimensions: Array<Vector2f>) :
+    CombatLayeredRenderingPlugin {
 
-    private val numPoints = 60
-    private val points: Array<Vector2f> = Array(numPoints) { Vector2f(0F, 0F) }
-    private val shader = PolygonShader()
+    private val shader = PolygonShader(shipDimensions)
 
     companion object {
         private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "shield_noise")
@@ -30,7 +24,6 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
 
     private var rippleStarted = false
     private var rippleActive = false
-    private var wasKeyPressed = false
     private var rippleStartTime = 0f
     private var currentTime = 0f
 
@@ -49,9 +42,8 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
             addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
         }
 
-        val isPhaseActive = attachedTo.phaseCloak.isActive
-
-        if (isPhaseActive) {
+        // Use phaseCloak.effectLevel to check for activity
+        if (attachedTo.phaseCloak.effectLevel > 0f) {
             renderShield()
         }
     }
@@ -63,66 +55,24 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
         // Create vertex data for the shield shape
         val vertexData = mutableListOf<Float>()
 
-        // Add ship boundary points without rotation
         attachedTo.exactBounds!!.origSegments.forEach { segment ->
             vertexData.add(segment!!.p1.x + shipX)
             vertexData.add(segment.p1.y + shipY)
         }
 
-        // Close the shape
         val firstSeg = attachedTo.exactBounds!!.origSegments[0]
         vertexData.add(firstSeg!!.p1.x + shipX)
         vertexData.add(firstSeg.p1.y + shipY)
 
-        // Update shader with center position and other parameters
-        shader.updateCenter(shipX, shipY)  // Set ship's center as the transform center
+        shader.updateCenter(shipX, shipY)
         shader.updatePolygon(vertexData)
         shader.updateScale(1.05f, 1.02f)
         shader.updateRotation(Math.toRadians(attachedTo.facing.toDouble()).toFloat())
         shader.updateColor(133, 237, 255, 30)
-        shader.updateBorder(255, 255, 255, 60, 20f, 5f)  // White border at 50% opacity
+        shader.updateBorder(255, 255, 255, 60, 20f, 5f)
         shader.updateGlow(1f, 40f)
 
         shader.drawPolygon()
-    }
-
-    private var statuskey = Any()
-    private var statuskey2 = Any()
-
-    private fun calcMaxY() {
-        var _minY = 100000F
-        var _maxY = -100000F
-
-        attachedTo.exactBounds!!.segments.forEach { segment ->
-            if (segment.p1.y < _minY) {
-                _minY = segment.p1.y
-            }
-
-            if (segment.p1.y > _maxY) {
-                _maxY = segment.p1.y
-            }
-
-            if (segment.p2.y < _minY) {
-                _minY = segment.p2.y
-            }
-
-            if (segment.p2.y > _maxY) {
-                _maxY = segment.p2.y
-            }
-        }
-
-        maxY = _minY - 30
-        minY = _maxY + 30
-
-        val a = abs(maxX - minX) / 2
-        val b = abs(maxY - minY) / 2
-
-        for (i in 0 until numPoints) {
-            val theta = Math.toRadians(i * (360.0 / numPoints))
-            val x = (attachedTo.shieldCenterEvenIfNoShield.x + a * cos(theta)).toFloat()
-            val y = (attachedTo.shieldCenterEvenIfNoShield.y + b * sin(theta)).toFloat()
-            points[i] = Vector2f(x, y)
-        }
     }
 
     override fun advance(amount: Float) {
@@ -131,6 +81,11 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
         if (rippleActive) {
             shader.updateRipple(amount, 1000f)
             rippleActive = shader.hasActiveRipples()
+        }
+
+        if (attachedTo.phaseCloak.effectLevel > 0f) {
+            // Pass charge progress to shader
+            shader.updateChargeProgress(attachedTo.phaseCloak.effectLevel, attachedTo.facing)
         }
 
         // Clear circles from previous frame
@@ -167,13 +122,12 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI) : CombatLayer
     fun triggerRippleAtAngle(angleInDegrees: Float, alpha: Int = 80, intensity: Float = 1f) {
         val radians = Math.toRadians(angleInDegrees.toDouble())
 
-        val radiusX = attachedTo.shieldRadiusEvenIfNoShield
-        val radiusY = radiusX
+        val radius = attachedTo.shieldRadiusEvenIfNoShield
         val centerX = attachedTo.shieldCenterEvenIfNoShield.x
         val centerY = attachedTo.shieldCenterEvenIfNoShield.y
 
-        val x = centerX + radiusX * cos(radians).toFloat()
-        val y = centerY + radiusY * sin(radians).toFloat()
+        val x = centerX + radius * cos(radians).toFloat()
+        val y = centerY + radius * sin(radians).toFloat()
 
         shader.startRipple(x, y, 40f, 255, 255, 255, alpha, intensity)
         rippleActive = true

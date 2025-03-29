@@ -32,7 +32,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effLevel: Float) {
         var ship: ShipAPI? = null
-        var player = false
+        var player: Boolean = false
 
         if (stats.entity is ShipAPI) {
             ship = stats.entity as ShipAPI
@@ -43,7 +43,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
 
         if (renderPlugin == null) {
-            renderPlugin = CovenantShieldsRenderPlugin(ship)
+            renderPlugin = CovenantShieldsRenderPlugin(ship, Utils.getShipDimensions(ship))
             Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
         }
 
