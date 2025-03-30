@@ -27,6 +27,16 @@ class PolygonShader(
     private var chargeProgress: Float = 1f
     private var shipFacing: Float = 0f
 
+    // Add hex animation properties
+    private var hexAnimationTime = 0f
+    private var hexSpacing = 10f
+
+    // Hex grid parameters with default values
+    private var hexSize = 20f
+    private var hexRotation = 45f
+    private var hexEdgeWidth = 2f
+    private var hexSpacingMultiplier = 1.0f  // 1.0 means edges touch
+
     private data class Ripple(
         var center: Pair<Float, Float>,
         var radius: Float,
@@ -511,6 +521,24 @@ class PolygonShader(
         shipFacing = facing
     }
 
+    fun updateHexAnimation(time: Float, size: Float, spacing: Float) {
+        hexAnimationTime = time
+        hexSize = size
+        hexSpacing = spacing
+    }
+
+    fun updateHexParameters(
+        size: Float? = null,
+        rotation: Float? = null,
+        edgeWidth: Float? = null,
+        spacingMultiplier: Float? = null
+    ) {
+        size?.let { hexSize = it.coerceAtLeast(1f) }
+        rotation?.let { hexRotation = it % 360f }
+        edgeWidth?.let { hexEdgeWidth = it.coerceAtLeast(0.5f) }
+        spacingMultiplier?.let { hexSpacingMultiplier = it.coerceAtLeast(0.5f) }
+    }
+
     fun drawPolygon() {
         if (polygonPoints.isEmpty()) return
 
@@ -526,14 +554,32 @@ class PolygonShader(
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
         glDisable(GL_TEXTURE_2D)
 
-        // Create the charge-up mask first
+        // First pass: Create stencil mask for the shield shape
         glEnable(GL_STENCIL_TEST)
         glClear(GL_STENCIL_BUFFER_BIT)
         glStencilFunc(GL_ALWAYS, 1, 1)
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
         glColorMask(false, false, false, false)
 
-        // Draw the charge-up area (everything behind the sweep line)
+        // Draw the shield shape into the stencil buffer
+        tess.gluTessBeginPolygon(null)
+        tess.gluTessBeginContour()
+        for (i in smoothBase.indices step 2) {
+            val vertexArray = doubleArrayOf(
+                smoothBase[i].toDouble(),
+                smoothBase[i + 1].toDouble(),
+                0.0
+            )
+            tess.gluTessVertex(vertexArray, 0, vertexArray)
+        }
+        tess.gluTessEndContour()
+        tess.gluTessEndPolygon()
+
+        // Second pass: Create stencil mask for the charge animation
+        glStencilFunc(GL_ALWAYS, 2, 2)
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
+
+        // Draw the charge-up area (front to back)
         val facingRad = Math.toRadians(shipFacing.toDouble()).toFloat()
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
@@ -543,29 +589,27 @@ class PolygonShader(
 
         glBegin(GL_QUADS)
         glVertex2f(
-            centerX + (-progress * 2f + 1f) * sweepDistance * cos - sweepDistance * sin,
-            centerY + (-progress * 2f + 1f) * sweepDistance * sin + sweepDistance * cos
+            centerX + (progress * 2f - 1f) * sweepDistance * cos - sweepDistance * sin,
+            centerY - (progress * 2f - 1f) * sweepDistance * sin + sweepDistance * cos
         )
         glVertex2f(
-            centerX + (-progress * 2f + 1f) * sweepDistance * cos + sweepDistance * sin,
-            centerY + (-progress * 2f + 1f) * sweepDistance * sin - sweepDistance * cos
+            centerX + (progress * 2f - 1f) * sweepDistance * cos + sweepDistance * sin,
+            centerY - (progress * 2f - 1f) * sweepDistance * sin - sweepDistance * cos
         )
         glVertex2f(
             centerX + sweepDistance * cos + sweepDistance * sin,
-            centerY + sweepDistance * sin - sweepDistance * cos
+            centerY - sweepDistance * sin - sweepDistance * cos
         )
         glVertex2f(
             centerX + sweepDistance * cos - sweepDistance * sin,
-            centerY + sweepDistance * sin + sweepDistance * cos
+            centerY - sweepDistance * sin + sweepDistance * cos
         )
         glEnd()
 
-        // Set up stencil for actual rendering
-        glStencilFunc(GL_EQUAL, 1, 1)
+        // Enable color writing and set up stencil test
+        glStencilFunc(GL_EQUAL, 1, 1)  // Only draw where shield mask is set
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
         glColorMask(true, true, true, true)
-
-        // Now only render where the stencil is set (behind the sweep line)
 
         // Draw glow
         if (borderWidth > 0 && glowIntensity > 0) {
@@ -625,7 +669,14 @@ class PolygonShader(
         tess.gluTessEndContour()
         tess.gluTessEndPolygon()
 
-        // Draw effects
+        // Draw hex grid
+        drawHexGrid(smoothBase)
+
+        // Apply charge animation mask
+        glStencilFunc(GL_EQUAL, 2, 2)  // Only draw where charge mask is set
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+
+        // Draw other effects
         drawRipple(smoothBase)
         drawStaticCircles(smoothBase)
 
@@ -637,46 +688,105 @@ class PolygonShader(
         glDisable(GL_LINE_SMOOTH)
     }
 
-    private fun expandPoints(points: List<Float>, amount: Float): List<Float> {
-        val result = mutableListOf<Float>()
-        val numPoints = points.size / 2
+    private fun drawHexGrid(points: List<Float>) {
+        // Save OpenGL state
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
 
-        for (i in 0 until numPoints) {
-            val curr = i * 2
-            val next = ((i + 1) % numPoints) * 2
-            val prev = ((i - 1 + numPoints) % numPoints) * 2
+        // Set up rendering state
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+        glDisable(GL_TEXTURE_2D)
+        glEnable(GL_STENCIL_TEST)
+        glStencilFunc(GL_EQUAL, 1, 1)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
-            // Get current point
-            val x = points[curr]
-            val y = points[curr + 1]
+        // Calculate hex grid dimensions
+        val hexWidth = hexSize * 2f
+        val hexHeight = hexSize * kotlin.math.sqrt(3.0).toFloat()
 
-            // Calculate vectors to previous and next points
-            val toPrevX = points[prev] - x
-            val toPrevY = points[prev + 1] - y
-            val toNextX = points[next] - x
-            val toNextY = points[next + 1] - y
+        // Calculate spacing with multiplier
+        val hexSpacingX = hexWidth * 0.75f * hexSpacingMultiplier
+        val hexSpacingY = hexHeight * hexSpacingMultiplier
 
-            // Calculate normal by averaging the normals of adjacent edges
-            val normalX = -(toPrevY + toNextY)
-            val normalY = toPrevX + toNextX
+        val cols = (shipDimensions[0].x * 2 / hexSpacingX).toInt() + 2
+        val rows = (shipDimensions[0].y * 2 / hexSpacingY).toInt() + 2
 
-            // Normalize
-            val length = kotlin.math.sqrt(normalX * normalX + normalY * normalY)
-            if (length > 0) {
-                val nx = normalX / length
-                val ny = normalY / length
+        // Calculate animation offset
+        val offsetX = hexAnimationTime % hexSpacingX
+        val offsetY = (hexAnimationTime % hexSpacingY) * 0.5f
 
-                // Add expanded point
-                result.add(x + nx * amount)
-                result.add(y + ny * amount)
-            } else {
-                // If we can't calculate normal, just use original point
-                result.add(x)
-                result.add(y)
+        // Get shield bounds for culling
+        val minX = points.minByOrNull { it } ?: 0f
+        val maxX = points.maxByOrNull { it } ?: 0f
+        val minY = points.minByOrNull { it } ?: 0f
+        val maxY = points.maxByOrNull { it } ?: 0f
+
+        // Draw hex grid
+        for (row in -rows..rows) {
+            for (col in -cols..cols) {
+                // Offset every other row to create the hex pattern
+                val xOffset = if (row % 2 == 0) 0f else hexSpacingX * 0.5f
+                val x = centerX + col * hexSpacingX + offsetX + xOffset
+                val y = centerY + row * hexSpacingY * 0.75f + offsetY
+
+                // Skip if outside shield bounds
+                if (x < minX || x > maxX || y < minY || y > maxY) continue
+
+                // Calculate alpha based on animation time
+                val alpha = 0.5f + 0.5f * kotlin.math.sin(hexAnimationTime + col * 0.2f + row * 0.3f).toFloat()
+
+                // Draw rotated hexagon edges
+                drawRotatedHexEdges(x, y, hexSize, hexEdgeWidth, hexRotation, alpha)
             }
         }
 
-        return result
+        // Restore OpenGL state
+        glPopAttrib()
+    }
+
+    private fun drawRotatedHexEdges(
+        x: Float,
+        y: Float,
+        size: Float,
+        edgeWidth: Float,
+        rotation: Float,
+        alpha: Float
+    ) {
+        // Save current matrix
+        glPushMatrix()
+
+        // Translate to hex center
+        glTranslatef(x, y, 0f)
+
+        // Apply rotation
+        glRotatef(rotation, 0f, 0f, 1f)
+
+        // Draw outer edge
+        glLineWidth(edgeWidth)
+        glBegin(GL_LINE_LOOP)
+        glColor4f(0.8f, 0.9f, 1.0f, alpha * 0.3f)
+        for (i in 0..6) {
+            val angle = 2.0 * Math.PI / 6.0 * i
+            val hexX = size * kotlin.math.cos(angle).toFloat()
+            val hexY = size * kotlin.math.sin(angle).toFloat()
+            glVertex2f(hexX, hexY)
+        }
+        glEnd()
+
+        // Draw inner edge with slight offset
+        val innerSize = size - edgeWidth
+        glBegin(GL_LINE_LOOP)
+        glColor4f(0.8f, 0.9f, 1.0f, alpha * 0.3f)
+        for (i in 0..6) {
+            val angle = 2.0 * Math.PI / 6.0 * i
+            val hexX = innerSize * kotlin.math.cos(angle).toFloat()
+            val hexY = innerSize * kotlin.math.sin(angle).toFloat()
+            glVertex2f(hexX, hexY)
+        }
+        glEnd()
+
+        // Restore matrix
+        glPopMatrix()
     }
 
     fun cleanup() {

@@ -27,6 +27,12 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
     private var rippleStartTime = 0f
     private var currentTime = 0f
 
+    // Add new properties for hex animation
+    private var hexAnimationTime = 0f
+    private val hexAnimationSpeed = 1.5f
+    private val hexSize = 40f
+    private val hexSpacing = 10f
+
     private data class RippleData(
         val angle: Float,
         val alpha: Int,
@@ -45,6 +51,7 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         // Use phaseCloak.effectLevel to check for activity
         if (attachedTo.phaseCloak.effectLevel > 0f) {
             renderShield()
+            shader.updateHexAnimation(hexAnimationTime, hexSize, hexSpacing)
         }
     }
 
@@ -71,12 +78,14 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         shader.updateColor(133, 237, 255, 30)
         shader.updateBorder(255, 255, 255, 60, 20f, 5f)
         shader.updateGlow(1f, 40f)
+        shader.updateHexParameters(20f, 90f, 2f, 1.2f)
 
         shader.drawPolygon()
     }
 
     override fun advance(amount: Float) {
         currentTime += amount
+        hexAnimationTime += amount * hexAnimationSpeed
 
         if (rippleActive) {
             shader.updateRipple(amount, 1000f)
