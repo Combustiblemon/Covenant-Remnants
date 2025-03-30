@@ -330,10 +330,12 @@ class PolygonShader(
     }
 
     private fun createBorderStrip(points: List<Float>, offset: Float): List<Float> {
+        if (offset <= 0f) {
+            return listOf()
+        }
+
         val result = mutableListOf<Float>()
         val numPoints = points.size / 2
-
-        val scaledOffset = offset * 0.1f
 
         // Create strip by alternating inner and outer points
         for (i in 0..numPoints) {
@@ -347,18 +349,19 @@ class PolygonShader(
             val dx = points[nextIdx] - points[prevIdx]
             val dy = points[nextIdx + 1] - points[prevIdx + 1]
 
-            // Flip normal direction to go outward
-            val normalX = dy  // Removed the negative
-            val normalY = -dx // Added the negative
+            // Calculate normal (perpendicular vector) and flip direction for outward expansion
+            val normalX = dy  // Changed from -dy to dy
+            val normalY = -dx // Changed from dx to -dx
 
+            // Normalize the normal vector
             val length = kotlin.math.sqrt(normalX * normalX + normalY * normalY)
             if (length > 0) {
                 // Add inner point first (base point)
                 result.add(x)
                 result.add(y)
                 // Then add outer point (base point + offset)
-                result.add(x + (normalX / length) * scaledOffset)
-                result.add(y + (normalY / length) * scaledOffset)
+                result.add(x + (normalX / length) * offset)
+                result.add(y + (normalY / length) * offset)
             }
         }
 
@@ -544,6 +547,7 @@ class PolygonShader(
 
         val transformedBase = transformPoints(polygonPoints, 0f)
         val smoothBase = subdividePointsWithSplines(transformedBase)
+        val borderStrip = createBorderStrip(smoothBase, borderWidth)
 
         // Set up basic OpenGL state
         glEnable(GL_BLEND)
@@ -557,13 +561,15 @@ class PolygonShader(
         // First pass: Create stencil mask for the shield shape
         glEnable(GL_STENCIL_TEST)
         glClear(GL_STENCIL_BUFFER_BIT)
-        glStencilFunc(GL_ALWAYS, 1, 1)
+
+        glStencilFunc(GL_EQUAL, 1, 1)
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
         glColorMask(false, false, false, false)
 
         // Draw the shield shape into the stencil buffer
         tess.gluTessBeginPolygon(null)
         tess.gluTessBeginContour()
+
         for (i in smoothBase.indices step 2) {
             val vertexArray = doubleArrayOf(
                 smoothBase[i].toDouble(),
@@ -572,6 +578,7 @@ class PolygonShader(
             )
             tess.gluTessVertex(vertexArray, 0, vertexArray)
         }
+
         tess.gluTessEndContour()
         tess.gluTessEndPolygon()
 
@@ -584,7 +591,7 @@ class PolygonShader(
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
 
-        val sweepDistance = shipDimensions[0].y * scaleY + 5f
+        val sweepDistance = shipDimensions[0].y * scaleY + borderWidth * 5f
         val progress = chargeProgress
 
         glBegin(GL_QUADS)
@@ -606,17 +613,52 @@ class PolygonShader(
         )
         glEnd()
 
-        // Enable color writing and set up stencil test
-        glStencilFunc(GL_EQUAL, 1, 1)  // Only draw where shield mask is set
+        // // Re-enable stencil test for other elements
+        glEnable(GL_STENCIL_TEST)
+        glStencilFunc(GL_NOTEQUAL, 2, 2)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
         glColorMask(true, true, true, true)
+
+        // Draw main shape
+        glColor4f(colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3])
+        tess.gluTessBeginPolygon(null)
+        tess.gluTessBeginContour()
+        for (i in smoothBase.indices step 2) {
+            val vertexArray = doubleArrayOf(
+                smoothBase[i].toDouble(),
+                smoothBase[i + 1].toDouble(),
+                0.0
+            )
+            tess.gluTessVertex(vertexArray, 0, vertexArray)
+        }
+        tess.gluTessEndContour()
+        tess.gluTessEndPolygon()
+
+
+        if (borderWidth > 0) {
+            // Create border strip with proper width
+
+            // Draw the border
+            glColor4f(
+                borderColorRGBA[0],
+                borderColorRGBA[1],
+                borderColorRGBA[2],
+                borderColorRGBA[3]
+            )
+
+            glBegin(GL_TRIANGLE_STRIP)
+            for (i in borderStrip.indices step 2) {
+                glVertex2f(borderStrip[i], borderStrip[i + 1])
+            }
+            glEnd()
+        }
 
         // Draw glow
         if (borderWidth > 0 && glowIntensity > 0) {
             val numLayers = 5
             for (i in numLayers downTo 1) {
                 val t = i.toFloat() / numLayers
-                val layerWidth = borderWidth + (glowWidth * (1f - t))
+                val layerWidth = (glowWidth * (1f - t))
                 val alpha = borderColorRGBA[3] * t * glowIntensity * 0.5f
 
                 glColor4f(
@@ -636,47 +678,13 @@ class PolygonShader(
             }
         }
 
-        // Draw border
-        if (borderWidth > 0) {
-            glColor4f(
-                borderColorRGBA[0],
-                borderColorRGBA[1],
-                borderColorRGBA[2],
-                borderColorRGBA[3]
-            )
-
-            val borderStrip = createBorderStrip(smoothBase, borderWidth)
-
-            glBegin(GL_TRIANGLE_STRIP)
-            for (i in borderStrip.indices step 2) {
-                glVertex2f(borderStrip[i], borderStrip[i + 1])
-            }
-            glEnd()
-        }
-
-        // Draw main shape
-        glColor4f(colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3])
-        tess.gluTessBeginPolygon(null)
-        tess.gluTessBeginContour()
-        for (i in smoothBase.indices step 2) {
-            val vertexArray = doubleArrayOf(
-                smoothBase[i].toDouble(),
-                smoothBase[i + 1].toDouble(),
-                0.0
-            )
-            tess.gluTessVertex(vertexArray, 0, vertexArray)
-        }
-        tess.gluTessEndContour()
-        tess.gluTessEndPolygon()
-
-        // Draw hex grid
-        drawHexGrid(smoothBase)
-
-        // Apply charge animation mask
-        glStencilFunc(GL_EQUAL, 2, 2)  // Only draw where charge mask is set
+        glStencilFunc(GL_EQUAL, 2, 2)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
+        // Draw hex grid
         // Draw other effects
+        drawHexGrid(smoothBase)
+
         drawRipple(smoothBase)
         drawStaticCircles(smoothBase)
 
@@ -733,7 +741,7 @@ class PolygonShader(
                 if (x < minX || x > maxX || y < minY || y > maxY) continue
 
                 // Calculate alpha based on animation time
-                val alpha = 0.5f + 0.5f * kotlin.math.sin(hexAnimationTime + col * 0.2f + row * 0.3f).toFloat()
+                val alpha = 0.5f + 0.5f * kotlin.math.sin(hexAnimationTime + col * 0.2f + row * 0.3f)
 
                 // Draw rotated hexagon edges
                 drawRotatedHexEdges(x, y, hexSize, hexEdgeWidth, hexRotation, alpha)

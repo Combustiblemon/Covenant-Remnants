@@ -42,10 +42,18 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
 
     private val activeRipples = mutableListOf<RippleData>()
 
+    private var wasPressed: Boolean = false
+
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
         // Debug: Check for R key press
         if (Keyboard.isKeyDown(Keyboard.KEY_R)) {
             addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_B) && !wasPressed) {
+            addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
+            triggerRippleAtAngle(90f, 80, 1f, 10f)
+            wasPressed = true
         }
 
         // Use phaseCloak.effectLevel to check for activity
@@ -76,8 +84,8 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         shader.updateScale(1.05f, 1.02f)
         shader.updateRotation(Math.toRadians(attachedTo.facing.toDouble()).toFloat())
         shader.updateColor(133, 237, 255, 30)
-        shader.updateBorder(255, 255, 255, 60, 20f, 5f)
-        shader.updateGlow(1f, 40f)
+        shader.updateBorder(255, 255, 255, 80, 5f, 5f)
+        shader.updateGlow(10f, 10f)
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
 
         shader.drawPolygon()
@@ -104,6 +112,7 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
     override fun cleanup() {
         shader.cleanup()
         rippleStarted = false
+        wasPressed = false
         activeRipples.clear() // Clear ripple data
     }
 
@@ -128,7 +137,13 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
      * @param angleInDegrees The angle in degrees (0-360) where 0 is right, 90 is up
      * @param alpha The opacity of the ripple (0-100)
      */
-    fun triggerRippleAtAngle(angleInDegrees: Float, alpha: Int = 80, intensity: Float = 1f) {
+    fun triggerRippleAtAngle(
+        angleInDegrees: Float,
+        alpha: Int = 80,
+        intensity: Float = 1f,
+        size: Float = 20f,
+
+        ) {
         val radians = Math.toRadians(angleInDegrees.toDouble())
 
         val radius = attachedTo.shieldRadiusEvenIfNoShield
@@ -138,7 +153,7 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         val x = centerX + radius * cos(radians).toFloat()
         val y = centerY + radius * sin(radians).toFloat()
 
-        shader.startRipple(x, y, 40f, 255, 255, 255, alpha, intensity)
+        shader.startRipple(x, y, size, 255, 255, 255, alpha, intensity)
         rippleActive = true
     }
 
