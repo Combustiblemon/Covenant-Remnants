@@ -12,7 +12,7 @@ import kotlin.math.sin
 class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val shipDimensions: Array<Vector2f>) :
     CombatLayeredRenderingPlugin {
 
-    private val shader = PolygonShader(shipDimensions)
+    private val shader = PolygonShader(shipDimensions, 200f)
 
     companion object {
         private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "shield_noise")
@@ -51,9 +51,14 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         }
 
         if (Keyboard.isKeyDown(Keyboard.KEY_B) && !wasPressed) {
-            addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
-            triggerRippleAtAngle(90f, 80, 1f, 10f)
+            // addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
+            // triggerRippleAtAngle(90f, 80, 1f, 10f)
+            shader.triggerShieldPop(1f)
             wasPressed = true
+        }
+
+        if (Keyboard.isKeyDown(Keyboard.KEY_N)) {
+            wasPressed = false
         }
 
         // Use phaseCloak.effectLevel to check for activity
@@ -87,6 +92,7 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
+        shader.updatePopEffectRadius(shipDimensions[0].y / 2)
 
         shader.drawPolygon()
     }
@@ -104,6 +110,8 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
             // Pass charge progress to shader
             shader.updateChargeProgress(attachedTo.phaseCloak.effectLevel, attachedTo.facing)
         }
+
+        shader.updateShieldPop(amount)
 
         // Clear circles from previous frame
         shader.clearStaticCircles()

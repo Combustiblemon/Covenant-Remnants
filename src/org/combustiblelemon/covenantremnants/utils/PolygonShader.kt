@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils
 
+import com.fs.starfarer.api.Global
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -7,15 +8,17 @@ import org.lwjgl.util.glu.GLU
 import org.lwjgl.util.glu.GLUtessellator
 import org.lwjgl.util.glu.GLUtessellatorCallbackAdapter
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.pow
 
 class PolygonShader(
     private var shipDimensions: Array<Vector2f>,
+    private var popEffectRadius: Float = 500f,  // Default pop effect radius
     private var polygonPoints: List<Float> = listOf(),
     private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 1f),
     private var borderColorRGBA: FloatArray = floatArrayOf(1f, 1f, 1f, 1f),
     private var borderWidth: Float = 10f,
     private var glowIntensity: Float = 0f,
-    private var glowWidth: Float = 20f,  // New parameter for glow width
+    private var glowWidth: Float = 20f,
 ) {
     private var tess: GLUtessellator = GLU.gluNewTess()
     private var vbo: Int = 0
@@ -57,6 +60,21 @@ class PolygonShader(
     )
 
     private val activeCircles = mutableListOf<StaticCircle>()
+
+    private data class PopWave(
+        var time: Float = 0f,
+        var maxTime: Float = 0.8f,
+        var color: FloatArray = floatArrayOf(0f, 0f, 0f, 0f),
+        var darkerColor: FloatArray = floatArrayOf(0f, 0f, 0f, 0f),
+        var thickness: Float = 20f,
+        var startScale: Float = 0.1f,
+        var endScale: Float = 3.0f,
+        var intensity: Float = 1.0f
+    )
+
+    private var activePopWave: PopWave? = null
+
+    private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "shield_noise")
 
     init {
         init()
@@ -542,6 +560,225 @@ class PolygonShader(
         spacingMultiplier?.let { hexSpacingMultiplier = it.coerceAtLeast(0.5f) }
     }
 
+    fun updatePopEffectRadius(radius: Float) {
+        popEffectRadius = radius
+    }
+
+    fun triggerShieldPop(intensity: Float = 1.0f) {
+        // Create a darker version of the shield color
+        val darkColor = floatArrayOf(
+            colorRGBA[0],  // Darken red
+            colorRGBA[1],  // Darken green
+            colorRGBA[2],  // Darken blue
+            1f          // Keep alpha the same
+        )
+
+        // Create an even darker color for the cloud effect
+        val darkerColor = floatArrayOf(
+            colorRGBA[0] * 0.25f,  // Even darker red
+            colorRGBA[1] * 0.25f,  // Even darker green
+            colorRGBA[2] * 0.25f,  // Even darker blue
+            1f   // Slightly lower alpha
+        )
+
+        // Create a new pop wave
+        activePopWave = PopWave(
+            time = 0f,
+            maxTime = 0.8f,
+            color = darkColor,
+            darkerColor = darkerColor,
+            thickness = 20f * (0.5f + intensity * 0.5f),
+            startScale = 0.1f,
+            endScale = 3.0f + intensity * 0.5f,
+            intensity = intensity.coerceIn(0.1f, 1.5f)
+        )
+    }
+
+    fun updateShieldPop(deltaTime: Float) {
+        activePopWave?.let { popWave ->
+            popWave.time += deltaTime
+
+            // Remove the pop wave if it's completed its animation
+            if (popWave.time >= popWave.maxTime) {
+                activePopWave = null
+            }
+        }
+    }
+
+    private fun drawShieldPop(points: List<Float>) {
+        val popWave = activePopWave ?: return
+
+        // Calculate progress of the animation (0.0 to 1.0)
+        val progress = (popWave.time / popWave.maxTime).coerceIn(0f, 1f)
+
+        // Calculate current scale with easing
+        val easedProgress = 1f - (1f - progress) * (1f - progress)
+        val currentScale = popWave.startScale + (popWave.endScale - popWave.startScale) * easedProgress
+
+        // Current radius of the wave
+        val waveRadius = popEffectRadius * currentScale
+
+        // Calculate alpha with fade out
+        val fadeStart = 0.4f
+        val alpha = if (progress < fadeStart) {
+            popWave.color[3] * popWave.intensity
+        } else {
+            popWave.color[3] * popWave.intensity * (1f - (progress - fadeStart) / (1f - fadeStart))
+        }
+
+        // Save OpenGL state
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
+
+        // Set up stencil to ONLY draw between shield edge and wave radius
+        glEnable(GL_STENCIL_TEST)
+        glClear(GL_STENCIL_BUFFER_BIT)
+        glColorMask(false, false, false, false)
+
+        // First mark the wave circle area with stencil value 2
+        glStencilFunc(GL_ALWAYS, 2, 0xFF)
+        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
+
+        // Draw circle for the wave radius
+        glBegin(GL_TRIANGLE_FAN)
+        glVertex2f(centerX, centerY)
+        for (i in 0..64) {
+            val angle = 2.0 * Math.PI * i / 64
+            glVertex2f(
+                centerX + waveRadius * kotlin.math.cos(angle).toFloat(),
+                centerY + waveRadius * kotlin.math.sin(angle).toFloat()
+            )
+        }
+        glEnd()
+
+        // Now set up stencil to only draw where shield isn't (stencil != 1)
+        glStencilFunc(GL_EQUAL, 2, 0xFF)
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
+        glColorMask(true, true, true, true)
+
+        // Set up blending for the noise texture
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+
+        // Draw the noise texture as a single quad
+        glEnable(GL_TEXTURE_2D)
+        noiseSprite.bindTexture()
+
+        // Calculate a single large quad that covers the wave area
+        val quadSize = waveRadius * 2f - popWave.thickness  // Make it slightly larger than the diameter
+
+        // Base color for the texture
+        val r = popWave.darkerColor[0]
+        val g = popWave.darkerColor[1]
+        val b = popWave.darkerColor[2]
+        val a = popWave.darkerColor[3] * alpha
+
+        // Animation parameters
+        val timeOffset = popWave.time * 0.5f
+        val rotation = timeOffset * 20f  // Rotation angle
+
+        // Draw a single textured quad
+        glPushMatrix()
+        glTranslatef(centerX, centerY, 0f)
+        glRotatef(rotation, 0f, 0f, 1f)
+
+        glBegin(GL_QUADS)
+        glColor4f(r, g, b, a)
+
+        // Calculate texture coordinates with animation
+        val texScale = 3.0f  // How many times the texture repeats
+        val texOffsetX = timeOffset * 0.2f
+        val texOffsetY = timeOffset * 0.3f
+
+        // Bottom left
+        glTexCoord2f(texOffsetX, texOffsetY)
+        glVertex2f(-quadSize / 2, -quadSize / 2)
+
+        // Bottom right
+        glTexCoord2f(texOffsetX + texScale, texOffsetY)
+        glVertex2f(quadSize / 2, -quadSize / 2)
+
+        // Top right
+        glTexCoord2f(texOffsetX + texScale, texOffsetY + texScale)
+        glVertex2f(quadSize / 2, quadSize / 2)
+
+        // Top left
+        glTexCoord2f(texOffsetX, texOffsetY + texScale)
+        glVertex2f(-quadSize / 2, quadSize / 2)
+
+        glEnd()
+        glPopMatrix()
+
+        // Disable texturing
+        glDisable(GL_TEXTURE_2D)
+
+        // Draw the main ring on top
+        // Use the same stencil test to ensure it's only drawn in the correct area
+
+        // Inner and outer ring code as before
+        val halfThickness = popWave.thickness * 0.5f
+
+        // Inner ring
+        glBegin(GL_TRIANGLE_STRIP)
+        for (i in 0..64) {
+            val angle = 2.0 * Math.PI * i / 64
+            val cos = kotlin.math.cos(angle).toFloat()
+            val sin = kotlin.math.sin(angle).toFloat()
+
+            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], 0f)
+            glVertex2f(centerX + (waveRadius - halfThickness) * cos, centerY + (waveRadius - halfThickness) * sin)
+
+            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], alpha)
+            glVertex2f(centerX + waveRadius * cos, centerY + waveRadius * sin)
+        }
+        glEnd()
+
+        // Outer ring
+        glBegin(GL_TRIANGLE_STRIP)
+        for (i in 0..64) {
+            val angle = 2.0 * Math.PI * i / 64
+            val cos = kotlin.math.cos(angle).toFloat()
+            val sin = kotlin.math.sin(angle).toFloat()
+
+            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], alpha)
+            glVertex2f(centerX + waveRadius * cos, centerY + waveRadius * sin)
+
+            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], 0f)
+            glVertex2f(centerX + (waveRadius + halfThickness) * cos, centerY + (waveRadius + halfThickness) * sin)
+        }
+        glEnd()
+
+        // Restore OpenGL state
+        glPopAttrib()
+    }
+
+    // Improved noise function with bias towards visibility
+    private fun noise2D(x: Float, y: Float, bias: Float = 0.6f): Float {
+        val ix = kotlin.math.floor(x).toInt()
+        val iy = kotlin.math.floor(y).toInt()
+
+        val fx = x - ix
+        val fy = y - iy
+
+        // Simple interpolation functions
+        val u = fx * fx * (3 - 2 * fx)
+        val v = fy * fy * (3 - 2 * fy)
+
+        // Use pseudo-random hash function based on coordinates
+        val a = (ix * 1664525 + iy * 1013904223) % 1000 / 1000f
+        val b = ((ix + 1) * 1664525 + iy * 1013904223) % 1000 / 1000f
+        val c = (ix * 1664525 + (iy + 1) * 1013904223) % 1000 / 1000f
+        val d = ((ix + 1) * 1664525 + (iy + 1) * 1013904223) % 1000 / 1000f
+
+        // Bilinear interpolation
+        val x1 = a + u * (b - a)
+        val x2 = c + u * (d - c)
+        val rawNoise = x1 + v * (x2 - x1)
+
+        // Apply bias function to favor more visible areas
+        // This remaps the noise from [0,1] to a distribution with more values > 0.5
+        return rawNoise.toDouble().pow((1f - bias).toDouble()).toFloat()
+    }
+
     fun drawPolygon() {
         if (polygonPoints.isEmpty()) return
 
@@ -701,6 +938,9 @@ class PolygonShader(
 
         drawRipple(smoothBase)
         drawStaticCircles(smoothBase)
+
+        // Draw the shield pop effect on top of everything else
+        drawShieldPop(smoothBase)
 
         // Cleanup
         glDisable(GL_STENCIL_TEST)
