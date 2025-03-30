@@ -69,12 +69,22 @@ class PolygonShader(
         var thickness: Float = 20f,
         var startScale: Float = 0.1f,
         var endScale: Float = 3.0f,
-        var intensity: Float = 1.0f
+        var intensity: Float = 1.0f,
+        var radialLines: List<RadialLine> = listOf()
     )
 
     private var activePopWave: PopWave? = null
 
     private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "shield_noise")
+
+    private data class RadialLine(
+        val angle: Float,       // Angle in radians
+        val length: Float,      // Length of the line (0-1, will be multiplied by radius)
+        val startOffset: Float, // Offset from center (0-1, will be multiplied by radius)
+        val thickness: Float,   // Thickness of the line
+        val alpha: Float,       // Base alpha/opacity
+        val speedMultiplier: Float  // How fast this line expands compared to others
+    )
 
     init {
         init()
@@ -178,36 +188,6 @@ class PolygonShader(
         }
     }
 
-    private fun calculateCenter(points: List<Float>): Pair<Float, Float> {
-        var sumX = 0f
-        var sumY = 0f
-        for (i in points.indices step 2) {
-            sumX += points[i]
-            sumY += points[i + 1]
-        }
-        val count = points.size / 2
-        return Pair(sumX / count, sumY / count)
-    }
-
-    private fun rotatePoint(x: Float, y: Float, centerX: Float, centerY: Float, angle: Float): Pair<Float, Float> {
-        val cos = kotlin.math.cos(angle)
-        val sin = kotlin.math.sin(angle)
-
-        // Translate point to origin
-        val dx = x - centerX
-        val dy = y - centerY
-
-        // Rotate
-        val rotatedX = dx * cos - dy * sin
-        val rotatedY = dx * sin + dy * cos
-
-        // Translate back
-        return Pair(
-            rotatedX + centerX,
-            rotatedY + centerY
-        )
-    }
-
     private fun transformPoints(points: List<Float>, outwardOffset: Float): List<Float> {
         val result = mutableListOf<Float>()
         val numPoints = points.size / 2
@@ -267,30 +247,6 @@ class PolygonShader(
             // Translate back to world space
             result.add(rotatedX + centerX)
             result.add(rotatedY + centerY)
-        }
-
-        return result
-    }
-
-    private fun subdividePoints(points: List<Float>, subdivisions: Int = 4): List<Float> {
-        val result = mutableListOf<Float>()
-
-        for (i in points.indices step 2) {
-            val x1 = points[i]
-            val y1 = points[i + 1]
-            val x2 = points[(i + 2) % points.size]
-            val y2 = points[(i + 3) % points.size]
-
-            // Add original point
-            result.add(x1)
-            result.add(y1)
-
-            // Add interpolated points
-            for (j in 1 until subdivisions) {
-                val t = j.toFloat() / subdivisions
-                result.add(x1 + (x2 - x1) * t)
-                result.add(y1 + (y2 - y1) * t)
-            }
         }
 
         return result
@@ -565,32 +521,70 @@ class PolygonShader(
     }
 
     fun triggerShieldPop(intensity: Float = 1.0f) {
-        // Create a darker version of the shield color
-        val darkColor = floatArrayOf(
-            colorRGBA[0],  // Darken red
-            colorRGBA[1],  // Darken green
-            colorRGBA[2],  // Darken blue
-            1f          // Keep alpha the same
-        )
+        // Create darker colors for the cloud effect
+        val darkColor = floatArrayOf(colorRGBA[0] * 0.4f, colorRGBA[1] * 0.4f, colorRGBA[2] * 0.4f, 1f)
+        val darkerColor =
+            floatArrayOf(colorRGBA[0] * 0.25f, colorRGBA[1] * 0.25f, colorRGBA[2] * 0.25f, 0.8f)
 
-        // Create an even darker color for the cloud effect
-        val darkerColor = floatArrayOf(
-            colorRGBA[0] * 0.25f,  // Even darker red
-            colorRGBA[1] * 0.25f,  // Even darker green
-            colorRGBA[2] * 0.25f,  // Even darker blue
-            1f   // Slightly lower alpha
-        )
+        // Generate random radial lines
+        val lines = mutableListOf<RadialLine>()
+        var currentAngle = kotlin.random.Random.nextFloat() * 2f * Math.PI.toFloat() // Random start angle
 
-        // Create a new pop wave
+        // Parameters for the lines
+        val minLineLength = 0.2f * (0.7f + intensity * 0.3f)  // Reduced by half from previous value
+        val maxLineLength = 0.45f * (0.7f + intensity * 0.3f)  // Reduced by half from previous value
+        val minStartOffset = 0.5f  // Lines start 50% away from center
+        val maxStartOffset = 0.7f  // Lines start up to 70% away from center
+        val baseThickness = 2f + intensity * 2f // Base thickness in pixels
+        val minAngularSpacing = Math.toRadians(10.0).toFloat()
+        val maxAngularSpacing = Math.toRadians(40.0).toFloat()
+        val numLinesMultiplier = 1f + intensity * 0.5f
+
+        // Generate lines with random spacing until we go all the way around
+        val startAngle = currentAngle
+        while (currentAngle - startAngle < Math.PI * 2) {
+            // Random length for this line
+            val length = minLineLength + kotlin.random.Random.nextFloat() * (maxLineLength - minLineLength)
+
+            // Random start offset from center
+            val startOffset = minStartOffset + kotlin.random.Random.nextFloat() * (maxStartOffset - minStartOffset)
+
+            // Random thickness variation
+            val thickness = baseThickness * (0.7f + kotlin.random.Random.nextFloat() * 0.6f)
+
+            // Random alpha
+            val alpha = 0.7f + kotlin.random.Random.nextFloat() * 0.3f
+
+            // Random speed multiplier
+            val speedMultiplier = 0.85f + kotlin.random.Random.nextFloat() * 0.3f
+
+            lines.add(
+                RadialLine(
+                    angle = currentAngle,
+                    length = length,
+                    startOffset = startOffset,
+                    thickness = thickness,
+                    alpha = alpha,
+                    speedMultiplier = speedMultiplier
+                )
+            )
+
+            // Calculate next angle with random spacing
+            val spacing = minAngularSpacing + kotlin.random.Random.nextFloat() * (maxAngularSpacing - minAngularSpacing)
+            currentAngle += spacing / numLinesMultiplier
+        }
+
+        // Create the pop wave with the radial lines
         activePopWave = PopWave(
             time = 0f,
-            maxTime = 0.8f,
+            maxTime = 0.3f,
             color = darkColor,
             darkerColor = darkerColor,
             thickness = 20f * (0.5f + intensity * 0.5f),
             startScale = 0.1f,
             endScale = 3.0f + intensity * 0.5f,
-            intensity = intensity.coerceIn(0.1f, 1.5f)
+            intensity = intensity.coerceIn(0.1f, 1.5f),
+            radialLines = lines
         )
     }
 
@@ -605,23 +599,23 @@ class PolygonShader(
         }
     }
 
-    private fun drawShieldPop(points: List<Float>) {
-        val popWave = activePopWave ?: return
+    private fun _drawShieldPop(): Boolean {
+        val popWave = activePopWave ?: return false
 
         // Calculate progress of the animation (0.0 to 1.0)
         val progress = (popWave.time / popWave.maxTime).coerceIn(0f, 1f)
 
-        // Calculate current scale with easing
-        val easedProgress = 1f - (1f - progress) * (1f - progress)
+        // Calculate current scale based on animation progress with easing
+        val easedProgress = 1f - (1f - progress) * (1f - progress)  // Quadratic ease-out
         val currentScale = popWave.startScale + (popWave.endScale - popWave.startScale) * easedProgress
 
         // Current radius of the wave
         val waveRadius = popEffectRadius * currentScale
 
-        // Calculate alpha with fade out
-        val fadeStart = 0.4f
+        // Calculate alpha based on progress (fade out near the end)
+        val fadeStart = 0.4f  // Start fading at 40% of animation
         val alpha = if (progress < fadeStart) {
-            popWave.color[3] * popWave.intensity
+            popWave.color[3] * popWave.intensity  // Full alpha until fadeStart
         } else {
             popWave.color[3] * popWave.intensity * (1f - (progress - fadeStart) / (1f - fadeStart))
         }
@@ -664,7 +658,7 @@ class PolygonShader(
         noiseSprite.bindTexture()
 
         // Calculate a single large quad that covers the wave area
-        val quadSize = waveRadius * 2f - popWave.thickness  // Make it slightly larger than the diameter
+        val quadSize = waveRadius * 2.2f  // Make it slightly larger than the diameter
 
         // Base color for the texture
         val r = popWave.darkerColor[0]
@@ -711,35 +705,113 @@ class PolygonShader(
         // Disable texturing
         glDisable(GL_TEXTURE_2D)
 
-        // Draw the main ring on top
-        // Use the same stencil test to ensure it's only drawn in the correct area
+        // Line fade parameters for radial lines
+        val lineFadeStart = 0.3f // Lines start fading later than the main effect
+        val lineAlpha = if (progress < lineFadeStart) {
+            1.0f
+        } else {
+            1.0f - ((progress - lineFadeStart) / (1.0f - lineFadeStart))
+        }
 
-        // Inner and outer ring code as before
+        // Enable line smoothing for better-looking lines
+        glEnable(GL_LINE_SMOOTH)
+
+        // Draw each radial line
+        for (line in popWave.radialLines) {
+            // Calculate current length based on progress and line's speed multiplier
+            val currentLength = waveRadius * line.length * kotlin.math.min(1.0f, progress * 3.0f * line.speedMultiplier)
+
+            // Skip if length is too small
+            if (currentLength < 5f) continue
+
+            // Calculate start point with offset from center
+            val startOffsetDistance = waveRadius * line.startOffset
+            val startX = centerX + startOffsetDistance * kotlin.math.cos(line.angle)
+            val startY = centerY + startOffsetDistance * kotlin.math.sin(line.angle)
+
+            // Calculate the maximum distance to ensure lines end at least 20 pixels from radius
+            val safeDistance = waveRadius - 20f
+            val maxEndDistance = kotlin.math.max(startOffsetDistance, safeDistance)
+
+            // Calculate end point with safety margin from radius
+            val rawEndDistance = startOffsetDistance + currentLength
+            val endDistance = kotlin.math.min(rawEndDistance, maxEndDistance)
+
+            val endX = centerX + endDistance * kotlin.math.cos(line.angle)
+            val endY = centerY + endDistance * kotlin.math.sin(line.angle)
+
+            // Set line width
+            glLineWidth(line.thickness)
+
+            // Calculate final alpha with fadeout
+            val finalAlpha = line.alpha * lineAlpha
+
+            // Draw the main line only (no cap)
+            glBegin(GL_LINES)
+            // Start point (slightly transparent)
+            glColor4f(1f, 1f, 1f, finalAlpha * 0.3f)
+            glVertex2f(startX, startY)
+
+            // End point (full brightness)
+            glColor4f(1f, 1f, 1f, finalAlpha)
+            glVertex2f(endX, endY)
+            glEnd()
+        }
+
+        // After drawing both the noise texture and radial lines,
+        // temporarily disable the stencil test to ensure the ring is drawn on top
+        // of everything, even potentially over the shield edge
+        glDisable(GL_STENCIL_TEST)
+
+        // Now draw the main ring on top of everything with a slightly higher alpha
+        // to make it more prominent
+        val numSegments = 64
         val halfThickness = popWave.thickness * 0.5f
 
-        // Inner ring
+        // Use a higher alpha for the ring to make it stand out better against the noise texture
+        val ringAlpha = alpha * 1.2f
+
+        // Enable line smoothing for the ring
+        glEnable(GL_LINE_SMOOTH)
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+
+        // Draw the main ring as a solid line instead of triangle strips for a cleaner look
+        glLineWidth(popWave.thickness)
+        glBegin(GL_LINE_LOOP)
+        glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], ringAlpha)
+
+        for (i in 0..numSegments) {
+            val angle = 2.0 * Math.PI * i / numSegments
+            val cos = kotlin.math.cos(angle).toFloat()
+            val sin = kotlin.math.sin(angle).toFloat()
+            glVertex2f(centerX + waveRadius * cos, centerY + waveRadius * sin)
+        }
+        glEnd()
+
+        // If you still want the fade-out effect at the edges, keep the triangle strips too
+        // Inner ring fade
         glBegin(GL_TRIANGLE_STRIP)
-        for (i in 0..64) {
-            val angle = 2.0 * Math.PI * i / 64
+        for (i in 0..numSegments) {
+            val angle = 2.0 * Math.PI * i / numSegments
             val cos = kotlin.math.cos(angle).toFloat()
             val sin = kotlin.math.sin(angle).toFloat()
 
             glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], 0f)
             glVertex2f(centerX + (waveRadius - halfThickness) * cos, centerY + (waveRadius - halfThickness) * sin)
 
-            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], alpha)
+            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], ringAlpha)
             glVertex2f(centerX + waveRadius * cos, centerY + waveRadius * sin)
         }
         glEnd()
 
-        // Outer ring
+        // Outer ring fade
         glBegin(GL_TRIANGLE_STRIP)
-        for (i in 0..64) {
-            val angle = 2.0 * Math.PI * i / 64
+        for (i in 0..numSegments) {
+            val angle = 2.0 * Math.PI * i / numSegments
             val cos = kotlin.math.cos(angle).toFloat()
             val sin = kotlin.math.sin(angle).toFloat()
 
-            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], alpha)
+            glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], ringAlpha)
             glVertex2f(centerX + waveRadius * cos, centerY + waveRadius * sin)
 
             glColor4f(popWave.color[0], popWave.color[1], popWave.color[2], 0f)
@@ -749,6 +821,8 @@ class PolygonShader(
 
         // Restore OpenGL state
         glPopAttrib()
+
+        return true
     }
 
     // Improved noise function with bias towards visibility
@@ -777,6 +851,14 @@ class PolygonShader(
         // Apply bias function to favor more visible areas
         // This remaps the noise from [0,1] to a distribution with more values > 0.5
         return rawNoise.toDouble().pow((1f - bias).toDouble()).toFloat()
+    }
+
+    fun drawShieldPop(): Boolean {
+        val isDrawing = _drawShieldPop()
+
+        cleanup()
+
+        return isDrawing
     }
 
     fun drawPolygon() {
@@ -939,10 +1021,11 @@ class PolygonShader(
         drawRipple(smoothBase)
         drawStaticCircles(smoothBase)
 
-        // Draw the shield pop effect on top of everything else
-        drawShieldPop(smoothBase)
-
         // Cleanup
+        cleanUp()
+    }
+
+    private fun cleanUp() {
         glDisable(GL_STENCIL_TEST)
         glEnable(GL_TEXTURE_2D)
         glDisable(GL_BLEND)

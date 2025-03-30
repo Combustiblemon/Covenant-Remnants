@@ -41,6 +41,7 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
     )
 
     private val activeRipples = mutableListOf<RippleData>()
+    private var popActive = false
 
     private var wasPressed: Boolean = false
 
@@ -53,7 +54,7 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         if (Keyboard.isKeyDown(Keyboard.KEY_B) && !wasPressed) {
             // addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
             // triggerRippleAtAngle(90f, 80, 1f, 10f)
-            shader.triggerShieldPop(1f)
+
             wasPressed = true
         }
 
@@ -61,11 +62,21 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
             wasPressed = false
         }
 
+        if (popActive) {
+            popActive = shader.drawShieldPop()
+        }
+
         // Use phaseCloak.effectLevel to check for activity
         if (attachedTo.phaseCloak.effectLevel > 0f) {
             renderShield()
             shader.updateHexAnimation(hexAnimationTime, hexSize, hexSpacing)
         }
+    }
+
+    fun triggerShieldPop() {
+        shader.triggerShieldPop(1f)
+        attachedTo.phaseCloak.deactivate()
+        popActive = true
     }
 
     private fun renderShield() {
@@ -111,7 +122,9 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
             shader.updateChargeProgress(attachedTo.phaseCloak.effectLevel, attachedTo.facing)
         }
 
-        shader.updateShieldPop(amount)
+        if (popActive) {
+            shader.updateShieldPop(amount)
+        }
 
         // Clear circles from previous frame
         shader.clearStaticCircles()
