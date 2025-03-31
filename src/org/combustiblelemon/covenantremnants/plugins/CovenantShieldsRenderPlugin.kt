@@ -23,11 +23,6 @@ class CovenantShieldsRenderPlugin(
 
     private lateinit var entity: CombatEntityAPI
 
-    private var rippleStarted = false
-    private var rippleActive = false
-    private var rippleStartTime = 0f
-    private var currentTime = 0f
-
     // Add new properties for hex animation
     private var hexAnimationTime = 0f
     private val hexAnimationSpeed = 1.5f
@@ -81,9 +76,6 @@ class CovenantShieldsRenderPlugin(
         shader.triggerShieldPop(1f)
         attachedTo.phaseCloak.deactivate()
         popActive = true
-        breakCooldownActive = true
-
-        val engine = Global.getCombatEngine()
 
         spawnLightning()
     }
@@ -159,18 +151,14 @@ class CovenantShieldsRenderPlugin(
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
         shader.updatePopEffectRadius(shipDimensions[0].y / 2)
 
-        shader.drawDebugOverlay()
+//        shader.drawDebugOverlay()
         shader.drawPolygon()
     }
 
     override fun advance(amount: Float) {
-        currentTime += amount
         hexAnimationTime += amount * hexAnimationSpeed
 
-        if (rippleActive) {
-            shader.updateRipple(amount, 1000f)
-            rippleActive = shader.hasActiveRipples()
-        }
+        shader.updateRipple(amount, 1000f)
 
         if (attachedTo.phaseCloak.effectLevel > 0f) {
             // Pass charge progress to shader
@@ -194,7 +182,6 @@ class CovenantShieldsRenderPlugin(
 
     override fun cleanup() {
         shader.cleanup()
-        rippleStarted = false
         wasPressed = false
         activeRipples.clear() // Clear ripple data
     }
@@ -237,17 +224,22 @@ class CovenantShieldsRenderPlugin(
         val y = centerY + radius * sin(radians).toFloat()
 
         shader.startRipple(x, y, size, 255, 255, 255, alpha, intensity)
-        rippleActive = true
     }
+
+    private var lastRippleTriggeredTime: Float = 0f
+    private val rippleCooldown: Float = 0.3f
 
     /**
      * Alternative version that directly accepts x,y coordinates
      */
     fun triggerRippleAtPoint(x: Float, y: Float, alpha: Int = 80, intensity: Float = 1f) {
-        rippleStartTime = currentTime
+        val currentTime = Global.getCombatEngine().getTotalElapsedTime(false)
+
+        if (lastRippleTriggeredTime + rippleCooldown > currentTime) {
+            return
+        }
+
         shader.startRipple(x, y, 40f, 255, 255, 255, alpha, intensity)
-        rippleStarted = true
-        rippleActive = true
     }
 
     fun addStaticCircle(angleInDegrees: Float, radius: Float, alpha: Int = 80, intensity: Float = 1f) {

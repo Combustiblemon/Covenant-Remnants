@@ -168,4 +168,92 @@ object Utils {
 
         return inside
     }
+
+    /**
+     * Calculates the perpendicular intersection point between a line segment and a point
+     * @param segment Array of two Vector2f representing the line segment endpoints
+     * @param point The point to find the perpendicular intersection from
+     * @return Vector2f representing the intersection point, or null if the perpendicular point lies outside the segment
+     */
+    fun getPerpendicularIntersectionPoint(segment: Array<Vector2f>, point: Vector2f): Vector2f? {
+        if (segment.size != 2) return null
+
+        val p1 = segment[0]
+        val p2 = segment[1]
+
+        // Calculate the vector from p1 to p2
+        val dx = p2.x - p1.x
+        val dy = p2.y - p1.y
+
+        // Calculate the squared length of the line segment
+        val squaredLength = dx * dx + dy * dy
+
+        // If the segment has zero length, return null
+        if (squaredLength == 0f) return null
+
+        // Calculate the projection of the point onto the line
+        val t = ((point.x - p1.x) * dx + (point.y - p1.y) * dy) / squaredLength
+
+        // If t is outside [0,1], the perpendicular point lies outside the segment
+        if (t < 0f || t > 1f) return null
+
+        // Calculate the intersection point
+        val intersectionX = p1.x + t * dx
+        val intersectionY = p1.y + t * dy
+
+        return Vector2f(intersectionX, intersectionY)
+    }
+
+    /**
+     * Calculates a point along a line segment at a specified percentage from the end point
+     * @param segment Array of two Vector2f representing the line segment endpoints
+     * @param percentage Float between 0 and 1 representing the percentage from the end point (second point)
+     * @return Vector2f representing the point along the segment, or null if the segment is invalid
+     */
+    fun getPointAlongSegmentFromEnd(segment: Array<Vector2f>, percentage: Float): Vector2f? {
+        if (segment.size != 2) return null
+        if (percentage < 0f || percentage > 1f) return null
+
+        val endPoint = segment[1]
+        val startPoint = segment[0]
+
+        // Calculate the vector from end to start
+        val dx = startPoint.x - endPoint.x
+        val dy = startPoint.y - endPoint.y
+
+        // Calculate the point at the specified percentage
+        val x = endPoint.x + dx * percentage
+        val y = endPoint.y + dy * percentage
+
+        return Vector2f(x, y)
+    }
+
+    /**
+     * Checks if a perpendicular intersection point exists between a line segment and a point
+     * @param segment Array of two Vector2f representing the line segment endpoints
+     * @param point The point to check for perpendicular intersection
+     * @return true if a perpendicular intersection point exists on the segment, false otherwise
+     */
+    fun hasPerpendicularIntersectionPoint(segment: Array<Vector2f>, point: Vector2f): Boolean {
+        if (segment.size != 2) return false
+
+        val p1 = segment[0]
+        val p2 = segment[1]
+
+        // Calculate the vector from p1 to p2
+        val dx = p2.x - p1.x
+        val dy = p2.y - p1.y
+
+        // Calculate the squared length of the line segment
+        val squaredLength = dx * dx + dy * dy
+
+        // If the segment has zero length, return false
+        if (squaredLength == 0f) return false
+
+        // Calculate the projection of the point onto the line
+        val t = ((point.x - p1.x) * dx + (point.y - p1.y) * dy) / squaredLength
+
+        // Return true if t is within [0,1], meaning the perpendicular point lies on the segment
+        return t in 0f..1f
+    }
 }

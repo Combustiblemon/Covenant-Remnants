@@ -11,6 +11,7 @@ import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -20,14 +21,26 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     private var UIRenderPlugin: CovenantShieldsUIRenderPlugin? = null
     private var damageListener: ShieldDamageListener? = null
     private var shipListenerInstance: ShipListener? = null
+    var ship: ShipAPI? = null
+    var shipDimensions: Array<Vector2f>? = null
+
+    var lastDamageTime: Float = 0f
+    var shieldDamageRechargeCooldown: Float = 1f
 
     private var shieldHealth: Float = 5000f
         set(value) {
+            if (breakCooldownActive) {
+                field = 0f
+                return
+            }
+
             val shieldValue = max(0f, min(value, maxShieldHealth))
 
             if (field != 0f && shieldValue == 0f) {
                 breakCooldownActive = true
                 breakCooldownStartTime = Global.getCombatEngine().getTotalElapsedTime(false)
+                field = 0f
+                return
             }
 
             field = shieldValue
@@ -36,11 +49,12 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     private val shieldRegen: Float = 300f
     var breakCooldownActive = false
         set(value) {
+            renderPlugin?.breakCooldownActive = value
+
             if (value) {
                 renderPlugin?.triggerShieldPop()
             }
 
-            renderPlugin?.breakCooldownActive = value
             field = value
         }
     var breakCooldownStartTime = 0f
@@ -68,19 +82,25 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         private val parent = parent
 
         override fun advance(amount: Float) {
+            val elapsedTime = Global.getCombatEngine().getTotalElapsedTime(false)
+
             if (parent.breakCooldownActive) {
-                val remainingTime = parent.breakCooldownStartTime + breakCooldownTime - Global.getCombatEngine()
-                    .getTotalElapsedTime(false)
+                val remainingTime = parent.breakCooldownStartTime + breakCooldownTime - elapsedTime
 
                 if (remainingTime <= 0) {
                     parent.breakCooldownActive = false
                     parent.shieldCooldown = 1f
+
+                    parent.renderPlugin.let {
+                        it?.breakCooldownActive = false
+                    }
                 } else {
                     parent.shieldCooldown = max(0f, min(remainingTime / breakCooldownTime, breakCooldownTime))
                 }
             } else {
-                if (parent.shieldHealth < parent.maxShieldHealth) {
-                    parent.shieldHealth = (parent.shieldHealth + parent.shieldRegen) * amount
+                if (parent.shieldHealth < parent.maxShieldHealth && parent.lastDamageTime + parent.shieldDamageRechargeCooldown <= elapsedTime
+                ) {
+                    parent.shieldHealth = parent.shieldHealth + parent.shieldRegen
                 }
             }
 
@@ -93,34 +113,36 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     }
 
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effLevel: Float) {
-        var ship: ShipAPI? = null
+        var _ship: ShipAPI? = null
         var player: Boolean = false
 
         if (stats.entity is ShipAPI) {
-            ship = stats.entity as ShipAPI
-            player = ship === Global.getCombatEngine().playerShip
+            _ship = stats.entity as ShipAPI
+            player = _ship === Global.getCombatEngine().playerShip
+            ship = _ship
+            shipDimensions = Utils.getShipDimensions(_ship)
         } else {
             return
         }
 
         if (renderPlugin == null) {
-            renderPlugin = CovenantShieldsRenderPlugin(ship, Utils.getShipDimensions(ship))
+            renderPlugin = CovenantShieldsRenderPlugin(_ship, Utils.getShipDimensions(_ship))
             Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
         }
 
         if (damageListener == null) {
-            damageListener = ShieldDamageListener(ship, this)
-            ship.addListener(damageListener)
+            damageListener = ShieldDamageListener(_ship, this)
+            _ship.addListener(damageListener)
         }
 
         if (shipListenerInstance == null) {
-            shipListenerInstance = ShipListener(ship, this)
-            ship.addListener(shipListenerInstance)
+            shipListenerInstance = ShipListener(_ship, this)
+            _ship.addListener(shipListenerInstance)
         }
 
         if (player) {
             if (UIRenderPlugin == null) {
-                UIRenderPlugin = CovenantShieldsUIRenderPlugin(ship)
+                UIRenderPlugin = CovenantShieldsUIRenderPlugin(_ship)
                 Global.getCombatEngine().addLayeredRenderingPlugin(UIRenderPlugin)
 
                 UIRenderPlugin.let {
@@ -128,7 +150,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     it?.maxShieldHealth = maxShieldHealth
                 }
             }
-            val system = getShield(ship)
+            val system = getShield(_ship)
 
             Global.getCombatEngine()
                 .maintainStatusForPlayerShip(statusKey, system.specAPI.iconSpriteName, "Shield active", "", false)
@@ -137,6 +159,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     class ShieldDamageListener(private val attachedTo: ShipAPI, private val parent: CovenantShieldsStats) :
         DamageTakenModifier {
+        private val modifierKey = "covenant_remnants_covenant_shields"
 
         override fun modifyDamageTaken(
             param: Any?,
@@ -146,10 +169,47 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             shieldHit: Boolean
         ): String {
             if (attachedTo.phaseCloak.isActive) {
+                parent.lastDamageTime = Global.getCombatEngine().getTotalElapsedTime(false)
+
+                val percentPoint = Utils.getPointAlongSegmentFromEnd(
+                    listOf(
+                        Vector2f(
+                            parent.shipDimensions!![0].x,
+                            attachedTo.location.y
+                        ), Vector2f(
+                            parent.shipDimensions!![1].x,
+                            attachedTo.location.y
+                        )
+                    ).toTypedArray(),
+                    attachedTo.phaseCloak.effectLevel
+                )
+
+
+                if (point === null || percentPoint === null) {
+                    return modifierKey
+                }
+
+                val hitPastShield = Utils.hasPerpendicularIntersectionPoint(
+                    listOf(
+                        Vector2f(
+                            parent.shipDimensions!![0].x,
+                            attachedTo.location.y
+                        ),
+                        percentPoint
+
+                    ).toTypedArray(), point
+                )
+
+                if (hitPastShield) {
+                    return modifierKey
+                }
+
                 val damageNumber = damage?.damage ?: 0f
 
                 if (param is BeamWeaponRay) {
-
+                    parent.renderPlugin?.addStaticCircleAtPoint(point.x, point.y, 20f)
+                } else {
+                    parent.renderPlugin?.triggerRippleAtPoint(point.x, point.y)
                 }
 
                 if (parent.shieldHealth < damageNumber) {
@@ -166,12 +226,12 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 }
             }
 
-            return "covenant_remnants_covenant_shields"
+            return modifierKey
         }
     }
 
     fun dealShieldDamage(amount: Float) {
-        this.shieldHealth -= amount
+        this.shieldHealth -= abs(amount)
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {
