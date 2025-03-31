@@ -919,10 +919,10 @@ class PolygonShader(
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
 
-        val sweepY1 = abs(shipDimensions[0].x * cos) + abs(shipDimensions[0].y * sin)
-        val sweepY2 = abs(shipDimensions[1].x * cos) + abs(shipDimensions[1].y * sin)
-        val sweepX1 = abs(shipDimensions[0].x * sin) + abs(shipDimensions[0].y * cos)
-        val sweepX2 = abs(shipDimensions[1].x * sin) + abs(shipDimensions[1].y * cos)
+        val sweepX1 = abs(shipDimensions[0].x * cos) + abs(shipDimensions[0].y * sin)
+        val sweepX2 = abs(shipDimensions[1].x * cos) + abs(shipDimensions[1].y * sin)
+        val sweepY1 = abs(shipDimensions[0].x * sin) + abs(shipDimensions[0].y * cos)
+        val sweepY2 = abs(shipDimensions[1].x * sin) + abs(shipDimensions[1].y * cos)
 
         val sweepDistanceY = (sweepY1 * scaleY + borderWidth + 4f)
         val sweepDistanceY2 = (sweepY2 * scaleY + borderWidth + 4f)

@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.listeners.AdvanceableListener
 import com.fs.starfarer.api.combat.listeners.DamageTakenModifier
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
+import com.fs.starfarer.combat.entities.BeamWeaponRay
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.Utils
@@ -147,8 +148,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             if (attachedTo.phaseCloak.isActive) {
                 val damageNumber = damage?.damage ?: 0f
 
+                if (param is BeamWeaponRay) {
 
-
+                }
 
                 if (parent.shieldHealth < damageNumber) {
                     parent.dealShieldDamage(parent.shieldHealth)
