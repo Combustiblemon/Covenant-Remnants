@@ -35,15 +35,14 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     private val shieldRegen: Float = 300f
     var breakCooldownActive = false
         set(value) {
+            if (value) {
+                renderPlugin?.triggerShieldPop()
+            }
+
             renderPlugin?.breakCooldownActive = value
-            renderPlugin?.triggerShieldPop()
             field = value
         }
     var breakCooldownStartTime = 0f
-        set(value) {
-            renderPlugin?.breakCooldownStartTime = value
-            field = value
-        }
     var shieldCooldown: Float = 1f
         set(value) {
             val v = max(0f, min(value, 1f))
@@ -51,6 +50,17 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             UIRenderPlugin?.shieldCooldown = v
             field = v
         }
+
+    fun updateRenderers() {
+        UIRenderPlugin.let {
+            it?.shieldHealth = shieldHealth
+        }
+
+        renderPlugin.let {
+            it?.breakCooldownActive = breakCooldownActive
+        }
+
+    }
 
     private class ShipListener(ship: ShipAPI, parent: CovenantShieldsStats) : AdvanceableListener {
         private val breakCooldownTime = if (ship.phaseCloak.ammoPerSecond != null) ship.phaseCloak.ammoPerSecond else 9f
@@ -72,6 +82,8 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     parent.shieldHealth = (parent.shieldHealth + parent.shieldRegen) * amount
                 }
             }
+
+            parent.updateRenderers()
         }
     }
 

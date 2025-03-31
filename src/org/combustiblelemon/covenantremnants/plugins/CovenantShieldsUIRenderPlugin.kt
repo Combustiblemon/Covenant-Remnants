@@ -8,7 +8,6 @@ class CovenantShieldsUIRenderPlugin(
     private val attachedTo: ShipAPI,
 ) : CombatLayeredRenderingPlugin {
     private var layer = CombatEngineLayers.JUST_BELOW_WIDGETS
-
     private var entity: CombatEntityAPI? = null
 
     var maxShieldHealth: Float = 1000f

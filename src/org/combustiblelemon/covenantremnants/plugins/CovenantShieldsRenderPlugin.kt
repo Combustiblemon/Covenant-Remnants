@@ -44,9 +44,6 @@ class CovenantShieldsRenderPlugin(
     private val activeRipples = mutableListOf<RippleData>()
     private var popActive = false
     var breakCooldownActive = false
-    var breakCooldownStartTime = 0f
-    private val breakCooldownTime =
-        if (attachedTo.phaseCloak.ammoPerSecond != null) attachedTo.phaseCloak.ammoPerSecond else 9f
 
     private var wasPressed: Boolean = false
 
@@ -88,7 +85,6 @@ class CovenantShieldsRenderPlugin(
 
         val engine = Global.getCombatEngine()
 
-        breakCooldownStartTime = engine.getTotalElapsedTime(false)
         spawnLightning()
     }
 
