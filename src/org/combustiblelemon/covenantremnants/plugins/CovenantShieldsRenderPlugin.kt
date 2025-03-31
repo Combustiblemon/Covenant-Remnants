@@ -159,7 +159,7 @@ class CovenantShieldsRenderPlugin(
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
         shader.updatePopEffectRadius(shipDimensions[0].y / 2)
 
-//        shader.drawDebugOverlay()
+        shader.drawDebugOverlay()
         shader.drawPolygon()
     }
 

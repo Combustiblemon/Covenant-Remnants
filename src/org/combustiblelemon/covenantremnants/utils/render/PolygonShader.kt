@@ -918,39 +918,37 @@ class PolygonShader(
         val facingRad = Math.toRadians(shipFacing.toDouble()).toFloat()
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
+        
+        val difference = abs(shipDimensions[0].x) - abs(shipDimensions[1].x)
 
-        val sweepX1 = abs(shipDimensions[0].x * cos) + abs(shipDimensions[0].y * sin)
-        val sweepX2 = abs(shipDimensions[1].x * cos) + abs(shipDimensions[1].y * sin)
-        val sweepY1 = abs(shipDimensions[0].x * sin) + abs(shipDimensions[0].y * cos)
-        val sweepY2 = abs(shipDimensions[1].x * sin) + abs(shipDimensions[1].y * cos)
-
-        val sweepDistanceY = (sweepY1 * scaleY + borderWidth + 4f)
-        val sweepDistanceY2 = (sweepY2 * scaleY + borderWidth + 4f)
-        val sweepDistanceX = (sweepX1 * scaleX + borderWidth + 4f)
-        val sweepDistanceX2 = (sweepX2 * scaleX + borderWidth + 4f)
+        // Base distances (in ship's local space)
+        // magic numbers, no clue why it's these specifically. They will need to be changed per ship probably
+        val forwardDistance = (shipDimensions[0].x) * scaleX + borderWidth - difference
+        val backDistance = -(shipDimensions[1].x) * scaleX + borderWidth + difference
+        val sideDistance = shipDimensions[0].y * scaleY + borderWidth + 4f
 
         val progress = chargeProgress
-        val mult = 1f + abs(shipDimensions[1].y) / shipDimensions[0].y
 
+        // Calculate points in ship's local space, then rotate them
         val edgePoints = arrayOf(
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX2 * sin,
-                centerY - (progress * mult - 1f) * sweepDistanceY * sin + sweepDistanceY2 * cos
+                centerX + (-progress * (forwardDistance + backDistance) + backDistance) * cos - (-sideDistance) * sin,
+                centerY + (-progress * (forwardDistance + backDistance) + backDistance) * sin + (-sideDistance) * cos
             ),
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX2 * sin,
-                centerY - (progress * mult - 1f) * sweepDistanceY * sin - sweepDistanceY2 * cos
+                centerX + (-progress * (forwardDistance + backDistance) + backDistance) * cos - (sideDistance) * sin,
+                centerY + (-progress * (forwardDistance + backDistance) + backDistance) * sin + (sideDistance) * cos
             )
         )
 
         val forwardPoints = arrayOf(
             Vector2f(
-                centerX - sweepDistanceX2 * cos + sweepDistanceX2 * sin,
-                centerY - sweepDistanceY2 * sin - sweepDistanceY2 * cos
+                centerX + (-forwardDistance) * cos - (sideDistance) * sin,
+                centerY + (-forwardDistance) * sin + (sideDistance) * cos
             ),
             Vector2f(
-                centerX - sweepDistanceX2 * cos - sweepDistanceX2 * sin,
-                centerY - sweepDistanceY2 * sin + sweepDistanceY2 * cos
+                centerX + (-forwardDistance) * cos - (-sideDistance) * sin,
+                centerY + (-forwardDistance) * sin + (-sideDistance) * cos
             )
         )
 
@@ -1297,38 +1295,36 @@ class PolygonShader(
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
 
-        val sweepY1 = abs(shipDimensions[0].x * cos) + abs(shipDimensions[0].y * sin)
-        val sweepY2 = abs(shipDimensions[1].x * cos) + abs(shipDimensions[1].y * sin)
-        val sweepX1 = abs(shipDimensions[0].x * sin) + abs(shipDimensions[0].y * cos)
-        val sweepX2 = abs(shipDimensions[1].x * sin) + abs(shipDimensions[1].y * cos)
+        val difference = abs(shipDimensions[0].x) - abs(shipDimensions[1].x)
 
-        val sweepDistanceY = (sweepY1 * scaleY + borderWidth + 4f)
-        val sweepDistanceY2 = (sweepY2 * scaleY + borderWidth + 4f)
-        val sweepDistanceX = (sweepX1 * scaleX + borderWidth + 4f)
-        val sweepDistanceX2 = (sweepX2 * scaleX + borderWidth + 4f)
+        // Base distances (in ship's local space)
+        // magic numbers, no clue why it's these specifically. They will need to be changed per ship probably
+        val forwardDistance = (shipDimensions[0].x) * scaleX + borderWidth - difference
+        val backDistance = -(shipDimensions[1].x) * scaleX + borderWidth + difference
+        val sideDistance = shipDimensions[0].y * scaleY + borderWidth + 4f
 
         val progress = chargeProgress
-        val mult = 1f + abs(shipDimensions[1].y) / shipDimensions[0].y
 
+        // Calculate points in ship's local space, then rotate them
         val edgePoints = arrayOf(
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX2 * sin,
-                centerY - (progress * mult - 1f) * sweepDistanceY * sin + sweepDistanceY2 * cos
+                centerX + (-progress * (forwardDistance + backDistance) + backDistance) * cos - (-sideDistance) * sin,
+                centerY + (-progress * (forwardDistance + backDistance) + backDistance) * sin + (-sideDistance) * cos
             ),
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX2 * sin,
-                centerY - (progress * mult - 1f) * sweepDistanceY * sin - sweepDistanceY2 * cos
+                centerX + (-progress * (forwardDistance + backDistance) + backDistance) * cos - (sideDistance) * sin,
+                centerY + (-progress * (forwardDistance + backDistance) + backDistance) * sin + (sideDistance) * cos
             )
         )
 
         val forwardPoints = arrayOf(
             Vector2f(
-                centerX - sweepDistanceX2 * cos + sweepDistanceX2 * sin,
-                centerY - sweepDistanceY2 * sin - sweepDistanceY2 * cos
+                centerX + (-forwardDistance) * cos - (sideDistance) * sin,
+                centerY + (-forwardDistance) * sin + (sideDistance) * cos
             ),
             Vector2f(
-                centerX - sweepDistanceX2 * cos - sweepDistanceX2 * sin,
-                centerY - sweepDistanceY2 * sin + sweepDistanceY2 * cos
+                centerX + (-forwardDistance) * cos - (-sideDistance) * sin,
+                centerY + (-forwardDistance) * sin + (-sideDistance) * cos
             )
         )
 
