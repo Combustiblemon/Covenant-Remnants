@@ -3,20 +3,22 @@ package org.combustiblelemon.covenantremnants.plugins
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.utils.PolygonShader
+import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.input.Keyboard
 import org.lwjgl.util.vector.Vector2f
+import java.awt.Color
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
-class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val shipDimensions: Array<Vector2f>) :
+class CovenantShieldsRenderPlugin(
+    private val attachedTo: ShipAPI,
+    private val shipDimensions: Array<Vector2f>,
+    isPlayer: Boolean
+) :
     CombatLayeredRenderingPlugin {
 
     private val shader = PolygonShader(shipDimensions, 200f)
-
-    companion object {
-        private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "shield_noise")
-    }
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
 
@@ -42,8 +44,15 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
 
     private val activeRipples = mutableListOf<RippleData>()
     private var popActive = false
+    var breakCooldownActive = false
+    private var breakCooldownStartTime = 0f
+    private val breakCooldownTime =
+        if (attachedTo.phaseCloak.ammoPerSecond != null) attachedTo.phaseCloak.ammoPerSecond else 9f
 
     private var wasPressed: Boolean = false
+
+    private var lastEMPTriggerTime: Float = 0f
+    private val EMPCooldown: Float = 1f
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
         // Debug: Check for R key press
@@ -51,10 +60,9 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
             addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
         }
 
-        if (Keyboard.isKeyDown(Keyboard.KEY_B) && !wasPressed) {
-            // addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
-            // triggerRippleAtAngle(90f, 80, 1f, 10f)
 
+        if (Keyboard.isKeyDown(Keyboard.KEY_B) && !wasPressed) {
+            triggerShieldPop()
             wasPressed = true
         }
 
@@ -77,9 +85,52 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         shader.triggerShieldPop(1f)
         attachedTo.phaseCloak.deactivate()
         popActive = true
+        breakCooldownActive = true
+
+        val engine = Global.getCombatEngine()
+
+        breakCooldownStartTime = engine.getTotalElapsedTime(false)
+        spawnLightning()
     }
 
-    private fun renderShield() {
+    private fun spawnLightning() {
+        val polygonData = Utils.getShipPolygonInWorld(attachedTo)
+        val lightningArcNumbers = 3
+        val arcPoints = Utils.getRandomPointsInPolygon(polygonData, lightningArcNumbers * 2)
+
+        val engine = Global.getCombatEngine()
+
+        val mult = 1f
+        val arcWidth = 40f + mult * 40f
+
+        val params = EmpArcEntityAPI.EmpArcParams()
+        params.segmentLengthMult = 8f
+        params.zigZagReductionFactor = 0.15f
+        params.fadeOutDist = 50f
+        params.minFadeOutMult = 60f
+        params.flickerRateMult = 0.8f
+
+        for (i in 0..lightningArcNumbers) {
+
+            val arc = engine.spawnEmpArcVisual(
+                arcPoints[i], attachedTo, arcPoints[i + 1], attachedTo,
+                arcWidth,  // thickness
+                Color.CYAN,
+                Color(255, 255, 255, 255),
+                params
+            )
+
+            arc.coreWidthOverride = arcWidth / 2f
+
+            arc.setRenderGlowAtStart(false)
+            arc.setFadedOutAtStart(true)
+            arc.setSingleFlickerMode(false)
+        }
+
+        lastEMPTriggerTime = engine.getTotalElapsedTime(false)
+    }
+
+    private fun getShipVertexData(): List<Float> {
         val shipX = attachedTo.location!!.x
         val shipY = attachedTo.location!!.y
 
@@ -94,6 +145,14 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
         val firstSeg = attachedTo.exactBounds!!.origSegments[0]
         vertexData.add(firstSeg!!.p1.x + shipX)
         vertexData.add(firstSeg.p1.y + shipY)
+
+        return vertexData
+    }
+
+    private fun renderShield() {
+        val shipX = attachedTo.location!!.x
+        val shipY = attachedTo.location!!.y
+        val vertexData = getShipVertexData()
 
         shader.updateCenter(shipX, shipY)
         shader.updatePolygon(vertexData)
@@ -124,6 +183,16 @@ class CovenantShieldsRenderPlugin(private val attachedTo: ShipAPI, private val s
 
         if (popActive) {
             shader.updateShieldPop(amount)
+            popActive = shader.isPopWaveActive()
+        }
+
+        if (breakCooldownActive) {
+            if (Global.getCombatEngine().getTotalElapsedTime(false) > breakCooldownTime + breakCooldownStartTime) {
+                breakCooldownActive = false
+                breakCooldownStartTime = 0f
+            } else if (Global.getCombatEngine().getTotalElapsedTime(false) > lastEMPTriggerTime + 0.3f) {
+                spawnLightning()
+            }
         }
 
         // Clear circles from previous frame

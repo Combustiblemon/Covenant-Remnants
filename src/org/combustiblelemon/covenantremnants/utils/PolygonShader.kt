@@ -599,6 +599,10 @@ class PolygonShader(
         }
     }
 
+    fun isPopWaveActive(): Boolean {
+        return activePopWave !== null
+    }
+
     private fun _drawShieldPop(): Boolean {
         val popWave = activePopWave ?: return false
 

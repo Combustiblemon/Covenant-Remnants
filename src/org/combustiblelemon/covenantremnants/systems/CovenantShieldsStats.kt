@@ -30,6 +30,10 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         }
     }
 
+    override fun isUsable(system: ShipSystemAPI?, ship: ShipAPI?): Boolean {
+        return !(renderPlugin?.breakCooldownActive ?: false)
+    }
+
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effLevel: Float) {
         var ship: ShipAPI? = null
         var player: Boolean = false
@@ -41,9 +45,8 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             return
         }
 
-
         if (renderPlugin == null) {
-            renderPlugin = CovenantShieldsRenderPlugin(ship, Utils.getShipDimensions(ship))
+            renderPlugin = CovenantShieldsRenderPlugin(ship, Utils.getShipDimensions(ship), player)
             Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
         }
 
@@ -59,8 +62,6 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
         if (player) {
             val system = getShield(ship)
-
-
 
             Global.getCombatEngine()
                 .maintainStatusForPlayerShip(statuskey, system.specAPI.iconSpriteName, "Shield active", "", false)
