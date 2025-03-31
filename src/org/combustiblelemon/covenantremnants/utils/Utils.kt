@@ -76,21 +76,21 @@ object Utils {
 
         ship.exactBounds.origSegments.forEach { segment ->
             // max
-            if (segment.p1.x > max.y) {
-                max.y = segment.p1.x
+            if (segment.p1.x > max.x) {
+                max.x = segment.p1.x
             }
 
-            if (segment.p1.y > max.x) {
-                max.x = segment.p1.y
+            if (segment.p1.y > max.y) {
+                max.y = segment.p1.y
             }
 
             // min
-            if (segment.p1.x < min.y) {
-                min.y = segment.p1.x
+            if (segment.p1.x < min.x) {
+                min.x = segment.p1.x
             }
 
-            if (segment.p1.y < min.x) {
-                min.x = segment.p1.y
+            if (segment.p1.y < min.y) {
+                min.y = segment.p1.y
             }
         }
 

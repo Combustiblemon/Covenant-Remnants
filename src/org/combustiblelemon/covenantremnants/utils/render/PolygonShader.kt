@@ -9,6 +9,8 @@ import org.lwjgl.util.glu.GLUtessellator
 import org.lwjgl.util.glu.GLUtessellatorCallbackAdapter
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.pow
 
 class PolygonShader(
@@ -724,7 +726,7 @@ class PolygonShader(
         // Draw each radial line
         for (line in popWave.radialLines) {
             // Calculate current length based on progress and line's speed multiplier
-            val currentLength = waveRadius * line.length * kotlin.math.min(1.0f, progress * 3.0f * line.speedMultiplier)
+            val currentLength = waveRadius * line.length * min(1.0f, progress * 3.0f * line.speedMultiplier)
 
             // Skip if length is too small
             if (currentLength < 5f) continue
@@ -736,11 +738,11 @@ class PolygonShader(
 
             // Calculate the maximum distance to ensure lines end at least 20 pixels from radius
             val safeDistance = waveRadius - 20f
-            val maxEndDistance = kotlin.math.max(startOffsetDistance, safeDistance)
+            val maxEndDistance = max(startOffsetDistance, safeDistance)
 
             // Calculate end point with safety margin from radius
             val rawEndDistance = startOffsetDistance + currentLength
-            val endDistance = kotlin.math.min(rawEndDistance, maxEndDistance)
+            val endDistance = min(rawEndDistance, maxEndDistance)
 
             val endX = centerX + endDistance * kotlin.math.cos(line.angle)
             val endY = centerY + endDistance * kotlin.math.sin(line.angle)
@@ -917,30 +919,37 @@ class PolygonShader(
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
 
-        val sweepDistanceY = shipDimensions[0].y * scaleY + borderWidth + 4f
-        val sweepDistanceY2 = abs(shipDimensions[1].y * scaleY) + borderWidth + 4f
-        val sweepDistanceX = shipDimensions[0].x * scaleX + borderWidth + 4f
+        val sweepY1 = abs(shipDimensions[0].x * cos) + abs(shipDimensions[0].y * sin)
+        val sweepY2 = abs(shipDimensions[1].x * cos) + abs(shipDimensions[1].y * sin)
+        val sweepX1 = abs(shipDimensions[0].x * sin) + abs(shipDimensions[0].y * cos)
+        val sweepX2 = abs(shipDimensions[1].x * sin) + abs(shipDimensions[1].y * cos)
+
+        val sweepDistanceY = (sweepY1 * scaleY + borderWidth + 4f)
+        val sweepDistanceY2 = (sweepY2 * scaleY + borderWidth + 4f)
+        val sweepDistanceX = (sweepX1 * scaleX + borderWidth + 4f)
+        val sweepDistanceX2 = (sweepX2 * scaleX + borderWidth + 4f)
+
         val progress = chargeProgress
         val mult = 1f + abs(shipDimensions[1].y) / shipDimensions[0].y
 
         val edgePoints = arrayOf(
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX * sin,
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX2 * sin,
                 centerY - (progress * mult - 1f) * sweepDistanceY * sin + sweepDistanceY2 * cos
             ),
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX * sin,
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX2 * sin,
                 centerY - (progress * mult - 1f) * sweepDistanceY * sin - sweepDistanceY2 * cos
             )
         )
 
         val forwardPoints = arrayOf(
             Vector2f(
-                centerX - sweepDistanceX * cos + sweepDistanceX * sin,
+                centerX - sweepDistanceX2 * cos + sweepDistanceX2 * sin,
                 centerY - sweepDistanceY2 * sin - sweepDistanceY2 * cos
             ),
             Vector2f(
-                centerX - sweepDistanceX * cos - sweepDistanceX * sin,
+                centerX - sweepDistanceX2 * cos - sweepDistanceX2 * sin,
                 centerY - sweepDistanceY2 * sin + sweepDistanceY2 * cos
             )
         )
@@ -1288,30 +1297,37 @@ class PolygonShader(
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
 
-        val sweepDistanceY = shipDimensions[0].y * scaleY + borderWidth + 4f
-        val sweepDistanceY2 = abs(shipDimensions[1].y * scaleY) + borderWidth + 4f
-        val sweepDistanceX = shipDimensions[0].x * scaleX + borderWidth
+        val sweepY1 = abs(shipDimensions[0].x * cos) + abs(shipDimensions[0].y * sin)
+        val sweepY2 = abs(shipDimensions[1].x * cos) + abs(shipDimensions[1].y * sin)
+        val sweepX1 = abs(shipDimensions[0].x * sin) + abs(shipDimensions[0].y * cos)
+        val sweepX2 = abs(shipDimensions[1].x * sin) + abs(shipDimensions[1].y * cos)
+
+        val sweepDistanceY = (sweepY1 * scaleY + borderWidth + 4f)
+        val sweepDistanceY2 = (sweepY2 * scaleY + borderWidth + 4f)
+        val sweepDistanceX = (sweepX1 * scaleX + borderWidth + 4f)
+        val sweepDistanceX2 = (sweepX2 * scaleX + borderWidth + 4f)
+
         val progress = chargeProgress
         val mult = 1f + abs(shipDimensions[1].y) / shipDimensions[0].y
 
         val edgePoints = arrayOf(
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX * sin,
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX2 * sin,
                 centerY - (progress * mult - 1f) * sweepDistanceY * sin + sweepDistanceY2 * cos
             ),
             Vector2f(
-                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX * sin,
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX2 * sin,
                 centerY - (progress * mult - 1f) * sweepDistanceY * sin - sweepDistanceY2 * cos
             )
         )
 
         val forwardPoints = arrayOf(
             Vector2f(
-                centerX - sweepDistanceX * cos + sweepDistanceX * sin,
+                centerX - sweepDistanceX2 * cos + sweepDistanceX2 * sin,
                 centerY - sweepDistanceY2 * sin - sweepDistanceY2 * cos
             ),
             Vector2f(
-                centerX - sweepDistanceX * cos - sweepDistanceX * sin,
+                centerX - sweepDistanceX2 * cos - sweepDistanceX2 * sin,
                 centerY - sweepDistanceY2 * sin + sweepDistanceY2 * cos
             )
         )
