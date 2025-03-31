@@ -1,4 +1,4 @@
-package org.combustiblelemon.covenantremnants.utils
+package org.combustiblelemon.covenantremnants.utils.render
 
 import com.fs.starfarer.api.Global
 import org.lwjgl.BufferUtils
@@ -8,6 +8,7 @@ import org.lwjgl.util.glu.GLU
 import org.lwjgl.util.glu.GLUtessellator
 import org.lwjgl.util.glu.GLUtessellatorCallbackAdapter
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.abs
 import kotlin.math.pow
 
 class PolygonShader(
@@ -374,7 +375,7 @@ class PolygonShader(
                 val radius = ripple.radius + (i - numRings / 2) * ringSpacing
 
                 // Calculate ring fade (original fade for ripple thickness)
-                val ringFade = 1.0f - kotlin.math.abs(i - numRings / 2) / (numRings / 2f)
+                val ringFade = 1.0f - abs(i - numRings / 2) / (numRings / 2f)
 
                 // Calculate distance fade (new fade based on distance traveled)
                 val distanceFade = 1.0f - (ripple.radius / ripple.maxDistance)
@@ -909,43 +910,46 @@ class PolygonShader(
         glStencilFunc(GL_ALWAYS, 2, 2)
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE)
 
-        // Draw the charge-up area (front to back)
+        // Draw the sweep rectangle with corrected direction
+        glBegin(GL_QUADS)
+        // Back points (progress-based)
         val facingRad = Math.toRadians(shipFacing.toDouble()).toFloat()
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
 
-        val sweepDistance = shipDimensions[0].y * scaleY + borderWidth * 5f
+        val sweepDistanceY = shipDimensions[0].y * scaleY + borderWidth + 4f
+        val sweepDistanceY2 = abs(shipDimensions[1].y * scaleY) + borderWidth + 4f
+        val sweepDistanceX = shipDimensions[0].x * scaleX + borderWidth + 4f
         val progress = chargeProgress
+        val mult = 1f + abs(shipDimensions[1].y) / shipDimensions[0].y
 
         val edgePoints = arrayOf(
             Vector2f(
-                centerX + (progress * 2f - 1f) * sweepDistance * cos - sweepDistance * sin,
-                centerY - (progress * 2f - 1f) * sweepDistance * sin + sweepDistance * cos
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX * sin,
+                centerY - (progress * mult - 1f) * sweepDistanceY * sin + sweepDistanceY2 * cos
             ),
             Vector2f(
-                centerX + (progress * 2f - 1f) * sweepDistance * cos + sweepDistance * sin,
-                centerY - (progress * 2f - 1f) * sweepDistance * sin - sweepDistance * cos
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX * sin,
+                centerY - (progress * mult - 1f) * sweepDistanceY * sin - sweepDistanceY2 * cos
             )
         )
 
+        val forwardPoints = arrayOf(
+            Vector2f(
+                centerX - sweepDistanceX * cos + sweepDistanceX * sin,
+                centerY - sweepDistanceY2 * sin - sweepDistanceY2 * cos
+            ),
+            Vector2f(
+                centerX - sweepDistanceX * cos - sweepDistanceX * sin,
+                centerY - sweepDistanceY2 * sin + sweepDistanceY2 * cos
+            )
+        )
 
-        glBegin(GL_QUADS)
-        glVertex2f(
-            edgePoints[0].x,
-            edgePoints[0].y
-        )
-        glVertex2f(
-            edgePoints[1].x,
-            edgePoints[1].y
-        )
-        glVertex2f(
-            centerX + sweepDistance * cos + sweepDistance * sin,
-            centerY - sweepDistance * sin - sweepDistance * cos
-        )
-        glVertex2f(
-            centerX + sweepDistance * cos - sweepDistance * sin,
-            centerY - sweepDistance * sin + sweepDistance * cos
-        )
+        // Draw the actual quad
+        glVertex2f(edgePoints[0].x, edgePoints[0].y)
+        glVertex2f(edgePoints[1].x, edgePoints[1].y)
+        glVertex2f(forwardPoints[0].x, forwardPoints[0].y)
+        glVertex2f(forwardPoints[1].x, forwardPoints[1].y)
         glEnd()
 
         // // Re-enable stencil test for other elements
@@ -1064,30 +1068,31 @@ class PolygonShader(
         val offsetX = hexAnimationTime % hexSpacingX
         val offsetY = (hexAnimationTime % hexSpacingY) * 0.5f
 
-        // Get shield bounds for culling
-        val minX = points.minByOrNull { it } ?: 0f
-        val maxX = points.maxByOrNull { it } ?: 0f
-        val minY = points.minByOrNull { it } ?: 0f
-        val maxY = points.maxByOrNull { it } ?: 0f
+        // Save the current matrix state
+        glPushMatrix()
 
-        // Draw hex grid
+        // Translate to center, rotate, translate back
+        glTranslatef(centerX, centerY, 0f)
+        glRotatef(shipFacing, 0f, 0f, 1f)
+
+        // Draw hex grid in local space
         for (row in -rows..rows) {
             for (col in -cols..cols) {
                 // Offset every other row to create the hex pattern
                 val xOffset = if (row % 2 == 0) 0f else hexSpacingX * 0.5f
-                val x = centerX + col * hexSpacingX + offsetX + xOffset
-                val y = centerY + row * hexSpacingY * 0.75f + offsetY
-
-                // Skip if outside shield bounds
-                if (x < minX || x > maxX || y < minY || y > maxY) continue
+                val x = col * hexSpacingX + offsetX + xOffset
+                val y = row * hexSpacingY * 0.75f + offsetY
 
                 // Calculate alpha based on animation time
                 val alpha = 0.5f + 0.5f * kotlin.math.sin(hexAnimationTime + col * 0.2f + row * 0.3f)
 
-                // Draw rotated hexagon edges
+                // Draw hexagon edges with fixed rotation (relative to ship)
                 drawRotatedHexEdges(x, y, hexSize, hexEdgeWidth, hexRotation, alpha)
             }
         }
+
+        // Restore the matrix state
+        glPopMatrix()
 
         // Restore OpenGL state
         glPopAttrib()
@@ -1101,23 +1106,14 @@ class PolygonShader(
         rotation: Float,
         alpha: Float
     ) {
-        // Save current matrix
-        glPushMatrix()
-
-        // Translate to hex center
-        glTranslatef(x, y, 0f)
-
-        // Apply rotation
-        glRotatef(rotation, 0f, 0f, 1f)
-
         // Draw outer edge
         glLineWidth(edgeWidth)
         glBegin(GL_LINE_LOOP)
         glColor4f(0.8f, 0.9f, 1.0f, alpha * 0.3f)
         for (i in 0..6) {
-            val angle = 2.0 * Math.PI / 6.0 * i
-            val hexX = size * kotlin.math.cos(angle).toFloat()
-            val hexY = size * kotlin.math.sin(angle).toFloat()
+            val angle = 2.0 * Math.PI / 6.0 * i + Math.toRadians(rotation.toDouble())
+            val hexX = x + size * kotlin.math.cos(angle).toFloat()
+            val hexY = y + size * kotlin.math.sin(angle).toFloat()
             glVertex2f(hexX, hexY)
         }
         glEnd()
@@ -1127,15 +1123,12 @@ class PolygonShader(
         glBegin(GL_LINE_LOOP)
         glColor4f(0.8f, 0.9f, 1.0f, alpha * 0.3f)
         for (i in 0..6) {
-            val angle = 2.0 * Math.PI / 6.0 * i
-            val hexX = innerSize * kotlin.math.cos(angle).toFloat()
-            val hexY = innerSize * kotlin.math.sin(angle).toFloat()
+            val angle = 2.0 * Math.PI / 6.0 * i + Math.toRadians(rotation.toDouble())
+            val hexX = x + innerSize * kotlin.math.cos(angle).toFloat()
+            val hexY = y + innerSize * kotlin.math.sin(angle).toFloat()
             glVertex2f(hexX, hexY)
         }
         glEnd()
-
-        // Restore matrix
-        glPopMatrix()
     }
 
     private fun drawEdgeRectangle(progress: Float, edgePoints: Array<Vector2f>) {
@@ -1287,5 +1280,86 @@ class PolygonShader(
 
     fun hasActiveRipples(): Boolean {
         return activeRipples.isNotEmpty()
+    }
+
+    fun drawDebugOverlay() {
+        // Calculate the points just like in drawPolygon
+        val facingRad = Math.toRadians(shipFacing.toDouble()).toFloat()
+        val sin = kotlin.math.sin(facingRad)
+        val cos = kotlin.math.cos(facingRad)
+
+        val sweepDistanceY = shipDimensions[0].y * scaleY + borderWidth + 4f
+        val sweepDistanceY2 = abs(shipDimensions[1].y * scaleY) + borderWidth + 4f
+        val sweepDistanceX = shipDimensions[0].x * scaleX + borderWidth
+        val progress = chargeProgress
+        val mult = 1f + abs(shipDimensions[1].y) / shipDimensions[0].y
+
+        val edgePoints = arrayOf(
+            Vector2f(
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos - sweepDistanceX * sin,
+                centerY - (progress * mult - 1f) * sweepDistanceY * sin + sweepDistanceY2 * cos
+            ),
+            Vector2f(
+                centerX - (progress * mult - 1f) * sweepDistanceX * cos + sweepDistanceX * sin,
+                centerY - (progress * mult - 1f) * sweepDistanceY * sin - sweepDistanceY2 * cos
+            )
+        )
+
+        val forwardPoints = arrayOf(
+            Vector2f(
+                centerX - sweepDistanceX * cos + sweepDistanceX * sin,
+                centerY - sweepDistanceY2 * sin - sweepDistanceY2 * cos
+            ),
+            Vector2f(
+                centerX - sweepDistanceX * cos - sweepDistanceX * sin,
+                centerY - sweepDistanceY2 * sin + sweepDistanceY2 * cos
+            )
+        )
+
+        // Save all OpenGL state
+        glPushAttrib(GL_ALL_ATTRIB_BITS)
+
+        // Reset to simple rendering state
+        glDisable(GL_STENCIL_TEST)
+        glDisable(GL_DEPTH_TEST)
+        glDisable(GL_TEXTURE_2D)
+        glDisable(GL_LIGHTING)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+
+        // Draw thick white outline
+        glLineWidth(4f)
+        glBegin(GL_LINE_LOOP)
+        glColor4f(1f, 1f, 1f, 1f)
+        glVertex2f(edgePoints[0].x, edgePoints[0].y)
+        glVertex2f(edgePoints[1].x, edgePoints[1].y)
+        glVertex2f(forwardPoints[0].x, forwardPoints[0].y)
+        glVertex2f(forwardPoints[1].x, forwardPoints[1].y)
+        glEnd()
+
+        // Draw center point
+        glPointSize(10f)
+        glBegin(GL_POINTS)
+        glColor4f(1f, 0f, 0f, 1f)
+        glVertex2f(edgePoints[0].x, edgePoints[0].y)
+        glColor4f(0f, 1f, 0f, 1f)
+        glVertex2f(edgePoints[1].x, edgePoints[1].y)
+        glColor4f(0f, 0f, 1f, 1f)
+        glVertex2f(forwardPoints[0].x, forwardPoints[0].y)
+        glColor4f(0f, 1f, 1f, 1f)
+        glVertex2f(forwardPoints[1].x, forwardPoints[1].y)
+        glColor4f(1f, 1f, 0f, 1f)
+        glVertex2f(centerX, centerY)
+        glEnd()
+
+        // Print debug info
+//        println("Debug Overlay:")
+//        println("Center: ($centerX, $centerY)")
+//        println("Ship Facing: $shipFacing")
+//        println("Progress: $chargeProgress")
+//        println("Edge Points: (${edgePoints[0].x}, ${edgePoints[0].y}), (${edgePoints[1].x}, ${edgePoints[1].y})")
+//        println("Forward Points: (${forwardPoints[0].x}, ${forwardPoints[0].y}), (${forwardPoints[1].x}, ${forwardPoints[1].y})")
+
+        glPopAttrib()
     }
 }

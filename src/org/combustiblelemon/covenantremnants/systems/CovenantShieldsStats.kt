@@ -7,31 +7,76 @@ import com.fs.starfarer.api.combat.listeners.DamageTakenModifier
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
+import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.util.vector.Vector2f
+import kotlin.math.max
+import kotlin.math.min
 
 class CovenantShieldsStats : BaseShipSystemScript() {
-    private var statuskey = Any()
+    private var statusKey = Any()
     private var renderPlugin: CovenantShieldsRenderPlugin? = null
+    private var UIRenderPlugin: CovenantShieldsUIRenderPlugin? = null
     private var damageListener: ShieldDamageListener? = null
-    private var overloadListenerInstance: OverloadListener? = null
+    private var shipListenerInstance: ShipListener? = null
 
-    private class OverloadListener(private val ship: ShipAPI) : AdvanceableListener {
-        private var overloaded: Boolean = false
+    private var shieldHealth: Float = 5000f
+        set(value) {
+            val shieldValue = max(0f, min(value, maxShieldHealth))
+
+            if (field != 0f && shieldValue == 0f) {
+                breakCooldownActive = true
+                breakCooldownStartTime = Global.getCombatEngine().getTotalElapsedTime(false)
+            }
+
+            field = shieldValue
+        }
+    private val maxShieldHealth: Float = 5000f
+    private val shieldRegen: Float = 300f
+    var breakCooldownActive = false
+        set(value) {
+            renderPlugin?.breakCooldownActive = value
+            renderPlugin?.triggerShieldPop()
+            field = value
+        }
+    var breakCooldownStartTime = 0f
+        set(value) {
+            renderPlugin?.breakCooldownStartTime = value
+            field = value
+        }
+    var shieldCooldown: Float = 1f
+        set(value) {
+            val v = max(0f, min(value, 1f))
+
+            UIRenderPlugin?.shieldCooldown = v
+            field = v
+        }
+
+    private class ShipListener(ship: ShipAPI, parent: CovenantShieldsStats) : AdvanceableListener {
+        private val breakCooldownTime = if (ship.phaseCloak.ammoPerSecond != null) ship.phaseCloak.ammoPerSecond else 9f
+        private val parent = parent
+
         override fun advance(amount: Float) {
-            if (ship.fluxTracker.isOverloaded && !overloaded) {
-                Utils.logText("OVERLOADED")
-                overloaded = true
-            } else if (
-                !ship.fluxTracker.isOverloaded && overloaded
-            ) {
-                overloaded = false
+            if (parent.breakCooldownActive) {
+                val remainingTime = parent.breakCooldownStartTime + breakCooldownTime - Global.getCombatEngine()
+                    .getTotalElapsedTime(false)
+
+                if (remainingTime <= 0) {
+                    parent.breakCooldownActive = false
+                    parent.shieldCooldown = 1f
+                } else {
+                    parent.shieldCooldown = max(0f, min(remainingTime / breakCooldownTime, breakCooldownTime))
+                }
+            } else {
+                if (parent.shieldHealth < parent.maxShieldHealth) {
+                    parent.shieldHealth = (parent.shieldHealth + parent.shieldRegen) * amount
+                }
             }
         }
     }
 
     override fun isUsable(system: ShipSystemAPI?, ship: ShipAPI?): Boolean {
-        return !(renderPlugin?.breakCooldownActive ?: false)
+        return shieldCooldown >= 1f
     }
 
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effLevel: Float) {
@@ -46,29 +91,39 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         }
 
         if (renderPlugin == null) {
-            renderPlugin = CovenantShieldsRenderPlugin(ship, Utils.getShipDimensions(ship), player)
+            renderPlugin = CovenantShieldsRenderPlugin(ship, Utils.getShipDimensions(ship))
             Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
         }
 
         if (damageListener == null) {
-            damageListener = ShieldDamageListener(ship)
+            damageListener = ShieldDamageListener(ship, this)
             ship.addListener(damageListener)
         }
 
-        if (overloadListenerInstance == null) {
-            overloadListenerInstance = OverloadListener(ship)
-            ship.addListener(overloadListenerInstance)
+        if (shipListenerInstance == null) {
+            shipListenerInstance = ShipListener(ship, this)
+            ship.addListener(shipListenerInstance)
         }
 
         if (player) {
+            if (UIRenderPlugin == null) {
+                UIRenderPlugin = CovenantShieldsUIRenderPlugin(ship)
+                Global.getCombatEngine().addLayeredRenderingPlugin(UIRenderPlugin)
+
+                UIRenderPlugin.let {
+                    it?.shieldHealth = shieldHealth
+                    it?.maxShieldHealth = maxShieldHealth
+                }
+            }
             val system = getShield(ship)
 
             Global.getCombatEngine()
-                .maintainStatusForPlayerShip(statuskey, system.specAPI.iconSpriteName, "Shield active", "", false)
+                .maintainStatusForPlayerShip(statusKey, system.specAPI.iconSpriteName, "Shield active", "", false)
         }
     }
 
-    class ShieldDamageListener(private val attachedTo: ShipAPI) : DamageTakenModifier {
+    class ShieldDamageListener(private val attachedTo: ShipAPI, private val parent: CovenantShieldsStats) :
+        DamageTakenModifier {
 
         override fun modifyDamageTaken(
             param: Any?,
@@ -78,22 +133,31 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             shieldHit: Boolean
         ): String {
             if (attachedTo.phaseCloak.isActive) {
-                val damageNumber = damage!!.damage
+                val damageNumber = damage?.damage ?: 0f
 
-                if (attachedTo.fluxTracker.currFlux + damageNumber >= attachedTo.fluxTracker.maxFlux) {
-                    attachedTo.fluxTracker.forceOverload(0f)
+
+
+
+                if (parent.shieldHealth < damageNumber) {
+                    parent.dealShieldDamage(parent.shieldHealth)
+
+                    damage?.modifier?.modifyMult(
+                        "covenant_remnants_covenant_shields",
+                        1f - parent.shieldHealth / damageNumber
+                    )
+                } else {
+                    parent.dealShieldDamage(damageNumber)
+
+                    damage?.modifier?.modifyMult("covenant_remnants_covenant_shields", 0f)
                 }
-
-                attachedTo.fluxTracker.increaseFlux(damageNumber, false)
-                damage.modifier?.modifyMult("covenant_remnants_covenantshields", 0f)
             }
 
-            return "covenant_remnants_covenantshields"
+            return "covenant_remnants_covenant_shields"
         }
     }
 
-    override fun unapply(stats: MutableShipStatsAPI, id: String) {
-
+    fun dealShieldDamage(amount: Float) {
+        this.shieldHealth -= amount
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {

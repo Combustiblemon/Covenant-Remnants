@@ -2,8 +2,8 @@ package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
-import org.combustiblelemon.covenantremnants.utils.PolygonShader
 import org.combustiblelemon.covenantremnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.render.PolygonShader
 import org.lwjgl.input.Keyboard
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -14,7 +14,6 @@ import kotlin.math.sin
 class CovenantShieldsRenderPlugin(
     private val attachedTo: ShipAPI,
     private val shipDimensions: Array<Vector2f>,
-    isPlayer: Boolean
 ) :
     CombatLayeredRenderingPlugin {
 
@@ -45,14 +44,14 @@ class CovenantShieldsRenderPlugin(
     private val activeRipples = mutableListOf<RippleData>()
     private var popActive = false
     var breakCooldownActive = false
-    private var breakCooldownStartTime = 0f
+    var breakCooldownStartTime = 0f
     private val breakCooldownTime =
         if (attachedTo.phaseCloak.ammoPerSecond != null) attachedTo.phaseCloak.ammoPerSecond else 9f
 
     private var wasPressed: Boolean = false
 
     private var lastEMPTriggerTime: Float = 0f
-    private val EMPCooldown: Float = 1f
+    private val EMPCooldown: Float = 0.2f
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
         // Debug: Check for R key press
@@ -164,6 +163,7 @@ class CovenantShieldsRenderPlugin(
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
         shader.updatePopEffectRadius(shipDimensions[0].y / 2)
 
+//        shader.drawDebugOverlay()
         shader.drawPolygon()
     }
 
@@ -187,10 +187,7 @@ class CovenantShieldsRenderPlugin(
         }
 
         if (breakCooldownActive) {
-            if (Global.getCombatEngine().getTotalElapsedTime(false) > breakCooldownTime + breakCooldownStartTime) {
-                breakCooldownActive = false
-                breakCooldownStartTime = 0f
-            } else if (Global.getCombatEngine().getTotalElapsedTime(false) > lastEMPTriggerTime + 0.3f) {
+            if (Global.getCombatEngine().getTotalElapsedTime(false) > lastEMPTriggerTime + EMPCooldown) {
                 spawnLightning()
             }
         }
