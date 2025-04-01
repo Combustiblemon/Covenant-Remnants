@@ -45,19 +45,18 @@ class CovenantSystems : BaseHullMod() {
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: HullSize, stats: MutableShipStatsAPI, id: String) {
-//        val rangeMult: Float = when (hullSize) {
-//            HullSize.CAPITAL_SHIP -> ENERGY_WEAPON_RANGE_MULT.CAPITAL_SHIP.value
-//            HullSize.CRUISER -> ENERGY_WEAPON_RANGE_MULT.CRUISER.value
-//            HullSize.DESTROYER -> ENERGY_WEAPON_RANGE_MULT.DESTROYER.value
-//            HullSize.FRIGATE -> ENERGY_WEAPON_RANGE_MULT.FRIGATE.value
-//            HullSize.FIGHTER -> ENERGY_WEAPON_RANGE_MULT.FIGHTER.value
-//            else -> {
-//                1f
-//            }
-//        }
-//        stats.energyWeaponRangeBonus.modifyMult(id, rangeMult)
-//        stats.energyWeaponFluxCostMod.modifyMult(id, ENERGY_WEAPON_FLUX_MULT)
-//        stats.entity
+        val rangeMult: Float = when (hullSize) {
+            HullSize.CAPITAL_SHIP -> ENERGY_WEAPON_RANGE_MULT.CAPITAL_SHIP.value
+            HullSize.CRUISER -> ENERGY_WEAPON_RANGE_MULT.CRUISER.value
+            HullSize.DESTROYER -> ENERGY_WEAPON_RANGE_MULT.DESTROYER.value
+            HullSize.FRIGATE -> ENERGY_WEAPON_RANGE_MULT.FRIGATE.value
+            HullSize.FIGHTER -> ENERGY_WEAPON_RANGE_MULT.FIGHTER.value
+            else -> {
+                1f
+            }
+        }
+        stats.energyWeaponRangeBonus.modifyMult(id, rangeMult)
+        stats.energyWeaponFluxCostMod.modifyMult(id, ENERGY_WEAPON_FLUX_MULT)
     }
 
     private fun convertToPercent(number: Float): Float {

@@ -3,6 +3,8 @@ package org.combustiblelemon.covenantremnants.systems
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.combat.listeners.AdvanceableListener
+import com.fs.starfarer.api.combat.listeners.ApplyDamageResultAPI
+import com.fs.starfarer.api.combat.listeners.DamageListener
 import com.fs.starfarer.api.combat.listeners.DamageTakenModifier
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
@@ -22,6 +24,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     private var renderPlugin: CovenantShieldsRenderPlugin? = null
     private var UIRenderPlugin: CovenantShieldsUIRenderPlugin? = null
     private var damageListener: ShieldDamageListener? = null
+    private var damageConverter: ShieldDamageConverter? = null
     private var shipListenerInstance: ShipListener? = null
     var ship: ShipAPI? = null
     var shipDimensions: Array<Vector2f>? = null
@@ -29,6 +32,8 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     var lastDamageTime: Float = 0f
     var shieldDamageRechargeCooldown: Float = 1f
     val shieldDamageMult: Float = 0.3f
+    var lastDamageIsShield: Boolean = false
+    var lastDamageToShield: Float = 0f
 
     private val maxShieldHealth: Float = 20000f
     private var shieldHealth: Float = maxShieldHealth
@@ -138,6 +143,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             _ship.addListener(damageListener)
         }
 
+        if (damageConverter == null) {
+            damageConverter = ShieldDamageConverter(this)
+            _ship.addListener(damageConverter)
+        }
+
         if (shipListenerInstance == null) {
             shipListenerInstance = ShipListener(_ship, this)
             _ship.addListener(shipListenerInstance)
@@ -157,6 +167,23 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
             Global.getCombatEngine()
                 .maintainStatusForPlayerShip(statusKey, system.specAPI.iconSpriteName, "Shield active", "", false)
+        }
+    }
+
+    class ShieldDamageConverter(private val parent: CovenantShieldsStats) : DamageListener {
+        override fun reportDamageApplied(source: Any?, target: CombatEntityAPI?, result: ApplyDamageResultAPI?) {
+
+            if (!parent.ship!!.isAlive) {
+                return
+            }
+
+            if (parent.lastDamageIsShield) {
+                result?.damageToShields = parent.lastDamageToShield
+            }
+
+            parent.lastDamageIsShield = false
+            parent.lastDamageToShield = 0f
+
         }
     }
 
@@ -246,6 +273,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 }
 
                 parent.lastDamageTime = engine.getTotalElapsedTime(false)
+                parent.lastDamageIsShield = true
 
                 if (parent.shieldHealth < damageNumber) {
                     parent.dealShieldDamage(parent.shieldHealth)
@@ -283,6 +311,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     fun dealShieldDamage(amount: Float) {
         this.shieldHealth -= abs(amount)
+        this.lastDamageToShield = abs(amount)
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {
