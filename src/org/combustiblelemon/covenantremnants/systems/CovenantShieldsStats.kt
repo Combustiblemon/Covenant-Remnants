@@ -7,10 +7,12 @@ import com.fs.starfarer.api.combat.listeners.DamageTakenModifier
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
 import com.fs.starfarer.combat.entities.BeamWeaponRay
+import com.fs.starfarer.combat.entities.Missile
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.util.vector.Vector2f
+import org.magiclib.util.MagicUI
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -26,8 +28,10 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     var lastDamageTime: Float = 0f
     var shieldDamageRechargeCooldown: Float = 1f
+    val shieldDamageMult: Float = 0.3f
 
-    private var shieldHealth: Float = 5000f
+    private val maxShieldHealth: Float = 20000f
+    private var shieldHealth: Float = maxShieldHealth
         set(value) {
             if (breakCooldownActive) {
                 field = 0f
@@ -45,8 +49,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
             field = shieldValue
         }
-    private val maxShieldHealth: Float = 5000f
-    private val shieldRegen: Float = 300f
+    private val shieldRegen: Float = 30f
     var breakCooldownActive = false
         set(value) {
             renderPlugin?.breakCooldownActive = value
@@ -168,43 +171,56 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             point: Vector2f?,
             shieldHit: Boolean
         ): String {
-            if (attachedTo.phaseCloak.isActive) {
-                parent.lastDamageTime = Global.getCombatEngine().getTotalElapsedTime(false)
+            if (param === null) {
+                return modifierKey
+            }
 
-                val percentPoint = Utils.getPointAlongSegmentFromEnd(
-                    listOf(
-                        Vector2f(
-                            parent.shipDimensions!![0].x,
-                            attachedTo.location.y
-                        ), Vector2f(
-                            parent.shipDimensions!![1].x,
-                            attachedTo.location.y
-                        )
-                    ).toTypedArray(),
-                    attachedTo.phaseCloak.effectLevel
-                )
+            if (attachedTo.phaseCloak.effectLevel > 0) {
+                val engine = Global.getCombatEngine()
+
+                val percentPoint = if (attachedTo.phaseCloak.effectLevel < 1f) {
+                    Utils.getPointAlongSegmentFromEnd(
+                        listOf(
+                            Utils.rotatePointByDegrees(
+                                Vector2f(
+                                    parent.shipDimensions!![1].x + attachedTo.location.x,
+                                    parent.shipDimensions!![0].y + attachedTo.location.y
+                                ), attachedTo.location, attachedTo.facing
+                            ), Utils.rotatePointByDegrees(
+                                Vector2f(
+                                    parent.shipDimensions!![0].x + attachedTo.location.x,
+                                    parent.shipDimensions!![0].y + attachedTo.location.y
+                                ), attachedTo.location, attachedTo.facing
+                            )
+                        ).toTypedArray(),
+                        attachedTo.phaseCloak.effectLevel
+                    )
+                } else null
 
 
-                if (point === null || percentPoint === null) {
+                if (point === null || (attachedTo.phaseCloak.effectLevel < 1 && percentPoint === null)) {
                     return modifierKey
                 }
 
-                val hitPastShield = Utils.hasPerpendicularIntersectionPoint(
-                    listOf(
-                        Vector2f(
-                            parent.shipDimensions!![0].x,
-                            attachedTo.location.y
-                        ),
-                        percentPoint
-
-                    ).toTypedArray(), point
-                )
+                val hitPastShield = if (percentPoint !== null) {
+                    Utils.hasPerpendicularIntersectionPoint(
+                        listOf(
+                            Utils.rotatePointByDegrees(
+                                Vector2f(
+                                    parent.shipDimensions!![1].x + attachedTo.location.x,
+                                    parent.shipDimensions!![0].y + attachedTo.location.y
+                                ), attachedTo.location, attachedTo.facing
+                            ),
+                            percentPoint
+                        ).toTypedArray(), point
+                    )
+                } else false
 
                 if (hitPastShield) {
                     return modifierKey
                 }
 
-                val damageNumber = damage?.damage ?: 0f
+                val damageNumber = (damage?.damage ?: 0f) * (damage!!.multiplier * parent.shieldDamageMult)
 
                 if (param is BeamWeaponRay) {
                     parent.renderPlugin?.addStaticCircleAtPoint(point.x, point.y, 20f)
@@ -212,17 +228,53 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     parent.renderPlugin?.triggerRippleAtPoint(point.x, point.y)
                 }
 
+                val source = when (param) {
+                    is BeamWeaponRay -> {
+                        param.source
+                    }
+
+                    is Missile -> {
+                        param.source
+                    }
+
+                    is DamagingProjectileAPI -> {
+                        param.source
+                    }
+
+                    else -> {
+                        target
+                    }
+                }
+
+                parent.lastDamageTime = engine.getTotalElapsedTime(false)
+
                 if (parent.shieldHealth < damageNumber) {
                     parent.dealShieldDamage(parent.shieldHealth)
 
-                    damage?.modifier?.modifyMult(
+                    damage.modifier?.modifyMult(
                         "covenant_remnants_covenant_shields",
                         1f - parent.shieldHealth / damageNumber
+                    )
+
+                    engine.addFloatingDamageText(
+                        point,
+                        parent.shieldHealth,
+                        MagicUI.BLUCOLOR,
+                        attachedTo,
+                        source
                     )
                 } else {
                     parent.dealShieldDamage(damageNumber)
 
-                    damage?.modifier?.modifyMult("covenant_remnants_covenant_shields", 0f)
+                    damage.modifier?.modifyMult("covenant_remnants_covenant_shields", 0f)
+
+                    engine.addFloatingDamageText(
+                        point,
+                        damageNumber,
+                        MagicUI.BLUCOLOR,
+                        attachedTo,
+                        source
+                    )
                 }
             }
 

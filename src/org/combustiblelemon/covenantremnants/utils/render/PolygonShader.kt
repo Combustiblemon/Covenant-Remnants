@@ -369,32 +369,29 @@ class PolygonShader(
 
         // Draw each active ripple
         for (ripple in activeRipples) {
-            val numRings = 16
-            val ringSpacing = ripple.width / numRings
 
-            glBegin(GL_TRIANGLE_STRIP)
-            for (i in 0..numRings) {
-                val radius = ripple.radius + (i - numRings / 2) * ringSpacing
+            glLineWidth(6f)
+            glBegin(GL_LINE_LOOP)
 
-                // Calculate ring fade (original fade for ripple thickness)
-                val ringFade = 1.0f - abs(i - numRings / 2) / (numRings / 2f)
+            val radius = ripple.radius
 
-                // Calculate distance fade (new fade based on distance traveled)
-                val distanceFade = 1.0f - (ripple.radius / ripple.maxDistance)
+            // Calculate distance fade (new fade based on distance traveled)
+            val distanceFade = 1.0f - (ripple.radius / ripple.maxDistance)
 
-                // Combine both fades and apply intensity
-                val alpha = ripple.color[3] * ringFade * distanceFade * ripple.intensity
+            // Combine both fades and apply intensity
+            val alpha = ripple.color[3] * distanceFade * ripple.intensity
 
-                for (angle in 0..360 step 10) {
-                    val radian = Math.toRadians(angle.toDouble()).toFloat()
-                    val x = ripple.center.first + radius * kotlin.math.cos(radian)
-                    val y = ripple.center.second + radius * kotlin.math.sin(radian)
+            for (angle in 0..360 step 10) {
+                val radian = Math.toRadians(angle.toDouble()).toFloat()
+                val x = ripple.center.first + radius * kotlin.math.cos(radian)
+                val y = ripple.center.second + radius * kotlin.math.sin(radian)
 
-                    glColor4f(ripple.color[0], ripple.color[1], ripple.color[2], alpha)
-                    glVertex2f(x, y)
-                }
+                glColor4f(ripple.color[0], ripple.color[1], ripple.color[2], alpha)
+                glVertex2f(x, y)
             }
+
             glEnd()
+            glLineWidth(1f)
         }
 
         glPopAttrib()
@@ -918,14 +915,14 @@ class PolygonShader(
         val facingRad = Math.toRadians(shipFacing.toDouble()).toFloat()
         val sin = kotlin.math.sin(facingRad)
         val cos = kotlin.math.cos(facingRad)
-        
+
         val difference = abs(shipDimensions[0].x) - abs(shipDimensions[1].x)
 
         // Base distances (in ship's local space)
         // magic numbers, no clue why it's these specifically. They will need to be changed per ship probably
         val forwardDistance = (shipDimensions[0].x) * scaleX + borderWidth - difference
         val backDistance = -(shipDimensions[1].x) * scaleX + borderWidth + difference
-        val sideDistance = shipDimensions[0].y * scaleY + borderWidth + 4f
+        val sideDistance = shipDimensions[0].y * scaleY + borderWidth + 12f
 
         val progress = chargeProgress
 

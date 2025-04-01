@@ -47,8 +47,8 @@ object Utils {
         return velocity
     }
 
-    fun rotatePointByDegrees(x: Float, y: Float, center: Vector2f, degrees: Float): Vector2f {
-        val pt = doubleArrayOf(x.toDouble(), y.toDouble())
+    fun rotatePointByDegrees(point: Vector2f, center: Vector2f, degrees: Float): Vector2f {
+        val pt = doubleArrayOf(point.x.toDouble(), point.y.toDouble())
         AffineTransform.getRotateInstance(
             Math.toRadians(degrees.toDouble()),
             center.x.toDouble(),
