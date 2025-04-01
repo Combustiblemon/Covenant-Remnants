@@ -222,10 +222,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
                 val damageNumber = (damage?.damage ?: 0f) * (damage!!.multiplier * parent.shieldDamageMult)
 
-                if (param is BeamWeaponRay) {
-                    parent.renderPlugin?.addStaticCircleAtPoint(point.x, point.y, 20f)
-                } else {
+                if (param !is BeamWeaponRay) {
                     parent.renderPlugin?.triggerRippleAtPoint(point.x, point.y)
+
                 }
 
                 val source = when (param) {

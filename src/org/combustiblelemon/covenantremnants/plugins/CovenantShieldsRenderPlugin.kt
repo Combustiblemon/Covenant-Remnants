@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.utils.Utils
 import org.combustiblelemon.covenantremnants.utils.render.PolygonShader
-import org.lwjgl.input.Keyboard
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -46,21 +45,6 @@ class CovenantShieldsRenderPlugin(
     private val EMPCooldown: Float = 0.2f
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
-        // Debug: Check for R key press
-        if (Keyboard.isKeyDown(Keyboard.KEY_R)) {
-            addStaticCircleOnEdge(86f, 40f, 80, 1.0f)
-        }
-
-
-        if (Keyboard.isKeyDown(Keyboard.KEY_B) && !wasPressed) {
-            triggerShieldPop()
-            wasPressed = true
-        }
-
-        if (Keyboard.isKeyDown(Keyboard.KEY_N)) {
-            wasPressed = false
-        }
-
         if (popActive) {
             popActive = shader.drawShieldPop()
         }
@@ -175,9 +159,6 @@ class CovenantShieldsRenderPlugin(
                 spawnLightning()
             }
         }
-
-        // Clear circles from previous frame
-        shader.clearStaticCircles()
     }
 
     override fun cleanup() {
@@ -240,46 +221,5 @@ class CovenantShieldsRenderPlugin(
         }
 
         shader.startRipple(x, y, 40f, 255, 255, 255, alpha, intensity)
-    }
-
-    fun addStaticCircle(angleInDegrees: Float, radius: Float, alpha: Int = 80, intensity: Float = 1f) {
-        val radians = Math.toRadians(angleInDegrees.toDouble())
-
-        val shieldRadius = attachedTo.shieldRadiusEvenIfNoShield
-        val centerX = attachedTo.shieldCenterEvenIfNoShield.x
-        val centerY = attachedTo.shieldCenterEvenIfNoShield.y
-
-        val x = centerX + shieldRadius * cos(radians).toFloat()
-        val y = centerY + shieldRadius * sin(radians).toFloat()
-
-        shader.addStaticCircle(x, y, radius, 255, 255, 255, alpha, intensity)
-    }
-
-    fun addStaticCircleAtPoint(x: Float, y: Float, radius: Float, alpha: Int = 80, intensity: Float = 1f) {
-        shader.addStaticCircle(x, y, radius, 255, 255, 255, alpha, intensity)
-    }
-
-    /**
-     * Creates a static circle on the edge of the shield at the specified angle
-     * @param angleInDegrees The angle in degrees (0-360) where 0 is right, 90 is up
-     * @param radius The base radius of the circle
-     * @param alpha The base opacity (0-100)
-     * @param intensity The intensity of the circle (0.0-1.0) affecting size and opacity
-     */
-    fun addStaticCircleOnEdge(angleInDegrees: Float, radius: Float, alpha: Int = 80, intensity: Float = 1f) {
-        // Add ship's facing angle to the input angle to account for rotation
-        val totalAngle = angleInDegrees + attachedTo.facing - 90f  // Subtract 90 to align with ship's forward direction
-        val radians = Math.toRadians(totalAngle.toDouble())
-
-        // Get the shield's dimensions and center
-        val shieldRadius = attachedTo.shieldRadiusEvenIfNoShield
-        val centerX = attachedTo.location.x
-        val centerY = attachedTo.location.y
-
-        // Calculate point on edge of shield
-        val x = centerX + shieldRadius * cos(radians).toFloat()
-        val y = centerY + shieldRadius * sin(radians).toFloat()
-
-        shader.addStaticCircle(x, y, radius, 255, 255, 255, alpha, intensity)
     }
 }

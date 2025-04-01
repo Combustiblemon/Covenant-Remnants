@@ -11,7 +11,6 @@ import org.lwjgl.util.vector.Vector2f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.pow
 
 class PolygonShader(
     private var shipDimensions: Array<Vector2f>,
@@ -54,15 +53,6 @@ class PolygonShader(
     )
 
     private val activeRipples = mutableListOf<Ripple>()
-
-    private data class StaticCircle(
-        var center: Pair<Float, Float>,
-        var color: FloatArray,
-        var intensity: Float,    // Controls opacity and radius
-        var baseRadius: Float    // Base radius before intensity scaling
-    )
-
-    private val activeCircles = mutableListOf<StaticCircle>()
 
     private data class PopWave(
         var time: Float = 0f,
@@ -394,102 +384,6 @@ class PolygonShader(
             glLineWidth(1f)
         }
 
-        glPopAttrib()
-    }
-
-    fun addStaticCircle(x: Float, y: Float, radius: Float, r: Int, g: Int, b: Int, a: Int, intensity: Float = 1f) {
-        val circle = StaticCircle(
-            center = Pair(x, y),
-            color = floatArrayOf(r / 255f, g / 255f, b / 255f, a / 100f),
-            intensity = intensity.coerceIn(0f, 1f),
-            baseRadius = radius
-        )
-        activeCircles.add(circle)
-    }
-
-    fun clearStaticCircles() {
-        activeCircles.clear()
-    }
-
-    private fun drawStaticCircles(points: List<Float>) {
-        if (activeCircles.isEmpty()) return
-
-        // Save current OpenGL states
-        glPushAttrib(GL_ALL_ATTRIB_BITS)
-
-        // Enable required states
-        glEnable(GL_BLEND)
-        glEnable(GL_STENCIL_TEST)
-        glDisable(GL_TEXTURE_2D)
-
-        // Use additive blending for glow effect
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
-
-        // Use existing stencil mask from the shield shape
-        glStencilFunc(GL_EQUAL, 1, 1)
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-
-        for (circle in activeCircles) {
-            val finalRadius = circle.baseRadius * circle.intensity
-            val numRings = 32  // Increased for smoother sphere effect
-
-            // Draw main sphere body
-            glBegin(GL_TRIANGLE_FAN)
-
-            // Center point
-            glColor4f(
-                circle.color[0],
-                circle.color[1],
-                circle.color[2],
-                circle.color[3] * circle.intensity
-            )
-            glVertex2f(circle.center.first, circle.center.second)
-
-            // Draw the sphere with radial gradient
-            for (angle in 0..360 step 5) {
-                val radian = Math.toRadians(angle.toDouble()).toFloat()
-                val x = circle.center.first + finalRadius * kotlin.math.cos(radian)
-                val y = circle.center.second + finalRadius * kotlin.math.sin(radian)
-
-                glColor4f(
-                    circle.color[0],
-                    circle.color[1],
-                    circle.color[2],
-                    0f  // Fade to transparent at edges
-                )
-                glVertex2f(x, y)
-            }
-
-            glEnd()
-
-            // Draw highlight
-            glBegin(GL_TRIANGLE_FAN)
-
-            // Highlight position (offset from center)
-            val highlightOffsetX = -finalRadius * 0.2f
-            val highlightOffsetY = -finalRadius * 0.2f
-            val highlightX = circle.center.first + highlightOffsetX
-            val highlightY = circle.center.second + highlightOffsetY
-
-            // Center of highlight
-            glColor4f(1f, 1f, 1f, circle.intensity * 0.5f)
-            glVertex2f(highlightX, highlightY)
-
-            // Fade highlight out
-            val highlightRadius = finalRadius * 0.4f
-            for (angle in 0..360 step 5) {
-                val radian = Math.toRadians(angle.toDouble()).toFloat()
-                val x = highlightX + highlightRadius * kotlin.math.cos(radian)
-                val y = highlightY + highlightRadius * kotlin.math.sin(radian)
-
-                glColor4f(1f, 1f, 1f, 0f)
-                glVertex2f(x, y)
-            }
-
-            glEnd()
-        }
-
-        // Restore all OpenGL states
         glPopAttrib()
     }
 
@@ -829,34 +723,6 @@ class PolygonShader(
         return true
     }
 
-    // Improved noise function with bias towards visibility
-    private fun noise2D(x: Float, y: Float, bias: Float = 0.6f): Float {
-        val ix = kotlin.math.floor(x).toInt()
-        val iy = kotlin.math.floor(y).toInt()
-
-        val fx = x - ix
-        val fy = y - iy
-
-        // Simple interpolation functions
-        val u = fx * fx * (3 - 2 * fx)
-        val v = fy * fy * (3 - 2 * fy)
-
-        // Use pseudo-random hash function based on coordinates
-        val a = (ix * 1664525 + iy * 1013904223) % 1000 / 1000f
-        val b = ((ix + 1) * 1664525 + iy * 1013904223) % 1000 / 1000f
-        val c = (ix * 1664525 + (iy + 1) * 1013904223) % 1000 / 1000f
-        val d = ((ix + 1) * 1664525 + (iy + 1) * 1013904223) % 1000 / 1000f
-
-        // Bilinear interpolation
-        val x1 = a + u * (b - a)
-        val x2 = c + u * (d - c)
-        val rawNoise = x1 + v * (x2 - x1)
-
-        // Apply bias function to favor more visible areas
-        // This remaps the noise from [0,1] to a distribution with more values > 0.5
-        return rawNoise.toDouble().pow((1f - bias).toDouble()).toFloat()
-    }
-
     fun drawShieldPop(): Boolean {
         val isDrawing = _drawShieldPop()
 
@@ -1028,10 +894,9 @@ class PolygonShader(
         drawHexGrid(smoothBase)
 
         // Draw edge rectangle with glow
-        drawEdgeRectangle(progress, edgePoints)
+        drawEdgeRectangle(edgePoints)
 
         drawRipple(smoothBase)
-        drawStaticCircles(smoothBase)
 
         // Cleanup
         cleanUp()
@@ -1135,7 +1000,7 @@ class PolygonShader(
         glEnd()
     }
 
-    private fun drawEdgeRectangle(progress: Float, edgePoints: Array<Vector2f>) {
+    private fun drawEdgeRectangle(edgePoints: Array<Vector2f>) {
         // Save OpenGL state
         glPushAttrib(GL_ALL_ATTRIB_BITS)
 
@@ -1276,14 +1141,6 @@ class PolygonShader(
     fun cleanup() {
         tess.gluDeleteTess()
         glDeleteBuffers(vbo)
-    }
-
-    fun clearRipples() {
-        activeRipples.clear()
-    }
-
-    fun hasActiveRipples(): Boolean {
-        return activeRipples.isNotEmpty()
     }
 
     fun drawDebugOverlay() {
