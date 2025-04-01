@@ -42,6 +42,7 @@ class CovenantSystems : BaseHullMod() {
                 )
             }
         }
+
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: HullSize, stats: MutableShipStatsAPI, id: String) {
@@ -57,6 +58,7 @@ class CovenantSystems : BaseHullMod() {
         }
         stats.energyWeaponRangeBonus.modifyMult(id, rangeMult)
         stats.energyWeaponFluxCostMod.modifyMult(id, ENERGY_WEAPON_FLUX_MULT)
+        stats.variant.addTag("ship_unique_signature")
     }
 
     private fun convertToPercent(number: Float): Float {

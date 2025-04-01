@@ -343,7 +343,7 @@ class PolygonShader(
         return result
     }
 
-    private fun drawRipple(points: List<Float>) {
+    private fun drawRipple() {
         if (activeRipples.isEmpty()) return
 
         // Enable stencil testing
@@ -890,15 +890,9 @@ class PolygonShader(
         glStencilFunc(GL_EQUAL, 2, 2)
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
-        // Draw hex grid
-        drawHexGrid(smoothBase)
+        drawHexGrid()
+        drawRipple()
 
-        // Draw edge rectangle with glow
-        drawEdgeRectangle(edgePoints)
-
-        drawRipple(smoothBase)
-
-        // Cleanup
         cleanUp()
     }
 
@@ -910,7 +904,7 @@ class PolygonShader(
         glDisable(GL_LINE_SMOOTH)
     }
 
-    private fun drawHexGrid(points: List<Float>) {
+    private fun drawHexGrid() {
         // Save OpenGL state
         glPushAttrib(GL_ALL_ATTRIB_BITS)
 
@@ -953,7 +947,7 @@ class PolygonShader(
                 val y = row * hexSpacingY * 0.75f + offsetY
 
                 // Calculate alpha based on animation time
-                val alpha = 0.5f + 0.5f * kotlin.math.sin(hexAnimationTime + col * 0.2f + row * 0.3f)
+                val alpha = 0.5f * kotlin.math.sin(hexAnimationTime + col * 0.2f + row * 0.3f)
 
                 // Draw hexagon edges with fixed rotation (relative to ship)
                 drawRotatedHexEdges(x, y, hexSize, hexEdgeWidth, hexRotation, alpha)
@@ -999,145 +993,7 @@ class PolygonShader(
         }
         glEnd()
     }
-
-    private fun drawEdgeRectangle(edgePoints: Array<Vector2f>) {
-        // Save OpenGL state
-        glPushAttrib(GL_ALL_ATTRIB_BITS)
-
-        // Set up rendering state
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE) // Additive blending for glow effect
-        glDisable(GL_TEXTURE_2D)
-        glEnable(GL_STENCIL_TEST)
-        glStencilFunc(GL_EQUAL, 1, 1) // Draw inside the shield
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
-
-        // Calculate the edge line vector (from point 0 to point 1)
-        val edgeVecX = edgePoints[1].x - edgePoints[0].x
-        val edgeVecY = edgePoints[1].y - edgePoints[0].y
-        val edgeLength = kotlin.math.sqrt(edgeVecX * edgeVecX + edgeVecY * edgeVecY)
-
-        // Skip if edge is too small
-        if (edgeLength < 1.0f) return
-
-        // Normalize the edge vector
-        val normalizedEdgeX = edgeVecX / edgeLength
-        val normalizedEdgeY = edgeVecY / edgeLength
-
-        // Calculate perpendicular direction (90 degrees CCW)
-        val perpX = -normalizedEdgeY
-        val perpY = normalizedEdgeX
-
-        // Rectangle parameters
-        val lineThickness = 5f
-        val halfThickness = lineThickness * 0.5f
-
-        // Rectangle color and glow parameters
-        val baseColor = floatArrayOf(0.2f, 0.8f, 1.0f, 0.7f) // Cyan-blue
-        val glowColor = floatArrayOf(0.0f, 0.6f, 1.0f, 0.4f) // Deeper blue
-        val glowSize = 15f
-        val pulseSpeed = 2f
-        val pulseIntensity = 0.3f
-
-        // Calculate pulsing effect
-        val pulse = 0.7f + pulseIntensity * kotlin.math.sin(hexAnimationTime * pulseSpeed)
-
-        // Draw the main rectangle along the edge
-        glBegin(GL_QUADS)
-        glColor4f(baseColor[0], baseColor[1], baseColor[2], baseColor[3] * pulse)
-
-        // Calculate the four corners of the rectangle
-        // The rectangle follows the edge line with a small thickness
-
-        // Top left
-        glVertex2f(
-            edgePoints[0].x + perpX * halfThickness,
-            edgePoints[0].y + perpY * halfThickness
-        )
-        // Top right
-        glVertex2f(
-            edgePoints[1].x + perpX * halfThickness,
-            edgePoints[1].y + perpY * halfThickness
-        )
-        // Bottom right
-        glVertex2f(
-            edgePoints[1].x - perpX * halfThickness,
-            edgePoints[1].y - perpY * halfThickness
-        )
-        // Bottom left
-        glVertex2f(
-            edgePoints[0].x - perpX * halfThickness,
-            edgePoints[0].y - perpY * halfThickness
-        )
-        glEnd()
-
-        // Draw glow effect
-        val numGlowPasses = 5
-        for (i in 0 until numGlowPasses) {
-            val t = i.toFloat() / numGlowPasses
-            val alpha = glowColor[3] * (1.0f - t) * pulse
-            val glowOffset = glowSize * t
-
-            glBegin(GL_QUADS)
-
-            // Top glow (outward from edge)
-            glColor4f(glowColor[0], glowColor[1], glowColor[2], alpha)
-            // Top left outer
-            glVertex2f(
-                edgePoints[0].x + perpX * (halfThickness + glowOffset),
-                edgePoints[0].y + perpY * (halfThickness + glowOffset)
-            )
-            // Top right outer
-            glVertex2f(
-                edgePoints[1].x + perpX * (halfThickness + glowOffset),
-                edgePoints[1].y + perpY * (halfThickness + glowOffset)
-            )
-
-            glColor4f(glowColor[0], glowColor[1], glowColor[2], 0f) // Fade to transparent
-            // Top right inner
-            glVertex2f(
-                edgePoints[1].x + perpX * halfThickness,
-                edgePoints[1].y + perpY * halfThickness
-            )
-            // Top left inner
-            glVertex2f(
-                edgePoints[0].x + perpX * halfThickness,
-                edgePoints[0].y + perpY * halfThickness
-            )
-            glEnd()
-
-            glBegin(GL_QUADS)
-            // Bottom glow (inward from edge)
-            glColor4f(glowColor[0], glowColor[1], glowColor[2], alpha)
-            // Bottom left outer
-            glVertex2f(
-                edgePoints[0].x - perpX * (halfThickness + glowOffset),
-                edgePoints[0].y - perpY * (halfThickness + glowOffset)
-            )
-            // Bottom right outer
-            glVertex2f(
-                edgePoints[1].x - perpX * (halfThickness + glowOffset),
-                edgePoints[1].y - perpY * (halfThickness + glowOffset)
-            )
-
-            glColor4f(glowColor[0], glowColor[1], glowColor[2], 0f) // Fade to transparent
-            // Bottom right inner
-            glVertex2f(
-                edgePoints[1].x - perpX * halfThickness,
-                edgePoints[1].y - perpY * halfThickness
-            )
-            // Bottom left inner
-            glVertex2f(
-                edgePoints[0].x - perpX * halfThickness,
-                edgePoints[0].y - perpY * halfThickness
-            )
-            glEnd()
-        }
-
-        // Restore OpenGL state
-        glPopAttrib()
-    }
-
+    
     fun cleanup() {
         tess.gluDeleteTess()
         glDeleteBuffers(vbo)

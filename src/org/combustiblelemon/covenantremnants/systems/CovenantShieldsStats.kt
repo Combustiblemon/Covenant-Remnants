@@ -249,9 +249,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
                 val damageNumber = (damage?.damage ?: 0f) * (damage!!.multiplier * parent.shieldDamageMult)
 
-                if (param !is BeamWeaponRay) {
-                    parent.renderPlugin?.triggerRippleAtPoint(point.x, point.y)
+                var level = (damageNumber - 30f) / (300f - 30f)
+                level = max(0f, min(1f, level))
 
+                if (param !is BeamWeaponRay && level > 0.03f) {
+                    parent.renderPlugin?.triggerRippleAtPoint(point.x, point.y, 100, level)
                 }
 
                 val source = when (param) {
