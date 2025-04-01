@@ -29,13 +29,30 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     var ship: ShipAPI? = null
     var shipDimensions: Array<Vector2f>? = null
 
-    var lastDamageTime: Float = 0f
+    private var shieldRegen: Float = 30f
     var shieldDamageRechargeCooldown: Float = 1f
-    val shieldDamageMult: Float = 0.3f
+    var shieldDamageMult: Float = 0.3f
+    var breakCooldownTime = 9f
+    var shieldCooldown: Float = 1f
+        set(value) {
+            val v = max(0f, min(value, 1f))
+
+            UIRenderPlugin?.shieldCooldown = v
+            field = v
+        }
+
+    var lastDamageTime: Float = 0f
     var lastDamageIsShield: Boolean = false
     var lastDamageToShield: Float = 0f
+    var breakCooldownStartTime = 0f
 
-    private val maxShieldHealth: Float = 20000f
+    private var maxShieldHealth: Float = 20000f
+        set(value) {
+            if (shieldHealth > maxShieldHealth) {
+                shieldHealth = maxShieldHealth
+            }
+            field = value
+        }
     private var shieldHealth: Float = maxShieldHealth
         set(value) {
             if (breakCooldownActive) {
@@ -54,7 +71,6 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
             field = shieldValue
         }
-    private val shieldRegen: Float = 30f
     var breakCooldownActive = false
         set(value) {
             renderPlugin?.breakCooldownActive = value
@@ -64,14 +80,6 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             }
 
             field = value
-        }
-    var breakCooldownStartTime = 0f
-    var shieldCooldown: Float = 1f
-        set(value) {
-            val v = max(0f, min(value, 1f))
-
-            UIRenderPlugin?.shieldCooldown = v
-            field = v
         }
 
     fun updateRenderers() {
@@ -85,15 +93,13 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     }
 
-    private class ShipListener(ship: ShipAPI, parent: CovenantShieldsStats) : AdvanceableListener {
-        private val breakCooldownTime = if (ship.phaseCloak.ammoPerSecond != null) ship.phaseCloak.ammoPerSecond else 9f
-        private val parent = parent
+    private class ShipListener(ship: ShipAPI, private val parent: CovenantShieldsStats) : AdvanceableListener {
 
         override fun advance(amount: Float) {
             val elapsedTime = Global.getCombatEngine().getTotalElapsedTime(false)
 
             if (parent.breakCooldownActive) {
-                val remainingTime = parent.breakCooldownStartTime + breakCooldownTime - elapsedTime
+                val remainingTime = parent.breakCooldownStartTime + parent.breakCooldownTime - elapsedTime
 
                 if (remainingTime <= 0) {
                     parent.breakCooldownActive = false
@@ -103,7 +109,8 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                         it?.breakCooldownActive = false
                     }
                 } else {
-                    parent.shieldCooldown = max(0f, min(remainingTime / breakCooldownTime, breakCooldownTime))
+                    parent.shieldCooldown =
+                        max(0f, min(remainingTime / parent.breakCooldownTime, parent.breakCooldownTime))
                 }
             } else {
                 if (parent.shieldHealth < parent.maxShieldHealth && parent.lastDamageTime + parent.shieldDamageRechargeCooldown <= elapsedTime
@@ -129,6 +136,12 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             player = _ship === Global.getCombatEngine().playerShip
             ship = _ship
             shipDimensions = Utils.getShipDimensions(_ship)
+
+            maxShieldHealth = _ship.hullSpec.shieldSpec.arc
+            shieldRegen = _ship.hullSpec.shieldSpec.upkeepCost
+            shieldDamageMult = _ship.hullSpec.shieldSpec.fluxPerDamageAbsorbed
+            shieldCooldown = _ship.hullSpec.shieldSpec.phaseCost
+            breakCooldownTime = _ship.hullSpec.shieldSpec.upkeepCost
         } else {
             return
         }
@@ -178,7 +191,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             }
 
             if (parent.lastDamageIsShield) {
-                result?.damageToShields = parent.lastDamageToShield
+                result?.damageToShields = parent.lastDamageToShield * 0.3f
             }
 
             parent.lastDamageIsShield = false

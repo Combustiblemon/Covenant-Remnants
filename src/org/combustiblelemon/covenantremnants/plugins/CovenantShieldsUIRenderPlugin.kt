@@ -14,12 +14,14 @@ class CovenantShieldsUIRenderPlugin(
     var shieldHealth: Float = 1000f
     var shieldCooldown: Float = 1f
 
+//    val shaderPlugin = CovenantShieldsUIRenderer(attachedTo)
+
     override fun init(entity: CombatEntityAPI?) {
         this.entity = entity
     }
 
     override fun cleanup() {
-
+//        shaderPlugin.dispose()
     }
 
     override fun isExpired(): Boolean {
@@ -42,6 +44,8 @@ class CovenantShieldsUIRenderPlugin(
         if (viewport == null) {
             return
         }
+
+//        shaderPlugin.render(viewport)
 
         MagicUI.drawInterfaceStatusBar(
             attachedTo, shieldHealth / maxShieldHealth,

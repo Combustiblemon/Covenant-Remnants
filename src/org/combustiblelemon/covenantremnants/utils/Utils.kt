@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import org.lwjgl.util.vector.Vector2f
 import java.awt.geom.AffineTransform
@@ -58,6 +59,15 @@ object Utils {
         return Vector2f(
             pt[0].toFloat(),
             pt[1].toFloat(),
+        )
+    }
+
+    fun convertWorldPointToNDC(point: Vector2f): Vector2f {
+        val viewport = Global.getCombatEngine().viewport
+
+        return Vector2f(
+            (viewport.convertWorldXtoScreenX(point.x) / (Global.getSettings().screenWidthPixels)) * 2 - 1,
+            (viewport.convertWorldYtoScreenY(point.y) / (Global.getSettings().screenHeightPixels)) * 2 - 1,
         )
     }
 

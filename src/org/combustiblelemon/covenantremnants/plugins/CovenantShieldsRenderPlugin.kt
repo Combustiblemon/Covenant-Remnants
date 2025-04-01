@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.plugins
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.render.DebugShader
 import org.combustiblelemon.covenantremnants.utils.render.PolygonShader
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -12,11 +13,12 @@ import kotlin.math.sin
 
 class CovenantShieldsRenderPlugin(
     private val attachedTo: ShipAPI,
-    private val shipDimensions: Array<Vector2f>,
+    shipDimensions: Array<Vector2f>,
 ) :
     CombatLayeredRenderingPlugin {
 
     private val shader = PolygonShader(shipDimensions, 200f)
+    private val debugShader = DebugShader(attachedTo)
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
 
@@ -48,6 +50,8 @@ class CovenantShieldsRenderPlugin(
         if (popActive) {
             popActive = shader.drawShieldPop()
         }
+
+//        debugShader.drawDebugSquare(viewport)
 
         // Use phaseCloak.effectLevel to check for activity
         if (attachedTo.phaseCloak.effectLevel > 0f) {
@@ -125,6 +129,8 @@ class CovenantShieldsRenderPlugin(
         val shipY = attachedTo.location!!.y
         val vertexData = getShipVertexData()
 
+//        println("" + viewport.convertWorldXtoScreenX(attachedTo.location!!.x) / viewport.visibleWidth)
+
         shader.updateCenter(shipX, shipY)
         shader.updatePolygon(vertexData)
         shader.updateScale(1.05f, 1.02f)
@@ -133,10 +139,10 @@ class CovenantShieldsRenderPlugin(
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
-        shader.updatePopEffectRadius(shipDimensions[0].y / 2)
+//        shader.updatePopEffectRadius(shipDimensions[0].y / 2)
 
-//        shader.drawDebugOverlay()
         shader.drawPolygon()
+//        debugShader.drawDebugSquare(viewport)
     }
 
     override fun advance(amount: Float) {
@@ -163,8 +169,11 @@ class CovenantShieldsRenderPlugin(
 
     override fun cleanup() {
         shader.cleanup()
+        debugShader.cleanup()
+
         wasPressed = false
         activeRipples.clear() // Clear ripple data
+
     }
 
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> {
