@@ -132,7 +132,7 @@ class DebugShader(private val ship: ShipAPI) {
 
         val dimensions = Utils.getShipDimensions(ship)
 
-        val shaderDims = Utils.convertWorldPointToShaderPoint(ship.location)
+        val shaderDims = Utils.convertWorldPointToNDC(ship.location)
 
         println(
             "screen coords " + viewport.convertWorldXtoScreenX(ship.location.x) + "/" + Global.getSettings().screenWidthPixels + " " + viewport.convertWorldYtoScreenY(

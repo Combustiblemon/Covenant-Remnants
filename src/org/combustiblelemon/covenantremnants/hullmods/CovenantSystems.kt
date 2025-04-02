@@ -42,7 +42,6 @@ class CovenantSystems : BaseHullMod() {
                 )
             }
         }
-
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: HullSize, stats: MutableShipStatsAPI, id: String) {

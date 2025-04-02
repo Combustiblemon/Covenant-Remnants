@@ -117,10 +117,6 @@ class CovenantShieldsRenderPlugin(
             vertexData.add(segment.p1.y + shipY)
         }
 
-        val firstSeg = attachedTo.exactBounds!!.origSegments[0]
-        vertexData.add(firstSeg!!.p1.x + shipX)
-        vertexData.add(firstSeg.p1.y + shipY)
-
         return vertexData
     }
 
