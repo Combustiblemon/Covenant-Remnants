@@ -29,22 +29,24 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     var ship: ShipAPI? = null
     var shipDimensions: Array<Vector2f>? = null
 
-    private var shieldRegen: Float = 30f
-    var shieldDamageRechargeCooldown: Float = 1f
+    private var shieldRegen: Float = 1000f
+    private val shieldDamageRechargeCooldown: Float = 0.5f
     var shieldDamageMult: Float = 0.3f
-    var breakCooldownTime = 9f
+    val breakCooldownTime = 9f
+
     var shieldCooldown: Float = 1f
         set(value) {
-            val v = max(0f, min(value, 1f))
-
-            UIRenderPlugin?.shieldCooldown = v
-            field = v
+            UIRenderPlugin?.shieldCooldown = value
+            field = value
         }
 
     var lastDamageTime: Float = 0f
     var lastDamageIsShield: Boolean = false
     var lastDamageToShield: Float = 0f
     var breakCooldownStartTime = 0f
+
+    // first value is damage number and second is time it happened
+    private var damageInstances: MutableList<List<Float>> = mutableListOf()
 
     private var maxShieldHealth: Float = 20000f
         set(value) {
@@ -101,6 +103,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             if (parent.breakCooldownActive) {
                 val remainingTime = parent.breakCooldownStartTime + parent.breakCooldownTime - elapsedTime
 
+
                 if (remainingTime <= 0) {
                     parent.breakCooldownActive = false
                     parent.shieldCooldown = 1f
@@ -110,12 +113,14 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     }
                 } else {
                     parent.shieldCooldown =
-                        max(0f, min(remainingTime / parent.breakCooldownTime, parent.breakCooldownTime))
+                        max(
+                            0f,
+                            min(remainingTime / parent.breakCooldownTime, parent.breakCooldownTime)
+                        )
                 }
             } else {
-                if (parent.shieldHealth < parent.maxShieldHealth && parent.lastDamageTime + parent.shieldDamageRechargeCooldown <= elapsedTime
-                ) {
-                    parent.shieldHealth = parent.shieldHealth + parent.shieldRegen
+                if (parent.shouldRegen() && (parent.shieldHealth < parent.maxShieldHealth)) {
+                    parent.shieldHealth += 1000f * amount
                 }
             }
 
@@ -140,8 +145,6 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             maxShieldHealth = _ship.hullSpec.shieldSpec.arc
             shieldRegen = _ship.hullSpec.shieldSpec.upkeepCost
             shieldDamageMult = _ship.hullSpec.shieldSpec.fluxPerDamageAbsorbed
-            shieldCooldown = _ship.hullSpec.shieldSpec.phaseCost
-            breakCooldownTime = _ship.hullSpec.shieldSpec.upkeepCost
         } else {
             return
         }
@@ -260,7 +263,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     return modifierKey
                 }
 
-                val damageNumber = (damage?.damage ?: 0f) * (damage!!.multiplier * parent.shieldDamageMult)
+                val damageNumber = (damage?.damage ?: 0f) * (parent.shieldDamageMult)
 
                 var level = (damageNumber - 30f) / (300f - 30f)
                 level = max(0f, min(1f, level))
@@ -291,9 +294,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 parent.lastDamageIsShield = true
 
                 if (parent.shieldHealth < damageNumber) {
-                    parent.dealShieldDamage(parent.shieldHealth)
+                    parent.dealShieldDamage(parent.shieldHealth, engine.getTotalElapsedTime(false))
 
-                    damage.modifier?.modifyMult(
+                    damage?.modifier?.modifyMult(
                         "covenant_remnants_covenant_shields",
                         1f - parent.shieldHealth / damageNumber
                     )
@@ -306,9 +309,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                         source
                     )
                 } else {
-                    parent.dealShieldDamage(damageNumber)
+                    parent.dealShieldDamage(damageNumber, engine.getTotalElapsedTime(false))
 
-                    damage.modifier?.modifyMult("covenant_remnants_covenant_shields", 0f)
+                    damage?.modifier?.modifyMult("covenant_remnants_covenant_shields", 0f)
 
                     engine.addFloatingDamageText(
                         point,
@@ -324,9 +327,36 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         }
     }
 
-    fun dealShieldDamage(amount: Float) {
+    fun dealShieldDamage(amount: Float, time: Float) {
+        this.damageInstances.add(listOf(amount, time))
         this.shieldHealth -= abs(amount)
         this.lastDamageToShield = abs(amount)
+    }
+
+    fun shouldRegen(): Boolean {
+        if (breakCooldownActive) {
+            return false
+        }
+
+        if (damageInstances.isEmpty()) {
+            return true
+        }
+
+        val checkTime = Global.getCombatEngine().getTotalElapsedTime(false) + shieldDamageRechargeCooldown
+
+        damageInstances = damageInstances.mapNotNull {
+            if (it[1] <= checkTime) null else it
+        }.toMutableList()
+
+        if (damageInstances.isEmpty()) {
+            return true
+        }
+
+        var sum = 0f
+
+        damageInstances.forEach { sum += it[0] }
+
+        return sum <= maxShieldHealth * 0.05f
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {
