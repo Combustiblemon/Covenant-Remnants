@@ -29,7 +29,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     var ship: ShipAPI? = null
     var shipDimensions: Array<Vector2f>? = null
 
-    private var shieldRegen: Float = 1000f
+    private var shieldRegen: Float = 1250f
     private val shieldDamageRechargeCooldown: Float = 0.5f
     var shieldDamageMult: Float = 0.3f
     val breakCooldownTime = 9f
@@ -119,7 +119,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                         )
                 }
             } else {
-                if (parent.shouldRegen() && (parent.shieldHealth < parent.maxShieldHealth)) {
+                if ((parent.shieldHealth < parent.maxShieldHealth)) {
                     parent.shieldHealth += 1000f * amount
                 }
             }

@@ -8,7 +8,7 @@ import com.fs.starfarer.api.combat.ShipAPI.HullSize
 
 class TestHull : BaseHullMod() {
     override fun isApplicableToShip(ship: ShipAPI): Boolean {
-        return true
+        return false
     }
 
     override fun applyEffectsAfterShipCreation(ship: ShipAPI, id: String) {
