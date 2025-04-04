@@ -43,7 +43,6 @@ class CovenantShieldsUIRenderPlugin(
             return
         }
 
-//        shaderPlugin.render(viewport)
 
         MagicUI.drawInterfaceStatusBar(
             attachedTo, shieldHealth / maxShieldHealth,

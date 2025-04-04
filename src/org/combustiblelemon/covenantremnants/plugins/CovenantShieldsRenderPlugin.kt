@@ -18,7 +18,7 @@ class CovenantShieldsRenderPlugin(
     CombatLayeredRenderingPlugin {
 
     private val shader = PolygonShader(shipDimensions, 200f)
-    private val debugShader = DebugShader(attachedTo)
+    private val debugShader = DebugShader()
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
 
@@ -51,7 +51,14 @@ class CovenantShieldsRenderPlugin(
             popActive = shader.drawShieldPop()
         }
 
-//        debugShader.drawDebugSquare(viewport)
+        val shipX = attachedTo.location!!.x
+        val shipY = attachedTo.location!!.y
+
+        debugShader.drawShader(viewport, attachedTo.exactBounds!!.origSegments.map {
+            Vector2f(it!!.p1.x + shipX, it.p1.y + shipY)
+        }.toTypedArray())
+
+        return
 
         // Use phaseCloak.effectLevel to check for activity
         if (attachedTo.phaseCloak.effectLevel > 0f) {
