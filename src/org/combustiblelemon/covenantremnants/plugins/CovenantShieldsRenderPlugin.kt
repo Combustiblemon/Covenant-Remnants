@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.utils.Utils
 import org.combustiblelemon.covenantremnants.utils.render.DebugShader
 import org.combustiblelemon.covenantremnants.utils.render.PolygonShader
+import org.combustiblelemon.covenantremnants.utils.render.SkeletalAnimationTest
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -19,6 +20,17 @@ class CovenantShieldsRenderPlugin(
 
     private val shader = PolygonShader(shipDimensions, 200f)
     private val debugShader = DebugShader()
+    private val skeletalTest =
+        SkeletalAnimationTest(
+            Global.getSettings().getSprite("covenant_remnants", "white_line")
+//            listOf(
+//                Vector2f(17.5f, 0f),    // Start at center top (x=17.5, y=0)
+//                Vector2f(17.5f, 56f),   // First quarter
+//                Vector2f(17.5f, 112f),  // Halfway
+//                Vector2f(17.5f, 168f),  // Third quarter
+//                Vector2f(17.5f, 224f)   // Bottom
+//            )
+        )
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
 
@@ -50,6 +62,10 @@ class CovenantShieldsRenderPlugin(
         if (popActive) {
             popActive = shader.drawShieldPop()
         }
+
+        skeletalTest.render(viewport)
+
+        return
 
         val shipX = attachedTo.location!!.x
         val shipY = attachedTo.location!!.y
@@ -152,6 +168,8 @@ class CovenantShieldsRenderPlugin(
         hexAnimationTime += amount * hexAnimationSpeed
 
         shader.updateRipple(amount, 1000f)
+//        skeletalTest.setRenderLocation(attachedTo.location.x, attachedTo.location.y)
+//        skeletalTest.advance(amount)
 
         if (attachedTo.phaseCloak.effectLevel > 0f) {
             // Pass charge progress to shader

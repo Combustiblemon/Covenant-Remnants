@@ -4,7 +4,8 @@
   },
   "graphics": {
     "covenant_remnants": {
-      "shield_noise": "graphics/covenant_remnants/fx/shield/noise.png"
+      "shield_noise": "graphics/covenant_remnants/fx/shield/noise.png",
+      "white_line": "graphics/covenant_remnants/fx/straight_line.png"
     }
   }
 }
