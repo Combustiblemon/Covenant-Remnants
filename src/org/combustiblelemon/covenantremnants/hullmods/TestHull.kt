@@ -17,6 +17,8 @@ class TestHull : BaseHullMod() {
 
         println("isPhase: " + ship.phaseCloak?.displayName)
         println("isPhase: " + ship.hullSpec.isPhase)
+
+        ship.hullSpec.shipSystemId
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: HullSize, stats: MutableShipStatsAPI, id: String) {

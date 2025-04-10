@@ -169,7 +169,7 @@ class CovenantShieldsRenderPlugin(
 
         shader.updateRipple(amount, 1000f)
 //        skeletalTest.setRenderLocation(attachedTo.location.x, attachedTo.location.y)
-//        skeletalTest.advance(amount)
+        skeletalTest.advance(amount)
 
         if (attachedTo.phaseCloak.effectLevel > 0f) {
             // Pass charge progress to shader
