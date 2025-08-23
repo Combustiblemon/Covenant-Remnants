@@ -12,6 +12,10 @@
     {
       "id": "MagicLib",
       "name": "MagicLib"
+    },
+    {
+      "id": "LazyLib",
+      "name": "lazylib"
     }
   ]
 }
