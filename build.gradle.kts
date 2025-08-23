@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "2.1.0"
     java
 }
 
@@ -9,6 +9,20 @@ version = "0.1.0"
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
+}
+
+sourceSets {
+    main {
+        kotlin {
+            srcDirs("src")
+        }
+        java {
+            srcDirs("src")
+        }
+        resources {
+            srcDirs("data", "graphics")
+        }
+    }
 }
 
 dependencies {
@@ -47,7 +61,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 
 // Task to build the mod jar
 tasks.register<Jar>("buildMod") {
-    dependsOn("jar")
+    dependsOn("classes")
     archiveFileName.set("CovenantRemnants.jar")
     destinationDirectory.set(file("jars"))
 

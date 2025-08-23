@@ -1,1 +1,1 @@
-rootProject.name = "covenant_remnants"
+rootProject.name = "covenantremnants"
