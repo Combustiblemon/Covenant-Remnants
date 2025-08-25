@@ -139,15 +139,16 @@ class CovenantShieldsRenderPlugin(
         val shipY = attachedTo.location!!.y
         val vertexData = getShipVertexData(viewport)
 
+        shader.setDebugMode(true)
         shader.updateZoomLevel(viewport.viewMult)
         shader.updateCenter(shipX, shipY)
-        shader.updatePolygon(vertexData)
-        shader.updateScale(1.05f, 1.02f)
+        shader.updatePolygon(vertexData, Vector2f(1.05f, 1.02f))
         shader.updateRotation(Math.toRadians(attachedTo.facing.toDouble()).toFloat())
         shader.updateColor(133, 237, 255, 30)
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
+        shader.setSmoothingMethod("none")
 
         shader.drawPolygon()
     }
