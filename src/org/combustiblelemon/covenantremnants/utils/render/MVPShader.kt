@@ -173,7 +173,6 @@ class MVPShader {
         // Use our shader program
         glUseProgram(shaderProgram)
 
-        println("hi")
         // Convert world points to screen coordinates
         val screenPoints = convertWorldPointsToScreen(worldPoints, viewport)
         pointCount = minOf(worldPoints.size, maxPoints)

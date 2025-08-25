@@ -3,7 +3,7 @@ package org.combustiblelemon.covenantremnants.plugins
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.utils.Utils
-import org.combustiblelemon.covenantremnants.utils.render.PolygonShader
+import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -14,7 +14,8 @@ class CovenantShieldsRenderPlugin(
 ) :
     CombatLayeredRenderingPlugin {
 
-    private val shader = PolygonShader(shipDimensions, 200f)
+    private val shader = ShieldShader(shipDimensions, 200f)
+//    private val testShader = MVPShader()
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
 
@@ -43,13 +44,26 @@ class CovenantShieldsRenderPlugin(
     private val EMPCooldown: Float = 0.2f
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
+
         if (popActive) {
             popActive = shader.drawShieldPop()
         }
 
         // Use phaseCloak.effectLevel to check for activity
         if (attachedTo.phaseCloak.effectLevel > 0f) {
-            renderShield()
+//            testShader.drawShader(
+//                viewport,
+//                attachedTo.exactBounds!!.origSegments.map {
+//                    Utils.rotatePointByDegrees(
+//                        Vector2f(
+//                            it!!.p1.x + attachedTo.location!!.x,
+//                            it.p1.y + attachedTo.location!!.y
+//                        ), attachedTo.location, attachedTo.facing
+//                    )
+//                }.toTypedArray()
+//            )
+
+            renderShield(viewport)
             shader.updateHexAnimation(hexAnimationTime, hexSize, hexSpacing)
         }
     }
@@ -99,7 +113,7 @@ class CovenantShieldsRenderPlugin(
         lastEMPTriggerTime = engine.getTotalElapsedTime(false)
     }
 
-    private fun getShipVertexData(): List<Float> {
+    private fun getShipVertexData(viewport: ViewportAPI): List<Float> {
         val shipX = attachedTo.location!!.x
         val shipY = attachedTo.location!!.y
 
@@ -107,18 +121,25 @@ class CovenantShieldsRenderPlugin(
         val vertexData = mutableListOf<Float>()
 
         attachedTo.exactBounds!!.origSegments.forEach { segment ->
-            vertexData.add(segment!!.p1.x + shipX)
-            vertexData.add(segment.p1.y + shipY)
+
+            val p1 = Utils.rotatePointByDegrees(
+                Vector2f(segment!!.p1.x + shipX, segment.p1.y + shipY),
+                attachedTo.location,
+                attachedTo.facing
+            )
+            vertexData.add(viewport.convertWorldXtoScreenX(p1.x))
+            vertexData.add(viewport.convertWorldYtoScreenY(p1.y))
         }
 
         return vertexData
     }
 
-    private fun renderShield() {
+    private fun renderShield(viewport: ViewportAPI) {
         val shipX = attachedTo.location!!.x
         val shipY = attachedTo.location!!.y
-        val vertexData = getShipVertexData()
+        val vertexData = getShipVertexData(viewport)
 
+        shader.updateZoomLevel(viewport.viewMult)
         shader.updateCenter(shipX, shipY)
         shader.updatePolygon(vertexData)
         shader.updateScale(1.05f, 1.02f)
@@ -155,6 +176,7 @@ class CovenantShieldsRenderPlugin(
 
     override fun cleanup() {
         shader.cleanup()
+//        testShader.cleanup()
 
         wasPressed = false
         activeRipples.clear() // Clear ripple data
