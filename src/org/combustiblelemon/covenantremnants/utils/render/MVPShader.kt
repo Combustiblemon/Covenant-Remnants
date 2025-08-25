@@ -48,10 +48,10 @@ class MVPShader {
                 }
 
                 // Draw circle (half screen size)
-                vec2 center = resolution * 0.5;
-                float radius = min(resolution.x, resolution.y) * 0.25;
-                float circleDist = length(pixelPos - center);
-                float circleAlpha = smoothstep(radius, radius - 1.0, circleDist);
+//                vec2 center = resolution * 0.5;
+//                float radius = min(resolution.x, resolution.y) * 0.25;
+//                float circleDist = length(pixelPos - center);
+//                float circleAlpha = smoothstep(radius, radius - 1.0, circleDist);
 
                 FragColor = vec4(1.0, 1.0, 1.0, circleAlpha * 0.5);
             }
@@ -140,12 +140,12 @@ class MVPShader {
         glBindBuffer(GL_UNIFORM_BUFFER, pointsBuffer)
 
         // Create initial buffer with zeros
-        val initialBuffer = BufferUtils.createFloatBuffer(maxPoints * 2)
+        BufferUtils.createFloatBuffer(maxPoints * 2)
         glBufferData(GL_UNIFORM_BUFFER, maxPoints * 2 * 4L, GL_DYNAMIC_DRAW) // 4 bytes per float
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
     }
 
-    fun convertWorldPointsToScreen(worldPoints: Array<Vector2f>, viewport: ViewportAPI): FloatArray {
+    private fun convertWorldPointsToScreen(worldPoints: Array<Vector2f>, viewport: ViewportAPI): FloatArray {
         val screenPoints = FloatArray(worldPoints.size * 2)
         val viewMult = viewport.viewMult
 
@@ -173,6 +173,7 @@ class MVPShader {
         // Use our shader program
         glUseProgram(shaderProgram)
 
+        println("hi")
         // Convert world points to screen coordinates
         val screenPoints = convertWorldPointsToScreen(worldPoints, viewport)
         pointCount = minOf(worldPoints.size, maxPoints)
