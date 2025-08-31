@@ -8,13 +8,12 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.min
 import kotlin.math.round
 
 enum class SmoothingMethod {
-    SIMPLE,
-    SPLINE,
-    NONE
+    SIMPLE,   // Uses edge smoothing by repositioning points
+    SPLINE,   // Uses Laplacian smoothing for natural shape smoothing
+    NONE      // Uses minimal smoothing for very subtle adjustments
 }
 
 class ShieldShader(
@@ -305,28 +304,30 @@ class ShieldShader(
     private fun calculateMaxPointsAfterSmoothing(originalPointCount: Int): Int {
         val maxPoints = when (smoothingMethod) {
             SmoothingMethod.SPLINE -> {
-                // Spline smoothing: each edge gets up to 4 intermediate points
-                // Total points = original points + (original points * intermediate points per edge)
-                // Since we have original points and each edge gets up to 4 intermediate points
-                val maxIntermediatePointsPerEdge = 4
-                val calculated = originalPointCount + (originalPointCount * maxIntermediatePointsPerEdge)
-                calculated
+                // Spline smoothing: Laplacian smoothing - no new points, just repositioned
+                Global.getLogger(this.javaClass)
+                    .debug("SPLINE calculation: originalPoints=$originalPointCount, using Laplacian smoothing (no new points)")
+                originalPointCount
             }
 
             SmoothingMethod.SIMPLE -> {
-                // Simple smoothing adds 1 midpoint per edge
-                val calculated = originalPointCount * 2
-                calculated
+                // Simple smoothing: edge smoothing - no new points, just repositioned
+                Global.getLogger(this.javaClass)
+                    .debug("SIMPLE calculation: originalPoints=$originalPointCount, using edge smoothing (no new points)")
+                originalPointCount
             }
 
             SmoothingMethod.NONE -> {
-                // No smoothing, just the original points
+                // Minimal smoothing: very subtle smoothing - no new points, just repositioned
+                Global.getLogger(this.javaClass)
+                    .debug("NONE calculation: originalPoints=$originalPointCount, using minimal smoothing (no new points)")
                 originalPointCount
             }
         }
 
         // Ensure we don't exceed reasonable bounds (safety check)
         val finalResult = minOf(maxPoints, 1000) // Maximum 1000 points for shader array
+        Global.getLogger(this.javaClass).debug("Final calculation result: $finalResult")
         return finalResult
     }
 
@@ -448,13 +449,23 @@ class ShieldShader(
         // Apply smoothing to create smooth edges (optional)
         val finalPoints = when (smoothingMethod) {
             SmoothingMethod.SPLINE -> if (enableSplineSmoothing) {
+                Global.getLogger(this.javaClass)
+                    .debug("SPLINE smoothing enabled: splineSubdivisions=$splineSubdivisions")
                 subdividePointsWithSplines(scaledPoints, splineSubdivisions)
             } else {
+                Global.getLogger(this.javaClass).debug("SPLINE smoothing disabled")
                 scaledPoints
             }
 
-            SmoothingMethod.SIMPLE -> smoothEdgesSimple(scaledPoints, splineSubdivisions)
-            SmoothingMethod.NONE -> scaledPoints
+            SmoothingMethod.SIMPLE -> {
+                Global.getLogger(this.javaClass).debug("SIMPLE smoothing enabled: subdivisions=$splineSubdivisions")
+                smoothEdgesSimple(scaledPoints, splineSubdivisions)
+            }
+
+            SmoothingMethod.NONE -> {
+                Global.getLogger(this.javaClass).debug("NONE smoothing enabled: using minimal curves")
+                smoothEdgesMinimal(scaledPoints, 2) // Minimal curve smoothing
+            }
         }
 
         polygonPoints = finalPoints
@@ -469,33 +480,43 @@ class ShieldShader(
         // Convert to pairs for easier handling
         val pairs = points.chunked(2) { Pair(it[0], it[1]) }
 
-        var totalOriginalPoints = 0
-        var totalIntermediatePoints = 0
+        // Apply Laplacian smoothing to existing points (no new points added)
+        val smoothedPoints = laplacianSmoothing(pairs, subdivisions)
 
-        for (i in 0 until numPoints) {
-            val p1 = pairs[i]
-            val p2 = pairs[(i + 1) % numPoints]
-
-            // Add original point
-            result.add(p1.first)
-            result.add(p1.second)
-            totalOriginalPoints++
-
-            // Add interpolated points along the edge
-            // subdivisions is the maximum number of intermediate points to add per edge
-            val intermediatePoints = min(subdivisions, 4) // Limit to prevent over-subdivision
-            for (j in 1 until intermediatePoints + 1) {
-                val t = j.toFloat() / (intermediatePoints + 1)
-                // Simple linear interpolation along the edge
-                val interpolatedX = p1.first + (p2.first - p1.first) * t
-                val interpolatedY = p1.second + (p2.second - p1.second) * t
-                result.add(interpolatedX)
-                result.add(interpolatedY)
-                totalIntermediatePoints++
-            }
+        // Return smoothed points as flat list
+        for (point in smoothedPoints) {
+            result.add(point.first)
+            result.add(point.second)
         }
 
         return result
+    }
+
+    private fun laplacianSmoothing(points: List<Pair<Float, Float>>, iterations: Int): List<Pair<Float, Float>> {
+        if (points.size < 3) return points
+
+        var currentPoints = points.toMutableList()
+
+        for (iteration in 0 until iterations) {
+            val smoothedPoints = mutableListOf<Pair<Float, Float>>()
+
+            for (i in currentPoints.indices) {
+                val prev = currentPoints[(i - 1 + currentPoints.size) % currentPoints.size]
+                val current = currentPoints[i]
+                val next = currentPoints[(i + 1) % currentPoints.size]
+
+                // Laplacian smoothing: move point towards the average of its neighbors
+                val smoothingFactor = 0.3f // Controls how much smoothing is applied
+                val smoothedX = current.first + smoothingFactor * ((prev.first + next.first) / 2f - current.first)
+                val smoothedY = current.second + smoothingFactor * ((prev.second + next.second) / 2f - current.second)
+
+                smoothedPoints.add(Pair(smoothedX, smoothedY))
+            }
+
+            currentPoints = smoothedPoints
+        }
+
+        return currentPoints
     }
 
     fun updateColor(r: Int, g: Int, b: Int, a: Int) {
@@ -527,33 +548,107 @@ class ShieldShader(
         return smoothingMethod
     }
 
-    // Alternative smoothing method: simple edge subdivision
+    // Alternative smoothing method: simple edge smoothing by repositioning points
     private fun smoothEdgesSimple(points: List<Float>, subdivisions: Int = 2): List<Float> {
         val result = mutableListOf<Float>()
         val numPoints = points.size / 2
 
         if (numPoints < 3) return points.toList()
 
-        for (i in 0 until numPoints) {
-            val p1 = points[i * 2]
-            val p1y = points[i * 2 + 1]
-            val p2 = points[((i + 1) % numPoints) * 2]
-            val p2y = points[((i + 1) % numPoints) * 2 + 1]
+        // Convert to pairs for easier handling
+        val pairs = points.chunked(2) { Pair(it[0], it[1]) }
 
-            // Add original point
-            result.add(p1)
-            result.add(p1y)
+        // Apply simple smoothing by moving points towards edge midpoints
+        val smoothedPoints = simpleEdgeSmoothing(pairs, subdivisions)
 
-            // Add midpoint between this point and the next
-            if (subdivisions > 1) {
-                val midX = (p1 + p2) / 2f
-                val midY = (p1y + p2y) / 2f
-                result.add(midX)
-                result.add(midY)
-            }
+        // Return smoothed points as flat list
+        for (point in smoothedPoints) {
+            result.add(point.first)
+            result.add(point.second)
         }
 
         return result
+    }
+
+    private fun simpleEdgeSmoothing(points: List<Pair<Float, Float>>, iterations: Int): List<Pair<Float, Float>> {
+        if (points.size < 3) return points
+
+        var currentPoints = points.toMutableList()
+
+        for (iteration in 0 until iterations) {
+            val smoothedPoints = mutableListOf<Pair<Float, Float>>()
+
+            for (i in currentPoints.indices) {
+                val current = currentPoints[i]
+                val next = currentPoints[(i + 1) % currentPoints.size]
+
+                // Move point slightly towards the midpoint of the edge
+                val smoothingFactor = 0.2f // Gentle smoothing
+                val edgeMidX = (current.first + next.first) / 2f
+                val edgeMidY = (current.second + next.second) / 2f
+
+                val smoothedX = current.first + smoothingFactor * (edgeMidX - current.first)
+                val smoothedY = current.second + smoothingFactor * (edgeMidY - current.second)
+
+                smoothedPoints.add(Pair(smoothedX, smoothedY))
+            }
+
+            currentPoints = smoothedPoints
+        }
+
+        return currentPoints
+    }
+
+    // Minimal smoothing method that creates very subtle shape smoothing
+    private fun smoothEdgesMinimal(points: List<Float>, subdivisions: Int = 2): List<Float> {
+        val result = mutableListOf<Float>()
+        val numPoints = points.size / 2
+
+        if (numPoints < 3) return points.toList()
+
+        // Convert to pairs for easier handling
+        val pairs = points.chunked(2) { Pair(it[0], it[1]) }
+
+        // Apply very subtle smoothing by slightly adjusting point positions
+        val smoothedPoints = minimalSmoothing(pairs, subdivisions)
+
+        // Return smoothed points as flat list
+        for (point in smoothedPoints) {
+            result.add(point.first)
+            result.add(point.second)
+        }
+
+        return result
+    }
+
+    private fun minimalSmoothing(points: List<Pair<Float, Float>>, iterations: Int): List<Pair<Float, Float>> {
+        if (points.size < 3) return points
+
+        var currentPoints = points.toMutableList()
+
+        for (iteration in 0 until iterations) {
+            val smoothedPoints = mutableListOf<Pair<Float, Float>>()
+
+            for (i in currentPoints.indices) {
+                val prev = currentPoints[(i - 1 + currentPoints.size) % currentPoints.size]
+                val current = currentPoints[i]
+                val next = currentPoints[(i + 1) % currentPoints.size]
+
+                // Very subtle smoothing: move point slightly towards the average of neighbors
+                val smoothingFactor = 0.1f // Very gentle smoothing
+                val avgX = (prev.first + next.first) / 2f
+                val avgY = (prev.second + next.second) / 2f
+
+                val smoothedX = current.first + smoothingFactor * (avgX - current.first)
+                val smoothedY = current.second + smoothingFactor * (avgY - current.second)
+
+                smoothedPoints.add(Pair(smoothedX, smoothedY))
+            }
+
+            currentPoints = smoothedPoints
+        }
+
+        return currentPoints
     }
 
     fun updateRotation(angleRadians: Float) {
@@ -718,7 +813,8 @@ class ShieldShader(
 
         // Validate polygon before rendering
         if (polygonPoints.size < 6) {
-            Global.getLogger(this.javaClass).warn("Cannot render polygon with ${polygonPoints.size / 2} points (minimum 3 required)")
+            Global.getLogger(this.javaClass)
+                .warn("Cannot render polygon with ${polygonPoints.size / 2} points (minimum 3 required)")
             return
         }
 

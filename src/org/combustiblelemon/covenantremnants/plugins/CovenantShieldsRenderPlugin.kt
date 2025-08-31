@@ -16,7 +16,7 @@ class CovenantShieldsRenderPlugin(
     CombatLayeredRenderingPlugin {
 
     private val shader =
-        ShieldShader(shipDimensions, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.NONE)
+        ShieldShader(shipDimensions, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
 //    private val testShader = MVPShader()
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
