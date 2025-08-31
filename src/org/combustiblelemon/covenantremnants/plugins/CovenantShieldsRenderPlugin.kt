@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.utils.Utils
 import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
+import org.combustiblelemon.covenantremnants.utils.render.SmoothingMethod
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -14,7 +15,8 @@ class CovenantShieldsRenderPlugin(
 ) :
     CombatLayeredRenderingPlugin {
 
-    private val shader = ShieldShader(shipDimensions, 200f)
+    private val shader =
+        ShieldShader(shipDimensions, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.NONE)
 //    private val testShader = MVPShader()
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
@@ -148,7 +150,6 @@ class CovenantShieldsRenderPlugin(
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
-        shader.setSmoothingMethod("none")
 
         shader.drawPolygon()
     }

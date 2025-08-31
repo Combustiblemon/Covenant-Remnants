@@ -45,6 +45,9 @@ dependencies {
     // MagicLib dependency
     compileOnly(files("../MagicLib/jars/MagicLib.jar"))
     compileOnly(files("../MagicLib/jars/MagicLib-Kotlin.jar"))
+
+    // Log4j for logging (Starsector standard)
+    compileOnly("log4j:log4j:1.2.17")
 }
 
 java {
