@@ -16,7 +16,7 @@ class CovenantShieldsRenderPlugin(
     CombatLayeredRenderingPlugin {
 
     private val shader =
-        ShieldShader(shipDimensions, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
+        ShieldShader(attachedTo, shipDimensions, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
 //    private val testShader = MVPShader()
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
@@ -115,37 +115,23 @@ class CovenantShieldsRenderPlugin(
         lastEMPTriggerTime = engine.getTotalElapsedTime(false)
     }
 
-    private fun getShipVertexData(viewport: ViewportAPI): List<Float> {
-        val shipX = attachedTo.location!!.x
-        val shipY = attachedTo.location!!.y
-
+    private fun getShipVertexData(): List<Vector2f> {
         // Create vertex data for the shield shape
-        val vertexData = mutableListOf<Float>()
+        val vertexData = mutableListOf<Vector2f>()
 
         attachedTo.exactBounds!!.origSegments.forEach { segment ->
-
-            val p1 = Utils.rotatePointByDegrees(
-                Vector2f(segment!!.p1.x + shipX, segment.p1.y + shipY),
-                attachedTo.location,
-                attachedTo.facing
-            )
-            vertexData.add(viewport.convertWorldXtoScreenX(p1.x))
-            vertexData.add(viewport.convertWorldYtoScreenY(p1.y))
+            vertexData.add(segment.p1)
         }
 
         return vertexData
     }
 
     private fun renderShield(viewport: ViewportAPI) {
-        val shipX = attachedTo.location!!.x
-        val shipY = attachedTo.location!!.y
-        val vertexData = getShipVertexData(viewport)
+        val vertexData = getShipVertexData()
 
-        shader.setDebugMode(true)
+        shader.setDebugMode(false)
         shader.updateZoomLevel(viewport.viewMult)
-        shader.updateCenter(shipX, shipY)
-        shader.updatePolygon(vertexData, Vector2f(1.05f, 1.02f))
-        shader.updateRotation(Math.toRadians(attachedTo.facing.toDouble()).toFloat())
+        shader.updatePolygon(vertexData, viewport, Vector2f(1.05f, 1.1f))
         shader.updateColor(133, 237, 255, 30)
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
@@ -159,10 +145,7 @@ class CovenantShieldsRenderPlugin(
 
         shader.updateRipple(amount, 1000f)
 
-        if (attachedTo.phaseCloak.effectLevel > 0f) {
-            // Pass charge progress to shader
-            shader.updateChargeProgress(attachedTo.phaseCloak.effectLevel, attachedTo.facing)
-        }
+
 
         if (popActive) {
             shader.updateShieldPop(amount)

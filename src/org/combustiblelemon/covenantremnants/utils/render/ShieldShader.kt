@@ -1,7 +1,8 @@
 package org.combustiblelemon.covenantremnants.utils.render
 
-// UBO imports removed - using direct uniforms instead
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ViewportAPI
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -9,6 +10,7 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.round
+import org.combustiblelemon.covenantremnants.utils.Utils
 
 enum class SmoothingMethod {
     SIMPLE,   // Uses edge smoothing by repositioning points
@@ -17,6 +19,7 @@ enum class SmoothingMethod {
 }
 
 class ShieldShader(
+    private val ship: ShipAPI,
     private var shipDimensions: Array<Vector2f>,
     private var popEffectRadius: Float = 500f,  // Default pop effect radius
     private val boundsCount: Int,
@@ -35,11 +38,6 @@ class ShieldShader(
     // No UBO needed - using direct uniforms instead
     private var scaleX: Float = 1.0f
     private var scaleY: Float = 1.0f
-    private var rotation: Float = 0f
-    private var centerX: Float = 0f
-    private var centerY: Float = 0f
-    private var chargeProgress: Float = 1f
-    private var shipFacing: Float = 0f
     private var screenWidth: Float = 1920f
     private var screenHeight: Float = 1080f
     private var zoomLevel: Float = 1f
@@ -410,37 +408,43 @@ class ShieldShader(
         glDeleteShader(fragmentShader)
     }
 
-    fun updatePolygon(newPoints: List<Float>, scale: Vector2f) {
+    fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f) ) {
         scaleX = scale.x
         scaleY = scale.y
 
         // Validate input points
-        if (newPoints.size < 6) { // Need at least 3 points (6 coordinates)
+        if (newPoints.size < 3) { // Need at least 3 points (6 coordinates)
             Global.getLogger(this.javaClass).warn("Invalid polygon - need at least 3 points, got ${newPoints.size / 2}")
             polygonPoints = listOf()
             return
         }
 
+        val vertexData = mutableListOf<Float>()
+
+
+        for (segment in newPoints) {
+            val scaledPoint = Vector2f(segment.x * scale.x, segment.y * scale.y)
+
+            val p1 = Utils.rotatePointByDegrees(
+                Vector2f(scaledPoint.x + ship.location.x, scaledPoint.y + ship.location.y),
+                ship.location,
+                ship.facing
+            )
+
+            vertexData.add(viewport.convertWorldXtoScreenX(p1.x))
+            vertexData.add(viewport.convertWorldYtoScreenY(p1.y))
+        }
+
         // Apply scaling to the polygon points relative to the ship center
         val scaledPoints = mutableListOf<Float>()
 
-        // Calculate the center of the polygon points
-        var centerX = 0f
-        var centerY = 0f
-        for (i in newPoints.indices step 2) {
-            centerX += newPoints[i]
-            centerY += newPoints[i + 1]
-        }
-        centerX /= (newPoints.size / 2)
-        centerY /= (newPoints.size / 2)
+        for (i in vertexData.indices step 2) {
+            val x = vertexData[i]
+            val y = vertexData[i + 1]
 
-        for (i in newPoints.indices step 2) {
-            val x = newPoints[i]
-            val y = newPoints[i + 1]
-
-            // Scale the points relative to the polygon center
-            val scaledX = centerX + (x - centerX) * scale.x
-            val scaledY = centerY + (y - centerY) * scale.y
+            // Scale the points relative to the ship center
+            val scaledX = ship.location.x + (x - ship.location.x)
+            val scaledY = ship.location.y + (y - ship.location.y)
 
             scaledPoints.add(scaledX)
             scaledPoints.add(scaledY)
@@ -651,14 +655,7 @@ class ShieldShader(
         return currentPoints
     }
 
-    fun updateRotation(angleRadians: Float) {
-        rotation = angleRadians
-    }
 
-    fun updateCenter(x: Float, y: Float) {
-        centerX = x
-        centerY = y
-    }
 
     fun updateBorder(r: Int, g: Int, b: Int, a: Int, width: Float, blend: Float) {
         borderColorRGBA = floatArrayOf(
@@ -696,10 +693,7 @@ class ShieldShader(
         }
     }
 
-    fun updateChargeProgress(progress: Float, facing: Float) {
-        chargeProgress = progress
-        shipFacing = facing
-    }
+
 
     fun updateHexAnimation(time: Float, size: Float, spacing: Float) {
         hexAnimationTime = time
@@ -843,13 +837,13 @@ class ShieldShader(
         glUniform1f(glGetUniformLocation(shaderProgram, "borderWidth"), borderWidth)
         glUniform1f(glGetUniformLocation(shaderProgram, "glowIntensity"), glowIntensity)
         glUniform1f(glGetUniformLocation(shaderProgram, "glowWidth"), glowWidth)
-        glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), chargeProgress)
-        glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), shipFacing)
+        glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), ship.phaseCloak?.effectLevel ?: 1f)
+        glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
         glUniform2f(
             glGetUniformLocation(shaderProgram, "shipDimensions"),
             shipDimensions[0].x, shipDimensions[0].y
         )
-        glUniform2f(glGetUniformLocation(shaderProgram, "center"), centerX, centerY)
+        glUniform2f(glGetUniformLocation(shaderProgram, "center"), ship.location.x, ship.location.y)
         glUniform1f(glGetUniformLocation(shaderProgram, "time"), hexAnimationTime)
         glUniform1f(glGetUniformLocation(shaderProgram, "hexSize"), hexSize)
         glUniform1f(glGetUniformLocation(shaderProgram, "hexRotation"), hexRotation)
@@ -857,7 +851,7 @@ class ShieldShader(
         glUniform1f(glGetUniformLocation(shaderProgram, "hexEdgeWidth"), hexEdgeWidth)
         glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacingMultiplier"), hexSpacingMultiplier)
         glUniform2f(glGetUniformLocation(shaderProgram, "scale"), scaleX, scaleY)
-        glUniform1f(glGetUniformLocation(shaderProgram, "rotation"), rotation)
+        glUniform1f(glGetUniformLocation(shaderProgram, "rotation"), Math.toRadians(ship.facing.toDouble()).toFloat())
 
         // Set ripple uniforms
         glUniform1i(glGetUniformLocation(shaderProgram, "numRipples"), activeRipples.size)
