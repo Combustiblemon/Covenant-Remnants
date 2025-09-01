@@ -45,8 +45,16 @@ class ShieldShader(
     private var debugMode: Boolean = false
     private var enableSplineSmoothing: Boolean = true
 
+    // Pre-calculated values for performance
+    private var shieldBoundsMinX: Float = 0f
+    private var shieldBoundsMaxX: Float = 0f
+    private var effectiveMinX: Float = 0f
+    private var effectiveMaxX: Float = 0f
+    private var effectiveWidth: Float = 0f
+
     // Add animation properties
     private var time = 0f
+    private var shieldHPPercent = 1f
 
     // Hex grid parameters with default values
     private var hexSpacing = 10f
@@ -133,6 +141,12 @@ class ShieldShader(
         uniform float rotation;
         uniform float shieldSweepProgress;  // 0.0 to 1.0, controls sweep animation
         uniform float sweepEdgeWidth;       // Width of the sweep edge in pixels
+        uniform float shieldHPPercent;      // 0.0 to 1.0, shield health percentage
+
+        // Pre-calculated values for performance
+        uniform float effectiveMinX;        // Pre-calculated effective min X
+        uniform float effectiveMaxX;        // Pre-calculated effective max X
+        uniform float effectiveWidth;       // Pre-calculated effective width
 
         // Ripple uniforms
         uniform int numRipples;
@@ -192,40 +206,11 @@ class ShieldShader(
             return inside;
         }
 
-                        // Calculate shield bounds for sweep animation in ship-relative coordinates
-        vec2 calculateShieldBounds() {
-            const int numPoints = POINT_COUNT_PLACEHOLDER;
-            if (numPoints < 3) return vec2(0.0, 0.0);
+                                // Shield bounds are now pre-calculated on CPU for performance
 
-            // Convert screen coordinates to ship-relative coordinates
-            vec2 shipCenter = center;
-            float cosFacing = cos(shipFacing * 3.14159 / 180.0);
-            float sinFacing = sin(shipFacing * 3.14159 / 180.0);
-
-            float minX = 0.0;
-            float maxX = 0.0;
-            bool first = true;
-
-            for(int i = 0; i < numPoints; i++) {
-                // Convert screen point to ship-relative coordinates
-                vec2 screenPoint = points[i].xy - shipCenter;
-                float shipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing;
-
-                if (first) {
-                    minX = maxX = shipRelX;
-                    first = false;
-                } else {
-                    minX = min(minX, shipRelX);
-                    maxX = max(maxX, shipRelX);
-                }
-            }
-
-            return vec2(minX, maxX);
-        }
-
-                        // Calculate sweep edge color based on distance from sweep position
+                                // Calculate sweep edge color based on distance from sweep position
         vec4 calculateSweepEdge(vec2 pixelPos, float sweepPosition) {
-            // Convert current pixel to ship-relative coordinates
+            // Convert current pixel to ship-relative coordinates (GPU hardware accelerated)
             vec2 shipCenter = center;
             float cosFacing = cos(shipFacing * 3.14159 / 180.0);
             float sinFacing = sin(shipFacing * 3.14159 / 180.0);
@@ -248,21 +233,29 @@ class ShieldShader(
             return vec4(0.0, 0.0, 0.0, 0.0); // Transparent
         }
 
-        vec4 mainShield(vec2 pixelPos) {
-            // Calculate shield color with charge progress
+                vec4 mainShield(vec2 pixelPos) {
+            // Calculate shield color with charge progress and HP-based brightness
             vec4 finalShieldColor = shieldColor;
 
-                        // Apply sweep animation - only show shield up to the sweep progress
-            vec2 bounds = calculateShieldBounds();
-            float margin = 20.0; // 20-pixel margin outside edges
-            float effectiveMinX = bounds.x - margin;
-            float effectiveMaxX = bounds.y + margin;
-            float effectiveWidth = effectiveMaxX - effectiveMinX;
+            // Make shield brighter as HP decreases (inverse relationship)
+            // When shieldHPPercent is 1.0 (full), brightness is 1.0
+            // When shieldHPPercent is 0.0 (empty), brightness is 2.0 (twice as bright)
+            float hpBrightness = 2.0 - shieldHPPercent;
+            finalShieldColor.rgb *= hpBrightness;
 
+            // Make shield less transparent (more opaque) as HP decreases
+            // When shieldHPPercent is 1.0 (full), alpha is unchanged (1.0 multiplier)
+            // When shieldHPPercent is 0.0 (empty), alpha is increased (1.0 multiplier, fully opaque)
+            float hpAlphaMultiplier = 1.0 - (shieldHPPercent * 0.0); // Range from 1.0 to 1.0 (no change)
+            // Alternative: make it more opaque only when damaged
+            float damageAlphaBoost = (1.0 - shieldHPPercent) * 0.6; // 0.0 to 0.3 boost when damaged
+            finalShieldColor.a *= (1.0 + damageAlphaBoost);
+
+            // Use pre-calculated effective bounds for sweep animation
             // Sweep direction: start from positive X (front) and sweep to negative X (back)
             float sweepPosition = effectiveMaxX - shieldSweepProgress * effectiveWidth;
 
-            // Convert current pixel to ship-relative coordinates
+            // Convert current pixel to ship-relative coordinates (GPU hardware accelerated)
             vec2 shipCenter = center;
             float cosFacing = cos(shipFacing * 3.14159 / 180.0);
             float sinFacing = sin(shipFacing * 3.14159 / 180.0);
@@ -506,6 +499,39 @@ class ShieldShader(
         glDeleteShader(fragmentShader)
     }
 
+    private fun calculateShieldBounds() {
+        if (polygonPoints.size < 6) {
+            shieldBoundsMinX = 0f
+            shieldBoundsMaxX = 0f
+            return
+        }
+
+        // Calculate bounds in ship-relative coordinates for sweep animation
+        val facingRad = Math.toRadians(ship.facing.toDouble()).toFloat()
+        val cosFacing = kotlin.math.cos(facingRad)
+        val sinFacing = kotlin.math.sin(facingRad)
+
+        var minX = Float.MAX_VALUE
+        var maxX = Float.MIN_VALUE
+
+        for (i in polygonPoints.indices step 2) {
+            val screenPoint = Vector2f(polygonPoints[i] - ship.location.x, polygonPoints[i + 1] - ship.location.y)
+            val shipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing
+
+            minX = minOf(minX, shipRelX)
+            maxX = maxOf(maxX, shipRelX)
+        }
+
+        shieldBoundsMinX = minX
+        shieldBoundsMaxX = maxX
+
+        // Calculate effective bounds with margin (in ship-relative space)
+        val margin = 20f
+        effectiveMinX = shieldBoundsMinX - margin
+        effectiveMaxX = shieldBoundsMaxX + margin
+        effectiveWidth = effectiveMaxX - effectiveMinX
+    }
+
     fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f)) {
         scaleX = scale.x
         scaleY = scale.y
@@ -571,6 +597,9 @@ class ShieldShader(
         }
 
         polygonPoints = finalPoints
+
+        // Calculate shield bounds for performance optimization
+        calculateShieldBounds()
     }
 
     private fun subdividePointsWithSplines(points: List<Float>, subdivisions: Int = 8): List<Float> {
@@ -894,8 +923,13 @@ class ShieldShader(
         return isDrawing
     }
 
-    fun drawPolygon() {
+    fun updateShieldHPPercent(percent: Float) {
+        shieldHPPercent = percent
+    }
+
+    fun drawShield() {
         if (polygonPoints.isEmpty()) return
+        if (shieldHPPercent == 0f) return
 
         // Validate polygon before rendering
         if (polygonPoints.size < 6) {
@@ -908,14 +942,22 @@ class ShieldShader(
         glPushAttrib(GL_ALL_ATTRIB_BITS)
         glPushMatrix()
 
-        // Save current shader program
+        // Save current OpenGL state variables
         val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
+        val currentVAO = glGetInteger(GL_VERTEX_ARRAY_BINDING)
+        val currentVBO = glGetInteger(GL_ARRAY_BUFFER_BINDING)
+        val currentTexture = glGetInteger(GL_TEXTURE_BINDING_2D)
+        val blendEnabled = glIsEnabled(GL_BLEND)
+        val depthTestEnabled = glIsEnabled(GL_DEPTH_TEST)
+        val stencilTestEnabled = glIsEnabled(GL_STENCIL_TEST)
+        val texture2DEnabled = glIsEnabled(GL_TEXTURE_2D)
 
-        // Use our shader program
-        glUseProgram(shaderProgram)
+        try {
+            // Use our shader program
+            glUseProgram(shaderProgram)
 
-        // Bind VAO
-        glBindVertexArray(vao)
+            // Bind VAO
+            glBindVertexArray(vao)
 
         // Set uniforms
         glUniform4f(
@@ -932,7 +974,13 @@ class ShieldShader(
         glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), ship.phaseCloak?.effectLevel ?: 1f)
         glUniform1f(glGetUniformLocation(shaderProgram, "shieldSweepProgress"), ship.phaseCloak?.effectLevel ?: 1f)
         glUniform1f(glGetUniformLocation(shaderProgram, "sweepEdgeWidth"), 10.0f)
+        glUniform1f(glGetUniformLocation(shaderProgram, "shieldHPPercent"), shieldHPPercent)
         glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
+
+        // Set pre-calculated values for performance
+        glUniform1f(glGetUniformLocation(shaderProgram, "effectiveMinX"), effectiveMinX)
+        glUniform1f(glGetUniformLocation(shaderProgram, "effectiveMaxX"), effectiveMaxX)
+        glUniform1f(glGetUniformLocation(shaderProgram, "effectiveWidth"), effectiveWidth)
         glUniform2f(
             glGetUniformLocation(shaderProgram, "shipDimensions"),
             shipDimensions[0].x, shipDimensions[0].y
@@ -1009,31 +1057,45 @@ class ShieldShader(
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        // Draw full-screen quad to render the points
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
+            // Draw full-screen quad to render the points
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
 
-        // Restore previous shader program
-        glUseProgram(currentProgram)
+        } finally {
+            // Restore OpenGL state variables
+            glUseProgram(currentProgram)
+            glBindVertexArray(currentVAO)
+            glBindBuffer(GL_ARRAY_BUFFER, currentVBO)
+            glBindTexture(GL_TEXTURE_2D, currentTexture)
 
-        // Restore OpenGL state
-        glPopMatrix()
-        glPopAttrib()
+            // Restore enabled states
+            if (blendEnabled) glEnable(GL_BLEND) else glDisable(GL_BLEND)
+            if (depthTestEnabled) glEnable(GL_DEPTH_TEST) else glDisable(GL_DEPTH_TEST)
+            if (stencilTestEnabled) glEnable(GL_STENCIL_TEST) else glDisable(GL_STENCIL_TEST)
+            if (texture2DEnabled) glEnable(GL_TEXTURE_2D) else glDisable(GL_TEXTURE_2D)
 
-        cleanUp()
-    }
-
-    private fun cleanUp() {
-        glDisable(GL_STENCIL_TEST)
-        glEnable(GL_TEXTURE_2D)
-        glDisable(GL_BLEND)
-        glDisable(GL_POLYGON_SMOOTH)
-        glDisable(GL_LINE_SMOOTH)
+            // Restore OpenGL state
+            glPopMatrix()
+            glPopAttrib()
+        }
     }
 
     fun cleanup() {
-        glDeleteBuffers(vbo)
-        glDeleteVertexArrays(vao)
-        // No UBO to delete - using direct uniforms instead
-        glDeleteProgram(shaderProgram)
+        try {
+            // Clean up OpenGL resources
+            if (vbo != 0) {
+                glDeleteBuffers(vbo)
+                vbo = 0
+            }
+            if (vao != 0) {
+                glDeleteVertexArrays(vao)
+                vao = 0
+            }
+            if (shaderProgram != 0) {
+                glDeleteProgram(shaderProgram)
+                shaderProgram = 0
+            }
+        } catch (e: Exception) {
+            Global.getLogger(this.javaClass).error("Error during cleanup: ${e.message}")
+        }
     }
 }

@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
 import org.combustiblelemon.covenantremnants.utils.Utils
 import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
 import org.combustiblelemon.covenantremnants.utils.render.SmoothingMethod
@@ -12,6 +13,7 @@ import java.util.*
 class CovenantShieldsRenderPlugin(
     private val attachedTo: ShipAPI,
     shipDimensions: Array<Vector2f>,
+    private val stats: CovenantShieldsStats
 ) :
     CombatLayeredRenderingPlugin {
 
@@ -123,8 +125,8 @@ class CovenantShieldsRenderPlugin(
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
-
-        shader.drawPolygon()
+        shader.updateShieldHPPercent(stats.shieldHealth / stats.maxShieldHealth)
+        shader.drawShield()
     }
 
     override fun advance(amount: Float) {
@@ -145,7 +147,6 @@ class CovenantShieldsRenderPlugin(
 
     override fun cleanup() {
         shader.cleanup()
-//        testShader.cleanup()
 
         wasPressed = false
         activeRipples.clear() // Clear ripple data
