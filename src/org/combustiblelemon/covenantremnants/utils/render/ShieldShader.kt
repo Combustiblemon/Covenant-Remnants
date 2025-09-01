@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.utils.render
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -10,7 +11,6 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.round
-import org.combustiblelemon.covenantremnants.utils.Utils
 
 enum class SmoothingMethod {
     SIMPLE,   // Uses edge smoothing by repositioning points
@@ -132,6 +132,7 @@ class ShieldShader(
         uniform vec2 scale;
         uniform float rotation;
         uniform float shieldSweepProgress;  // 0.0 to 1.0, controls sweep animation
+        uniform float sweepEdgeWidth;       // Width of the sweep edge in pixels
 
         // Ripple uniforms
         uniform int numRipples;
@@ -191,7 +192,7 @@ class ShieldShader(
             return inside;
         }
 
-                // Calculate shield bounds for sweep animation in ship-relative coordinates
+                        // Calculate shield bounds for sweep animation in ship-relative coordinates
         vec2 calculateShieldBounds() {
             const int numPoints = POINT_COUNT_PLACEHOLDER;
             if (numPoints < 3) return vec2(0.0, 0.0);
@@ -222,6 +223,31 @@ class ShieldShader(
             return vec2(minX, maxX);
         }
 
+                        // Calculate sweep edge color based on distance from sweep position
+        vec4 calculateSweepEdge(vec2 pixelPos, float sweepPosition) {
+            // Convert current pixel to ship-relative coordinates
+            vec2 shipCenter = center;
+            float cosFacing = cos(shipFacing * 3.14159 / 180.0);
+            float sinFacing = sin(shipFacing * 3.14159 / 180.0);
+            vec2 screenPoint = pixelPos - shipCenter;
+            float pixelShipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing;
+
+            // Scale edge width with screen resolution for consistent visual size
+            float scaledEdgeWidth = sweepEdgeWidth * (resolution.x / 1920.0);
+            float halfEdgeWidth = scaledEdgeWidth * 0.5;
+
+            // Calculate distance from sweep position (centered edge)
+            float distanceFromSweep = abs(pixelShipRelX - sweepPosition);
+
+            // If within half the sweep edge width on either side, apply border color with fade
+            if (distanceFromSweep < halfEdgeWidth) {
+                float edgeFactor = 1.0 - (distanceFromSweep / halfEdgeWidth);
+                return vec4(borderColor.rgb, borderColor.a * edgeFactor);
+            }
+
+            return vec4(0.0, 0.0, 0.0, 0.0); // Transparent
+        }
+
         vec4 mainShield(vec2 pixelPos) {
             // Calculate shield color with charge progress
             vec4 finalShieldColor = shieldColor;
@@ -243,6 +269,15 @@ class ShieldShader(
             vec2 screenPoint = pixelPos - shipCenter;
             float pixelShipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing;
 
+            // Check for sweep edge first (even in transparent areas)
+            vec4 sweepEdgeColor = calculateSweepEdge(pixelPos, sweepPosition);
+            if (sweepEdgeColor.a > 0.0) {
+                // If pixel is beyond the sweep position, only show sweep edge
+                if (pixelShipRelX < sweepPosition) {
+                    return sweepEdgeColor;
+                }
+            }
+
             // If pixel is beyond the sweep position in ship-relative coordinates, make it transparent
             if (pixelShipRelX < sweepPosition) {
                 return vec4(finalShieldColor.rgb, 0.0); // Transparent
@@ -259,13 +294,22 @@ class ShieldShader(
                 j = i;
             }
 
-            // Apply border
+            // Start with base shield color
+            vec4 resultColor = finalShieldColor;
+
+            // Apply regular border
             if (minDistToEdge < borderWidth) {
                 float borderFactor = 1.0 - (minDistToEdge / borderWidth);
-                return mix(finalShieldColor, borderColor, borderFactor);
-            } else {
-                return finalShieldColor;
+                resultColor = mix(resultColor, borderColor, borderFactor);
             }
+
+            // Apply sweep edge effect (blend with existing color)
+            if (sweepEdgeColor.a > 0.0) {
+                // Blend sweep edge with the current shield color
+                resultColor = mix(resultColor, sweepEdgeColor, sweepEdgeColor.a);
+            }
+
+            return resultColor;
         }
 
         void main() {
@@ -462,7 +506,7 @@ class ShieldShader(
         glDeleteShader(fragmentShader)
     }
 
-    fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f) ) {
+    fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f)) {
         scaleX = scale.x
         scaleY = scale.y
 
@@ -709,8 +753,6 @@ class ShieldShader(
         return currentPoints
     }
 
-
-
     fun updateBorder(r: Int, g: Int, b: Int, a: Int, width: Float, blend: Float) {
         borderColorRGBA = floatArrayOf(
             r / 255f,
@@ -889,6 +931,7 @@ class ShieldShader(
         glUniform1f(glGetUniformLocation(shaderProgram, "glowWidth"), glowWidth)
         glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), ship.phaseCloak?.effectLevel ?: 1f)
         glUniform1f(glGetUniformLocation(shaderProgram, "shieldSweepProgress"), ship.phaseCloak?.effectLevel ?: 1f)
+        glUniform1f(glGetUniformLocation(shaderProgram, "sweepEdgeWidth"), 10.0f)
         glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
         glUniform2f(
             glGetUniformLocation(shaderProgram, "shipDimensions"),
