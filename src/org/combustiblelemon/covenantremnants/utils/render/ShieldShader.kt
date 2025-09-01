@@ -131,6 +131,7 @@ class ShieldShader(
         uniform float hexSpacingMultiplier;
         uniform vec2 scale;
         uniform float rotation;
+        uniform float shieldSweepProgress;  // 0.0 to 1.0, controls sweep animation
 
         // Ripple uniforms
         uniform int numRipples;
@@ -190,9 +191,62 @@ class ShieldShader(
             return inside;
         }
 
+                // Calculate shield bounds for sweep animation in ship-relative coordinates
+        vec2 calculateShieldBounds() {
+            const int numPoints = POINT_COUNT_PLACEHOLDER;
+            if (numPoints < 3) return vec2(0.0, 0.0);
+
+            // Convert screen coordinates to ship-relative coordinates
+            vec2 shipCenter = center;
+            float cosFacing = cos(shipFacing * 3.14159 / 180.0);
+            float sinFacing = sin(shipFacing * 3.14159 / 180.0);
+
+            float minX = 0.0;
+            float maxX = 0.0;
+            bool first = true;
+
+            for(int i = 0; i < numPoints; i++) {
+                // Convert screen point to ship-relative coordinates
+                vec2 screenPoint = points[i].xy - shipCenter;
+                float shipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing;
+
+                if (first) {
+                    minX = maxX = shipRelX;
+                    first = false;
+                } else {
+                    minX = min(minX, shipRelX);
+                    maxX = max(maxX, shipRelX);
+                }
+            }
+
+            return vec2(minX, maxX);
+        }
+
         vec4 mainShield(vec2 pixelPos) {
             // Calculate shield color with charge progress
             vec4 finalShieldColor = shieldColor;
+
+                        // Apply sweep animation - only show shield up to the sweep progress
+            vec2 bounds = calculateShieldBounds();
+            float margin = 20.0; // 20-pixel margin outside edges
+            float effectiveMinX = bounds.x - margin;
+            float effectiveMaxX = bounds.y + margin;
+            float effectiveWidth = effectiveMaxX - effectiveMinX;
+
+            // Sweep direction: start from positive X (front) and sweep to negative X (back)
+            float sweepPosition = effectiveMaxX - shieldSweepProgress * effectiveWidth;
+
+            // Convert current pixel to ship-relative coordinates
+            vec2 shipCenter = center;
+            float cosFacing = cos(shipFacing * 3.14159 / 180.0);
+            float sinFacing = sin(shipFacing * 3.14159 / 180.0);
+            vec2 screenPoint = pixelPos - shipCenter;
+            float pixelShipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing;
+
+            // If pixel is beyond the sweep position in ship-relative coordinates, make it transparent
+            if (pixelShipRelX < sweepPosition) {
+                return vec4(finalShieldColor.rgb, 0.0); // Transparent
+            }
 
             // Apply border effect
             float minDistToEdge = 1000.0;
@@ -834,6 +888,7 @@ class ShieldShader(
         glUniform1f(glGetUniformLocation(shaderProgram, "glowIntensity"), glowIntensity)
         glUniform1f(glGetUniformLocation(shaderProgram, "glowWidth"), glowWidth)
         glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), ship.phaseCloak?.effectLevel ?: 1f)
+        glUniform1f(glGetUniformLocation(shaderProgram, "shieldSweepProgress"), ship.phaseCloak?.effectLevel ?: 1f)
         glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
         glUniform2f(
             glGetUniformLocation(shaderProgram, "shipDimensions"),
