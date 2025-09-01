@@ -45,11 +45,11 @@ class ShieldShader(
     private var debugMode: Boolean = false
     private var enableSplineSmoothing: Boolean = true
 
-    // Add hex animation properties
-    private var hexAnimationTime = 0f
-    private var hexSpacing = 10f
+    // Add animation properties
+    private var time = 0f
 
     // Hex grid parameters with default values
+    private var hexSpacing = 10f
     private var hexSize = 20f
     private var hexRotation = 45f
     private var hexEdgeWidth = 2f
@@ -693,14 +693,6 @@ class ShieldShader(
         }
     }
 
-
-
-    fun updateHexAnimation(time: Float, size: Float, spacing: Float) {
-        hexAnimationTime = time
-        hexSize = size
-        hexSpacing = spacing
-    }
-
     fun updateHexParameters(
         size: Float? = null,
         rotation: Float? = null,
@@ -792,6 +784,10 @@ class ShieldShader(
         }
     }
 
+    fun updateTime(amount: Float) {
+        this.time += amount
+    }
+
     fun isPopWaveActive(): Boolean {
         return activePopWave !== null
     }
@@ -844,7 +840,7 @@ class ShieldShader(
             shipDimensions[0].x, shipDimensions[0].y
         )
         glUniform2f(glGetUniformLocation(shaderProgram, "center"), ship.location.x, ship.location.y)
-        glUniform1f(glGetUniformLocation(shaderProgram, "time"), hexAnimationTime)
+        glUniform1f(glGetUniformLocation(shaderProgram, "time"), time)
         glUniform1f(glGetUniformLocation(shaderProgram, "hexSize"), hexSize)
         glUniform1f(glGetUniformLocation(shaderProgram, "hexRotation"), hexRotation)
         glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacing"), hexSpacing)

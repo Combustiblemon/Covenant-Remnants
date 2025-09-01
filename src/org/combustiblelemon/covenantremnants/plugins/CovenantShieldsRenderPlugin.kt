@@ -53,20 +53,7 @@ class CovenantShieldsRenderPlugin(
 
         // Use phaseCloak.effectLevel to check for activity
         if (attachedTo.phaseCloak.effectLevel > 0f) {
-//            testShader.drawShader(
-//                viewport,
-//                attachedTo.exactBounds!!.origSegments.map {
-//                    Utils.rotatePointByDegrees(
-//                        Vector2f(
-//                            it!!.p1.x + attachedTo.location!!.x,
-//                            it.p1.y + attachedTo.location!!.y
-//                        ), attachedTo.location, attachedTo.facing
-//                    )
-//                }.toTypedArray()
-//            )
-
             renderShield(viewport)
-            shader.updateHexAnimation(hexAnimationTime, hexSize, hexSpacing)
         }
     }
 
@@ -141,11 +128,8 @@ class CovenantShieldsRenderPlugin(
     }
 
     override fun advance(amount: Float) {
-        hexAnimationTime += amount * hexAnimationSpeed
-
+        shader.updateTime(amount)
         shader.updateRipple(amount, 1000f)
-
-
 
         if (popActive) {
             shader.updateShieldPop(amount)
