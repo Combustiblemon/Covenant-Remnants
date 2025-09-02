@@ -126,7 +126,7 @@ class CovenantShieldsRenderPlugin(
         shader.updateGlow(10f, 10f)
         shader.updateHexParameters(20f, 90f, 2f, 1.2f)
         shader.updateShieldHPPercent(stats.shieldHealth / stats.maxShieldHealth)
-        shader.drawShield()
+        shader.drawShield(viewport)
     }
 
     override fun advance(amount: Float) {

@@ -10,7 +10,6 @@ import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.util.vector.Vector2f
-import kotlin.math.round
 
 enum class SmoothingMethod {
     SIMPLE,   // Uses edge smoothing by repositioning points
@@ -46,12 +45,22 @@ class ShieldShader(
     private var enableSplineSmoothing: Boolean = true
     private var enableBoundingBoxOptimization: Boolean = true // Re-enabled, scissor test disabled
 
+    // Pre-calculated rotation matrix for vertex shader optimization
+    private var shipRotationMatrix: FloatArray = floatArrayOf(1f, 0f, 0f, 1f) // Identity matrix
+
+    // Viewport scale for world-to-screen conversion
+    private var viewportScaleX: Float = 1.0f
+    private var viewportScaleY: Float = 1.0f
+
     // Pre-calculated values for performance
     private var shieldBoundsMinX: Float = 0f
     private var shieldBoundsMaxX: Float = 0f
     private var effectiveMinX: Float = 0f
     private var effectiveMaxX: Float = 0f
     private var effectiveWidth: Float = 0f
+
+    // Sweep position calculated on CPU
+    private var sweepPosition: Float = 0f
 
     // Bounding box for optimization
     private var boundingBoxMinX: Float = 0f
@@ -112,15 +121,54 @@ class ShieldShader(
     // Shader source code
     private val vertexShaderSource = """
         #version 330 core
-        layout (location = 0) in vec2 aPos;
+        layout (location = 0) in vec2 aPos;        // NDC coordinates for full-screen quad
+        layout (location = 1) in vec2 worldPoint;  // World coordinates of polygon point
 
         out vec2 TexCoord;
+        out vec2 screenPos;           // Pre-calculated screen position
+        out vec2 shipRelPos;          // Pre-calculated ship-relative position
+        out float distanceFromCenter; // Pre-calculated distance from ship center
+        out float shipRelX;           // Pre-calculated ship-relative X coordinate for sweep
+
+        uniform vec2 resolution;
+        uniform vec2 center;
+        uniform vec2 scale;
+        uniform vec4 shipRotationMatrix; // Pre-calculated rotation matrix as vec4 (m00, m01, m10, m11)
+        uniform vec2 viewportScale;      // For world-to-screen conversion
 
         void main() {
-            // Pass through the position directly (already in NDC space)
+            // Pass through the NDC position for full-screen quad
             gl_Position = vec4(aPos, 0.0, 1.0);
+
             // Convert NDC to texture coordinates (0 to 1)
             TexCoord = aPos * 0.5 + 0.5;
+
+            // Transform world point through all stages (moved from CPU)
+            // Note: worldPoint is currently dummy (0,0) for quad vertices
+            // The actual polygon points are passed as uniforms to the fragment shader
+            vec2 scaledPoint = worldPoint * scale;
+            vec2 translatedPoint = scaledPoint + center;
+            vec2 rotatedPoint = vec2(
+                shipRotationMatrix.x * (translatedPoint.x - center.x) + shipRotationMatrix.y * (translatedPoint.y - center.y) + center.x,
+                shipRotationMatrix.z * (translatedPoint.x - center.x) + shipRotationMatrix.w * (translatedPoint.y - center.y) + center.y
+            );
+            vec2 screenPoint = rotatedPoint * viewportScale;
+
+            // Pre-calculate values for fragment shader
+            screenPos = screenPoint;
+
+            // Pre-calculate ship-relative position
+            vec2 screenPointRel = screenPoint - center;
+            shipRelPos = vec2(
+                shipRotationMatrix.x * screenPointRel.x + shipRotationMatrix.y * screenPointRel.y,
+                shipRotationMatrix.z * screenPointRel.x + shipRotationMatrix.w * screenPointRel.y
+            );
+
+            // Pre-calculate ship-relative X coordinate for sweep animation
+            shipRelX = shipRelPos.x;
+
+            // Pre-calculate distance from center (useful for many effects)
+            distanceFromCenter = length(screenPointRel);
         }
     """.trimIndent()
 
@@ -129,6 +177,10 @@ class ShieldShader(
         out vec4 FragColor;
 
         in vec2 TexCoord;
+        in vec2 screenPos;           // Pre-calculated screen position from vertex shader
+        in vec2 shipRelPos;          // Pre-calculated ship-relative position from vertex shader
+        in float distanceFromCenter; // Pre-calculated distance from ship center from vertex shader
+        in float shipRelX;           // Pre-calculated ship-relative X coordinate from vertex shader
 
         // Uniforms
         uniform vec4 shieldColor;
@@ -138,7 +190,6 @@ class ShieldShader(
         uniform float glowWidth;
         uniform float chargeProgress;
         uniform float shipFacing;
-        uniform vec2 shipDimensions;
         uniform vec2 center;
         uniform float time;
         uniform float hexSize;
@@ -152,10 +203,10 @@ class ShieldShader(
         uniform float sweepEdgeWidth;       // Width of the sweep edge in pixels
         uniform float shieldHPPercent;      // 0.0 to 1.0, shield health percentage
 
-        // Pre-calculated values for performance
-        uniform float effectiveMinX;        // Pre-calculated effective min X
-        uniform float effectiveMaxX;        // Pre-calculated effective max X
-        uniform float effectiveWidth;       // Pre-calculated effective width
+
+
+        // Sweep position calculated on CPU
+        uniform float sweepPosition;        // Current sweep position in ship-relative coordinates
 
         // Ripple uniforms
         uniform int numRipples;
@@ -181,7 +232,7 @@ class ShieldShader(
         uniform vec2 boundingBoxMax;
 
         // Polygon points as individual uniform arrays - no UBO needed
-        uniform vec2 points[POINT_COUNT_PLACEHOLDER];
+        uniform vec2 points[POINT_COUNT_PLACEHOLDER]; // Screen coordinates
 
         uniform bool debugPolygon;    // Debug flag for polygon rendering
 
@@ -189,7 +240,12 @@ class ShieldShader(
         uniform float zoomLevel;   // Viewport zoom level (viewMult)
         uniform bool debugMode;    // Debug mode to show polygon outline
 
-                                // Helper function to calculate distance from point to line segment
+        // Additional uniforms needed for coordinate transformations
+        uniform vec4 shipRotationMatrix; // Pre-calculated rotation matrix as vec4 (m00, m01, m10, m11)
+
+
+
+        // Helper function to calculate distance from point to line segment
         float distanceToLine(vec2 point, vec2 lineStart, vec2 lineEnd) {
             vec2 line = lineEnd - lineStart;
             vec2 pointToStart = point - lineStart;
@@ -198,7 +254,7 @@ class ShieldShader(
             return distance(point, closest);
         }
 
-                // Point-in-polygon test using ray casting algorithm
+                                // Point-in-polygon test using ray casting algorithm
         bool isPointInPolygon(vec2 point) {
             // Use the fixed array size from POINT_COUNT_PLACEHOLDER
             const int numPoints = POINT_COUNT_PLACEHOLDER;
@@ -208,9 +264,13 @@ class ShieldShader(
             int j = numPoints - 1;
 
             for (int i = 0; i < numPoints; i++) {
+                // Points are already in screen coordinates
+                vec2 screenPointI = points[i];
+                vec2 screenPointJ = points[j];
+
                 // Check if point is on the same side of the edge as the ray
-                if (((points[i].y > point.y) != (points[j].y > point.y)) &&
-                    (point.x < (points[j].x - points[i].x) * (point.y - points[i].y) / (points[j].y - points[i].y) + points[i].x)) {
+                if (((screenPointI.y > point.y) != (screenPointJ.y > point.y)) &&
+                    (point.x < (screenPointJ.x - screenPointI.x) * (point.y - screenPointI.y) / (screenPointJ.y - screenPointI.y) + screenPointI.x)) {
                     inside = !inside;
                 }
                 j = i;
@@ -221,30 +281,7 @@ class ShieldShader(
 
                                 // Shield bounds are now pre-calculated on CPU for performance
 
-                                // Calculate sweep edge color based on distance from sweep position
-        vec4 calculateSweepEdge(vec2 pixelPos, float sweepPosition) {
-            // Convert current pixel to ship-relative coordinates (GPU hardware accelerated)
-            vec2 shipCenter = center;
-            float cosFacing = cos(shipFacing * 3.14159 / 180.0);
-            float sinFacing = sin(shipFacing * 3.14159 / 180.0);
-            vec2 screenPoint = pixelPos - shipCenter;
-            float pixelShipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing;
 
-            // Scale edge width with screen resolution for consistent visual size
-            float scaledEdgeWidth = sweepEdgeWidth * (resolution.x / 1920.0);
-            float halfEdgeWidth = scaledEdgeWidth * 0.5;
-
-            // Calculate distance from sweep position (centered edge)
-            float distanceFromSweep = abs(pixelShipRelX - sweepPosition);
-
-            // If within half the sweep edge width on either side, apply border color with fade
-            if (distanceFromSweep < halfEdgeWidth) {
-                float edgeFactor = 1.0 - (distanceFromSweep / halfEdgeWidth);
-                return vec4(borderColor.rgb, borderColor.a * edgeFactor);
-            }
-
-            return vec4(0.0, 0.0, 0.0, 0.0); // Transparent
-        }
 
                 vec4 mainShield(vec2 pixelPos) {
             // Calculate shield color with charge progress and HP-based brightness
@@ -264,29 +301,30 @@ class ShieldShader(
             float damageAlphaBoost = (1.0 - shieldHPPercent) * 0.6; // 0.0 to 0.3 boost when damaged
             finalShieldColor.a *= (1.0 + damageAlphaBoost);
 
-            // Use pre-calculated effective bounds for sweep animation
-            // Sweep direction: start from positive X (front) and sweep to negative X (back)
-            float sweepPosition = effectiveMaxX - shieldSweepProgress * effectiveWidth;
+            // Calculate ship-relative position in screen coordinates
+            // Get ship-relative position (relative to ship center in screen coordinates)
+            vec2 shipRelPos = pixelPos - center;
+            // Apply rotation matrix to get ship-relative X coordinate (same as CPU calculation)
+            // shipRotationMatrix[0] = cos(facing), shipRotationMatrix[1] = -sin(facing)
+            // But we need +sin(facing) to match CPU calculation, so we negate shipRotationMatrix[1]
+            float pixelShipRelX = shipRelPos.x * shipRotationMatrix[0] - shipRelPos.y * shipRotationMatrix[1];
 
-            // Convert current pixel to ship-relative coordinates (GPU hardware accelerated)
-            vec2 shipCenter = center;
-            float cosFacing = cos(shipFacing * 3.14159 / 180.0);
-            float sinFacing = sin(shipFacing * 3.14159 / 180.0);
-            vec2 screenPoint = pixelPos - shipCenter;
-            float pixelShipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing;
+            // Calculate sweep edge color based on distance from sweep position
+            // Scale edge width with screen resolution for consistent visual size
+            float scaledEdgeWidth = sweepEdgeWidth * (resolution.x / 1920.0);
+            float halfEdgeWidth = scaledEdgeWidth * 0.5;
+            float distanceFromSweep = abs(pixelShipRelX - sweepPosition);
 
-            // Check for sweep edge first (even in transparent areas)
-            vec4 sweepEdgeColor = calculateSweepEdge(pixelPos, sweepPosition);
-            if (sweepEdgeColor.a > 0.0) {
-                // If pixel is beyond the sweep position, only show sweep edge
-                if (pixelShipRelX < sweepPosition) {
-                    return sweepEdgeColor;
-                }
+            vec4 sweepEdgeColor = vec4(0.0, 0.0, 0.0, 0.0); // Default transparent
+            if (distanceFromSweep < halfEdgeWidth) {
+                float edgeFactor = 1.0 - (distanceFromSweep / halfEdgeWidth);
+                sweepEdgeColor = vec4(borderColor.rgb, borderColor.a * edgeFactor);
             }
 
             // If pixel is beyond the sweep position in ship-relative coordinates, make it transparent
             if (pixelShipRelX < sweepPosition) {
-                return vec4(finalShieldColor.rgb, 0.0); // Transparent
+                // If within sweep edge, show edge color, otherwise transparent
+                return sweepEdgeColor;
             }
 
             // Apply border effect
@@ -295,7 +333,7 @@ class ShieldShader(
             int j = numPoints - 1;
 
             for(int i = 0; i < numPoints; i++) {
-                float dist = distanceToLine(pixelPos, points[i].xy, points[j].xy);
+                float dist = distanceToLine(pixelPos, points[i], points[j]);
                 minDistToEdge = min(minDistToEdge, dist);
                 j = i;
             }
@@ -319,7 +357,7 @@ class ShieldShader(
         }
 
         void main() {
-            // Convert texture coordinates to screen pixel coordinates
+            // Calculate pixel position from texture coordinates (this is the actual screen position)
             vec2 pixelPos = TexCoord * resolution;
 
             // Debug mode: show polygon outline, points, and bounding box
@@ -332,16 +370,16 @@ class ShieldShader(
                 float boundingBoxTop = boundingBoxMax.y;
                 float boundingBoxBottom = boundingBoxMin.y;
 
-                // Check if pixel is near bounding box edges
+                // Check if pixel is near bounding box edges (increased thickness for visibility)
                 float distToLeft = abs(pixelPos.x - boundingBoxLeft);
                 float distToRight = abs(pixelPos.x - boundingBoxRight);
                 float distToTop = abs(pixelPos.y - boundingBoxTop);
                 float distToBottom = abs(pixelPos.y - boundingBoxBottom);
 
-                bool nearLeftEdge = distToLeft < 3.0 && pixelPos.y >= boundingBoxBottom && pixelPos.y <= boundingBoxTop;
-                bool nearRightEdge = distToRight < 3.0 && pixelPos.y >= boundingBoxBottom && pixelPos.y <= boundingBoxTop;
-                bool nearTopEdge = distToTop < 3.0 && pixelPos.x >= boundingBoxLeft && pixelPos.x <= boundingBoxRight;
-                bool nearBottomEdge = distToBottom < 3.0 && pixelPos.x >= boundingBoxLeft && pixelPos.x <= boundingBoxRight;
+                bool nearLeftEdge = distToLeft < 5.0 && pixelPos.y >= boundingBoxBottom && pixelPos.y <= boundingBoxTop;
+                bool nearRightEdge = distToRight < 5.0 && pixelPos.y >= boundingBoxBottom && pixelPos.y <= boundingBoxTop;
+                bool nearTopEdge = distToTop < 5.0 && pixelPos.x >= boundingBoxLeft && pixelPos.x <= boundingBoxRight;
+                bool nearBottomEdge = distToBottom < 5.0 && pixelPos.x >= boundingBoxLeft && pixelPos.x <= boundingBoxRight;
 
                 if(nearLeftEdge || nearRightEdge || nearTopEdge || nearBottomEdge) {
                     FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red bounding box outline
@@ -349,20 +387,22 @@ class ShieldShader(
                 }
 
                 // Show all polygon points as small circles (only valid points)
+                // Points are already in screen coordinates
                 for(int i = 0; i < numPoints; i++) {
-                    float dist = distance(pixelPos, points[i].xy);
-                    if(dist < 2.0) {
+                    float dist = distance(pixelPos, points[i]);
+                    if(dist < 3.0) {
                         FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green dots for points
                         return;
                     }
                 }
 
                 // Check if pixel is near any polygon edge (only valid edges)
+                // Points are already in screen coordinates
                 float minDist = 1000.0;
                 int j = numPoints - 1;
 
                 for(int i = 0; i < numPoints; i++) {
-                    float dist = distanceToLine(pixelPos, points[i].xy, points[j].xy);
+                    float dist = distanceToLine(pixelPos, points[i], points[j]);
                     minDist = min(minDist, dist);
                     j = i;
                 }
@@ -373,11 +413,14 @@ class ShieldShader(
                 }
             }
 
-            // Check if the current pixel is inside the polygon
-            if(isPointInPolygon(pixelPos)) {
+            // Check if pixel is inside the shield polygon
+            bool insidePolygon = isPointInPolygon(pixelPos);
+
+            if (insidePolygon) {
+                // Render the shield with sweep animation
                 FragColor = mainShield(pixelPos);
             } else {
-                // Outside polygon - discard or make transparent
+                // Point is outside the shield polygon
                 discard;
             }
         }
@@ -394,11 +437,13 @@ class ShieldShader(
         glBindVertexArray(vao)
 
         // Create VBO - initially with full-screen quad, will be updated with bounding box
+        // Each vertex now has: NDC coords (2 floats) + world coords (2 floats) = 4 floats per vertex
         val vertices = floatArrayOf(
-            -1.0f, -1.0f,  // Bottom-left
-            1.0f, -1.0f,  // Bottom-right
-            1.0f, 1.0f,  // Top-right
-            -1.0f, 1.0f   // Top-left
+            // NDC coords (location 0) + world coords (location 1)
+            -1.0f, -1.0f, 0.0f, 0.0f,  // Bottom-left
+            1.0f, -1.0f, 0.0f, 0.0f,   // Bottom-right
+            1.0f, 1.0f, 0.0f, 0.0f,    // Top-right
+            -1.0f, 1.0f, 0.0f, 0.0f    // Top-left
         )
 
         vbo = glGenBuffers()
@@ -412,8 +457,10 @@ class ShieldShader(
         glBufferData(GL_ARRAY_BUFFER, buffer, GL_DYNAMIC_DRAW) // Changed to DYNAMIC_DRAW for updates
 
         // Set up vertex attributes
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0)
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * 4, 0)        // NDC coordinates
+        glVertexAttribPointer(1, 2, GL_FLOAT, false, 4 * 4, 2 * 4)    // World coordinates
         glEnableVertexAttribArray(0)
+        glEnableVertexAttribArray(1)
 
         glBindVertexArray(0)
 
@@ -424,10 +471,11 @@ class ShieldShader(
         if (boundingBoxWidth <= 0f || boundingBoxHeight <= 0f) {
             // Fallback to full-screen quad if bounding box is invalid
             val vertices = floatArrayOf(
-                -1.0f, -1.0f,  // Bottom-left
-                1.0f, -1.0f,  // Bottom-right
-                1.0f, 1.0f,  // Top-right
-                -1.0f, 1.0f   // Top-left
+                // NDC coords (location 0) + world coords (location 1)
+                -1.0f, -1.0f, 0.0f, 0.0f,  // Bottom-left
+                1.0f, -1.0f, 0.0f, 0.0f,   // Bottom-right
+                1.0f, 1.0f, 0.0f, 0.0f,    // Top-right
+                -1.0f, 1.0f, 0.0f, 0.0f    // Top-left
             )
             updateVBO(vertices)
             return
@@ -439,17 +487,14 @@ class ShieldShader(
         val bottom = (boundingBoxMinY / screenHeight) * 2.0f - 1.0f
         val top = (boundingBoxMaxY / screenHeight) * 2.0f - 1.0f
 
+        // Use dummy world coordinates (0,0) for all vertices
+        // The vertex shader will handle the transformation
         val vertices = floatArrayOf(
-            left, bottom,   // Bottom-left
-            right, bottom,  // Bottom-right
-            right, top,     // Top-right
-            left, top       // Top-left
-        )
-
-        Global.getLogger(this.javaClass).debug(
-            "Quad vertices updated: left=$left, right=$right, bottom=$bottom, top=$top, " +
-            "boundingBox: minX=$boundingBoxMinX, maxX=$boundingBoxMaxX, minY=$boundingBoxMinY, maxY=$boundingBoxMaxY, " +
-            "screen: ${screenWidth}x${screenHeight}"
+            // NDC coords (location 0) + world coords (location 1)
+            left, bottom, 0.0f, 0.0f,   // Bottom-left
+            right, bottom, 0.0f, 0.0f,  // Bottom-right
+            right, top, 0.0f, 0.0f,     // Top-right
+            left, top, 0.0f, 0.0f       // Top-left
         )
 
         updateVBO(vertices)
@@ -479,29 +524,22 @@ class ShieldShader(
         val maxPoints = when (smoothingMethod) {
             SmoothingMethod.SPLINE -> {
                 // Spline smoothing: Laplacian smoothing - no new points, just repositioned
-                Global.getLogger(this.javaClass)
-                    .debug("SPLINE calculation: originalPoints=$originalPointCount, using Laplacian smoothing (no new points)")
                 originalPointCount
             }
 
             SmoothingMethod.SIMPLE -> {
                 // Simple smoothing: edge smoothing - no new points, just repositioned
-                Global.getLogger(this.javaClass)
-                    .debug("SIMPLE calculation: originalPoints=$originalPointCount, using edge smoothing (no new points)")
                 originalPointCount
             }
 
             SmoothingMethod.NONE -> {
                 // Minimal smoothing: very subtle smoothing - no new points, just repositioned
-                Global.getLogger(this.javaClass)
-                    .debug("NONE calculation: originalPoints=$originalPointCount, using minimal smoothing (no new points)")
                 originalPointCount
             }
         }
 
         // Ensure we don't exceed reasonable bounds (safety check)
         val finalResult = minOf(maxPoints, 1000) // Maximum 1000 points for shader array
-        Global.getLogger(this.javaClass).debug("Final calculation result: $finalResult")
         return finalResult
     }
 
@@ -517,10 +555,10 @@ class ShieldShader(
         // Safety check: ensure we don't exceed the shader array size
         val safePointCount = minOf(actualPointCount, pointCount)
 
-        // Set actual polygon points as uniforms
+        // Set actual polygon points as uniforms (now world coordinates)
         for (i in 0 until safePointCount) {
-            val x = round(polygonPoints[i * 2])
-            val y = round(polygonPoints[i * 2 + 1])
+            val x = polygonPoints[i * 2]
+            val y = polygonPoints[i * 2 + 1]
             val uniformLocation = glGetUniformLocation(shaderProgram, "points[$i]")
             glUniform2f(uniformLocation, x, y)
         }
@@ -584,40 +622,7 @@ class ShieldShader(
         glDeleteShader(fragmentShader)
     }
 
-    private fun calculateShieldBounds() {
-        if (polygonPoints.size < 6) {
-            shieldBoundsMinX = 0f
-            shieldBoundsMaxX = 0f
-            return
-        }
-
-        // Calculate bounds in ship-relative coordinates for sweep animation
-        val facingRad = Math.toRadians(ship.facing.toDouble()).toFloat()
-        val cosFacing = kotlin.math.cos(facingRad)
-        val sinFacing = kotlin.math.sin(facingRad)
-
-        var minX = Float.MAX_VALUE
-        var maxX = Float.MIN_VALUE
-
-        for (i in polygonPoints.indices step 2) {
-            val screenPoint = Vector2f(polygonPoints[i] - ship.location.x, polygonPoints[i + 1] - ship.location.y)
-            val shipRelX = screenPoint.x * cosFacing + screenPoint.y * sinFacing
-
-            minX = minOf(minX, shipRelX)
-            maxX = maxOf(maxX, shipRelX)
-        }
-
-        shieldBoundsMinX = minX
-        shieldBoundsMaxX = maxX
-
-        // Calculate effective bounds with margin (in ship-relative space)
-        val margin = 20f
-        effectiveMinX = shieldBoundsMinX - margin
-        effectiveMaxX = shieldBoundsMaxX + margin
-        effectiveWidth = effectiveMaxX - effectiveMinX
-    }
-
-    private fun calculateBoundingBox() {
+    private fun calculateBoundingBox(viewport: ViewportAPI? = null) {
         if (polygonPoints.size < 6) {
             boundingBoxMinX = 0f
             boundingBoxMaxX = 0f
@@ -634,14 +639,15 @@ class ShieldShader(
         var minY = Float.MAX_VALUE
         var maxY = Float.MIN_VALUE
 
+        // polygonPoints now contains screen coordinates
         for (i in polygonPoints.indices step 2) {
-            val x = polygonPoints[i]
-            val y = polygonPoints[i + 1]
+            val screenX = polygonPoints[i]
+            val screenY = polygonPoints[i + 1]
 
-            minX = minOf(minX, x)
-            maxX = maxOf(maxX, x)
-            minY = minOf(minY, y)
-            maxY = maxOf(maxY, y)
+            minX = minOf(minX, screenX)
+            maxX = maxOf(maxX, screenX)
+            minY = minOf(minY, screenY)
+            maxY = maxOf(maxY, screenY)
         }
 
         // Add margin for border effects and safety
@@ -652,18 +658,15 @@ class ShieldShader(
         boundingBoxMaxY = maxY + margin
         boundingBoxWidth = boundingBoxMaxX - boundingBoxMinX
         boundingBoxHeight = boundingBoxMaxY - boundingBoxMinY
-
-        Global.getLogger(this.javaClass).debug(
-            "Bounding box calculated: minX=$boundingBoxMinX, maxX=$boundingBoxMaxX, " +
-            "minY=$boundingBoxMinY, maxY=$boundingBoxMaxY, width=$boundingBoxWidth, height=$boundingBoxHeight, " +
-            "ship location: ${ship.location.x}, ${ship.location.y}, screen: ${screenWidth}x${screenHeight}, " +
-            "polygon points count: ${polygonPoints.size / 2}"
-        )
     }
 
     fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f)) {
         scaleX = scale.x
         scaleY = scale.y
+
+        // Get viewport scale for world-to-screen conversion
+        viewportScaleX = viewport.viewMult
+        viewportScaleY = viewport.viewMult
 
         // Validate input points
         if (newPoints.size < 3) { // Need at least 3 points (6 coordinates)
@@ -672,54 +675,74 @@ class ShieldShader(
             return
         }
 
-        val vertexData = mutableListOf<Float>()
-
-
+        // Store world coordinates directly - transformations will be done in vertex shader
+        val worldPoints = mutableListOf<Float>()
         for (segment in newPoints) {
-            val scaledPoint = Vector2f(segment.x * scale.x, segment.y * scale.y)
-
-            val p1 = Utils.rotatePointByDegrees(
-                Vector2f(scaledPoint.x + ship.location.x, scaledPoint.y + ship.location.y),
-                ship.location,
-                ship.facing
-            )
-
-            vertexData.add(viewport.convertWorldXtoScreenX(p1.x))
-            vertexData.add(viewport.convertWorldYtoScreenY(p1.y))
+            worldPoints.add(segment.x)
+            worldPoints.add(segment.y)
         }
 
-        // The vertexData already contains screen coordinates, so use them directly
-        val scaledPoints = vertexData.toMutableList()
-
-        // Apply smoothing to create smooth edges (optional)
-        val finalPoints = when (smoothingMethod) {
+        // Apply smoothing to world coordinates first
+        val smoothedWorldPoints = when (smoothingMethod) {
             SmoothingMethod.SPLINE -> if (enableSplineSmoothing) {
-                Global.getLogger(this.javaClass)
-                    .debug("SPLINE smoothing enabled: splineSubdivisions=$splineSubdivisions")
-                subdividePointsWithSplines(scaledPoints, splineSubdivisions)
+                subdividePointsWithSplines(worldPoints, splineSubdivisions)
             } else {
-                Global.getLogger(this.javaClass).debug("SPLINE smoothing disabled")
-                scaledPoints
+                worldPoints
             }
 
             SmoothingMethod.SIMPLE -> {
-                Global.getLogger(this.javaClass).debug("SIMPLE smoothing enabled: subdivisions=$splineSubdivisions")
-                smoothEdgesSimple(scaledPoints, splineSubdivisions)
+                smoothEdgesSimple(worldPoints, splineSubdivisions)
             }
 
             SmoothingMethod.NONE -> {
-                Global.getLogger(this.javaClass).debug("NONE smoothing enabled: using minimal curves")
-                smoothEdgesMinimal(scaledPoints, 2) // Minimal curve smoothing
+                smoothEdgesMinimal(worldPoints, 2) // Minimal curve smoothing
             }
         }
 
-        polygonPoints = finalPoints
+        // Convert world points to screen coordinates for the fragment shader
+        val screenPoints = mutableListOf<Float>()
+        var sweepMinX = Float.MAX_VALUE
+        var sweepMaxX = Float.MIN_VALUE
 
-        // Calculate shield bounds for performance optimization
-        calculateShieldBounds()
+        // Get ship center in screen coordinates for consistent calculations
+        val shipScreenX = viewport.convertWorldXtoScreenX(ship.location.x)
+        val shipScreenY = viewport.convertWorldYtoScreenY(ship.location.y)
+
+        for (i in smoothedWorldPoints.indices step 2) {
+            val worldPoint = Vector2f(smoothedWorldPoints[i], smoothedWorldPoints[i + 1])
+            val scaledPoint = Vector2f(worldPoint.x * scaleX, worldPoint.y * scaleY)
+            val translatedPoint = Vector2f(scaledPoint.x + ship.location.x, scaledPoint.y + ship.location.y)
+            val rotatedPoint = Utils.rotatePointByDegrees(translatedPoint, ship.location, ship.facing)
+
+            // Convert to screen coordinates using viewport
+            val screenX = viewport.convertWorldXtoScreenX(rotatedPoint.x)
+            val screenY = viewport.convertWorldYtoScreenY(rotatedPoint.y)
+
+            // Calculate ship-relative coordinates in screen space for sweep bounds
+            val screenRelPoint = Vector2f(screenX - shipScreenX, screenY - shipScreenY)
+            val facingRad = Math.toRadians(ship.facing.toDouble()).toFloat()
+            val cosFacing = kotlin.math.cos(facingRad)
+            val sinFacing = kotlin.math.sin(facingRad)
+            val shipRelX = screenRelPoint.x * cosFacing + screenRelPoint.y * sinFacing
+
+            sweepMinX = minOf(sweepMinX, shipRelX)
+            sweepMaxX = maxOf(sweepMaxX, shipRelX)
+
+            screenPoints.add(screenX)
+            screenPoints.add(screenY)
+        }
+
+        // Calculate sweep position using the bounds we just calculated
+        val sweepWidth = sweepMaxX - sweepMinX
+        sweepPosition = sweepMaxX - (ship.phaseCloak?.effectLevel ?: 1f) * sweepWidth
+
+        // Store the screen coordinates for the fragment shader
+        polygonPoints = screenPoints
+
+        // Shield bounds are now calculated inline above
 
         // Calculate bounding box for rendering optimization
-        calculateBoundingBox()
+        calculateBoundingBox(viewport)
 
         // Update quad vertices to match bounding box
         updateQuadVertices()
@@ -796,11 +819,22 @@ class ShieldShader(
     }
 
     fun updateShipPosition() {
-        // Recalculate bounding box when ship moves
-        if (polygonPoints.isNotEmpty()) {
-            calculateBoundingBox()
-            updateQuadVertices()
-        }
+        // Don't recalculate bounding box here - it should be calculated with viewport in updatePolygon
+        // Just update rotation matrix when ship moves
+        updateRotationMatrix()
+    }
+
+    private fun updateRotationMatrix() {
+        // Calculate rotation matrix for ship facing
+        val facingRad = Math.toRadians(ship.facing.toDouble()).toFloat()
+        val cosFacing = kotlin.math.cos(facingRad)
+        val sinFacing = kotlin.math.sin(facingRad)
+
+        // 2x2 rotation matrix: [cos -sin; sin cos]
+        shipRotationMatrix[0] = cosFacing
+        shipRotationMatrix[1] = -sinFacing
+        shipRotationMatrix[2] = sinFacing
+        shipRotationMatrix[3] = cosFacing
     }
 
     fun setDebugMode(enabled: Boolean) {
@@ -809,7 +843,6 @@ class ShieldShader(
 
     fun setBoundingBoxOptimization(enabled: Boolean) {
         enableBoundingBoxOptimization = enabled
-        Global.getLogger(this.javaClass).info("Bounding box optimization ${if (enabled) "enabled" else "disabled"}")
     }
 
     fun setSplineSubdivisions(subdivisions: Int) {
@@ -1072,9 +1105,8 @@ class ShieldShader(
         shieldHPPercent = percent
     }
 
-    fun drawShield() {
+    fun drawShield(viewport: ViewportAPI) {
         if (polygonPoints.isEmpty()) return
-        if (shieldHPPercent == 0f) return
 
         // Validate polygon before rendering
         if (polygonPoints.size < 6) {
@@ -1085,9 +1117,15 @@ class ShieldShader(
 
         // Ensure bounding box is up-to-date before rendering (if optimization is enabled)
         if (enableBoundingBoxOptimization) {
-            calculateBoundingBox()
-            updateQuadVertices()
+            // Don't recalculate bounding box here - it should already be calculated with viewport in updatePolygon
+            // Just update quad vertices if needed
+            if (boundingBoxWidth > 0f && boundingBoxHeight > 0f) {
+                updateQuadVertices()
+            }
         }
+
+        // Ensure rotation matrix is up-to-date
+        updateRotationMatrix()
 
         // Save current OpenGL state
         glPushAttrib(GL_ALL_ATTRIB_BITS)
@@ -1105,7 +1143,7 @@ class ShieldShader(
         val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
 
         try {
-                        // Scissor test disabled for debugging - only using bounding box quad optimization
+            // Scissor test disabled for debugging - only using bounding box quad optimization
             // The bounding box optimization is handled by the dynamic quad vertices
 
             // Use our shader program
@@ -1114,107 +1152,118 @@ class ShieldShader(
             // Bind VAO
             glBindVertexArray(vao)
 
-        // Set uniforms
-        glUniform4f(
-            glGetUniformLocation(shaderProgram, "shieldColor"),
-            colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3]
-        )
-        glUniform4f(
-            glGetUniformLocation(shaderProgram, "borderColor"),
-            borderColorRGBA[0], borderColorRGBA[1], borderColorRGBA[2], borderColorRGBA[3]
-        )
-        glUniform1f(glGetUniformLocation(shaderProgram, "borderWidth"), borderWidth)
-        glUniform1f(glGetUniformLocation(shaderProgram, "glowIntensity"), glowIntensity)
-        glUniform1f(glGetUniformLocation(shaderProgram, "glowWidth"), glowWidth)
-        glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), ship.phaseCloak?.effectLevel ?: 1f)
-        glUniform1f(glGetUniformLocation(shaderProgram, "shieldSweepProgress"), ship.phaseCloak?.effectLevel ?: 1f)
-        glUniform1f(glGetUniformLocation(shaderProgram, "sweepEdgeWidth"), 10.0f)
-        glUniform1f(glGetUniformLocation(shaderProgram, "shieldHPPercent"), shieldHPPercent)
-        glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
-
-        // Set pre-calculated values for performance
-        glUniform1f(glGetUniformLocation(shaderProgram, "effectiveMinX"), effectiveMinX)
-        glUniform1f(glGetUniformLocation(shaderProgram, "effectiveMaxX"), effectiveMaxX)
-        glUniform1f(glGetUniformLocation(shaderProgram, "effectiveWidth"), effectiveWidth)
-        glUniform2f(
-            glGetUniformLocation(shaderProgram, "shipDimensions"),
-            shipDimensions[0].x, shipDimensions[0].y
-        )
-        glUniform2f(glGetUniformLocation(shaderProgram, "center"), ship.location.x, ship.location.y)
-        glUniform1f(glGetUniformLocation(shaderProgram, "time"), time)
-        glUniform1f(glGetUniformLocation(shaderProgram, "hexSize"), hexSize)
-        glUniform1f(glGetUniformLocation(shaderProgram, "hexRotation"), hexRotation)
-        glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacing"), hexSpacing)
-        glUniform1f(glGetUniformLocation(shaderProgram, "hexEdgeWidth"), hexEdgeWidth)
-        glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacingMultiplier"), hexSpacingMultiplier)
-        glUniform2f(glGetUniformLocation(shaderProgram, "scale"), scaleX, scaleY)
-        glUniform1f(glGetUniformLocation(shaderProgram, "rotation"), Math.toRadians(ship.facing.toDouble()).toFloat())
-
-        // Set ripple uniforms
-        glUniform1i(glGetUniformLocation(shaderProgram, "numRipples"), activeRipples.size)
-        for (i in activeRipples.indices.take(10)) {
-            val ripple = activeRipples[i]
+            // Set uniforms
             glUniform4f(
-                glGetUniformLocation(shaderProgram, "rippleColors[$i]"),
-                ripple.color[0], ripple.color[1], ripple.color[2], ripple.color[3]
-            )
-            glUniform2f(
-                glGetUniformLocation(shaderProgram, "rippleCenters[$i]"),
-                ripple.center.first, ripple.center.second
-            )
-            glUniform1f(glGetUniformLocation(shaderProgram, "rippleRadii[$i]"), ripple.radius)
-            glUniform1f(glGetUniformLocation(shaderProgram, "rippleIntensities[$i]"), ripple.intensity)
-        }
-
-        // Set pop wave uniforms
-        glUniform1i(
-            glGetUniformLocation(shaderProgram, "popWaveActive"),
-            if (activePopWave != null) 1 else 0
-        )
-        activePopWave?.let { popWave ->
-            glUniform1f(glGetUniformLocation(shaderProgram, "popWaveTime"), popWave.time)
-            glUniform1f(glGetUniformLocation(shaderProgram, "popWaveMaxTime"), popWave.maxTime)
-            glUniform4f(
-                glGetUniformLocation(shaderProgram, "popWaveColor"),
-                popWave.color[0], popWave.color[1], popWave.color[2], popWave.color[3]
+                glGetUniformLocation(shaderProgram, "shieldColor"),
+                colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3]
             )
             glUniform4f(
-                glGetUniformLocation(shaderProgram, "popWaveDarkerColor"),
-                popWave.darkerColor[0], popWave.darkerColor[1], popWave.darkerColor[2], popWave.darkerColor[3]
+                glGetUniformLocation(shaderProgram, "borderColor"),
+                borderColorRGBA[0], borderColorRGBA[1], borderColorRGBA[2], borderColorRGBA[3]
             )
-            glUniform1f(glGetUniformLocation(shaderProgram, "popWaveThickness"), popWave.thickness)
-            glUniform1f(glGetUniformLocation(shaderProgram, "popWaveStartScale"), popWave.startScale)
-            glUniform1f(glGetUniformLocation(shaderProgram, "popWaveEndScale"), popWave.endScale)
-            glUniform1f(glGetUniformLocation(shaderProgram, "popWaveIntensity"), popWave.intensity)
-            glUniform1f(glGetUniformLocation(shaderProgram, "popEffectRadius"), popEffectRadius)
-        }
+            glUniform1f(glGetUniformLocation(shaderProgram, "borderWidth"), borderWidth)
+            glUniform1f(glGetUniformLocation(shaderProgram, "glowIntensity"), glowIntensity)
+            glUniform1f(glGetUniformLocation(shaderProgram, "glowWidth"), glowWidth)
+            glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), ship.phaseCloak?.effectLevel ?: 1f)
+            glUniform1f(glGetUniformLocation(shaderProgram, "shieldSweepProgress"), ship.phaseCloak?.effectLevel ?: 1f)
+            glUniform1f(glGetUniformLocation(shaderProgram, "sweepEdgeWidth"), 10.0f)
+            glUniform1f(glGetUniformLocation(shaderProgram, "shieldHPPercent"), shieldHPPercent)
+            glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
 
-        // Set resolution uniform
-        glUniform2f(glGetUniformLocation(shaderProgram, "resolution"), screenWidth, screenHeight)
 
-        // Set zoom level uniform
-        glUniform1f(glGetUniformLocation(shaderProgram, "zoomLevel"), zoomLevel)
 
-        // Set debug mode uniform
-        glUniform1i(glGetUniformLocation(shaderProgram, "debugMode"), if (debugMode) 1 else 0)
+            // Set sweep position for fragment shader
+            glUniform1f(glGetUniformLocation(shaderProgram, "sweepPosition"), sweepPosition)
+            // Pass ship location in screen coordinates to match sweep bounds calculation
+            val shipScreenX = viewport.convertWorldXtoScreenX(ship.location.x)
+            val shipScreenY = viewport.convertWorldYtoScreenY(ship.location.y)
+            glUniform2f(glGetUniformLocation(shaderProgram, "center"), shipScreenX, shipScreenY)
+            glUniform1f(glGetUniformLocation(shaderProgram, "time"), time)
 
-        // Set bounding box uniforms for debug visualization
-        glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMin"), boundingBoxMinX, boundingBoxMinY)
-        glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMax"), boundingBoxMaxX, boundingBoxMaxY)
+            // Set vertex shader uniforms for optimization
+            glUniform2f(glGetUniformLocation(shaderProgram, "resolution"), screenWidth, screenHeight)
+            glUniform2f(glGetUniformLocation(shaderProgram, "scale"), scaleX, scaleY)
+            glUniform4f(
+                glGetUniformLocation(shaderProgram, "shipRotationMatrix"),
+                shipRotationMatrix[0], shipRotationMatrix[1], shipRotationMatrix[2], shipRotationMatrix[3]
+            )
 
-        // Convert polygon points to screen coordinates and pass to shader
-        // Calculate the maximum number of points the shader can handle after smoothing
-        val maxShaderPoints = calculateMaxPointsAfterSmoothing(boundsCount)
 
-        // Set polygon points directly as uniforms
-        setPolygonPointUniforms(maxShaderPoints)
+            glUniform1f(glGetUniformLocation(shaderProgram, "hexSize"), hexSize)
+            glUniform1f(glGetUniformLocation(shaderProgram, "hexRotation"), hexRotation)
+            glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacing"), hexSpacing)
+            glUniform1f(glGetUniformLocation(shaderProgram, "hexEdgeWidth"), hexEdgeWidth)
+            glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacingMultiplier"), hexSpacingMultiplier)
+            // Scale uniform is already set above for vertex shader
+            glUniform1f(
+                glGetUniformLocation(shaderProgram, "rotation"),
+                Math.toRadians(ship.facing.toDouble()).toFloat()
+            )
 
-        // Set debug polygon uniform
-        glUniform1i(glGetUniformLocation(shaderProgram, "debugPolygon"), if (debugMode) 1 else 0)
+            // Set ripple uniforms
+            glUniform1i(glGetUniformLocation(shaderProgram, "numRipples"), activeRipples.size)
+            for (i in activeRipples.indices.take(10)) {
+                val ripple = activeRipples[i]
+                glUniform4f(
+                    glGetUniformLocation(shaderProgram, "rippleColors[$i]"),
+                    ripple.color[0], ripple.color[1], ripple.color[2], ripple.color[3]
+                )
+                glUniform2f(
+                    glGetUniformLocation(shaderProgram, "rippleCenters[$i]"),
+                    ripple.center.first, ripple.center.second
+                )
+                glUniform1f(glGetUniformLocation(shaderProgram, "rippleRadii[$i]"), ripple.radius)
+                glUniform1f(glGetUniformLocation(shaderProgram, "rippleIntensities[$i]"), ripple.intensity)
+            }
 
-        // Enable blending for transparency
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            // Set pop wave uniforms
+            glUniform1i(
+                glGetUniformLocation(shaderProgram, "popWaveActive"),
+                if (activePopWave != null) 1 else 0
+            )
+            activePopWave?.let { popWave ->
+                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveTime"), popWave.time)
+                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveMaxTime"), popWave.maxTime)
+                glUniform4f(
+                    glGetUniformLocation(shaderProgram, "popWaveColor"),
+                    popWave.color[0], popWave.color[1], popWave.color[2], popWave.color[3]
+                )
+                glUniform4f(
+                    glGetUniformLocation(shaderProgram, "popWaveDarkerColor"),
+                    popWave.darkerColor[0], popWave.darkerColor[1], popWave.darkerColor[2], popWave.darkerColor[3]
+                )
+                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveThickness"), popWave.thickness)
+                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveStartScale"), popWave.startScale)
+                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveEndScale"), popWave.endScale)
+                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveIntensity"), popWave.intensity)
+                glUniform1f(glGetUniformLocation(shaderProgram, "popEffectRadius"), popEffectRadius)
+            }
+
+            // Resolution uniform is already set above for vertex shader
+
+            // Set zoom level uniform
+            glUniform1f(glGetUniformLocation(shaderProgram, "zoomLevel"), zoomLevel)
+
+            // Set debug mode uniform
+            glUniform1i(glGetUniformLocation(shaderProgram, "debugMode"), if (debugMode) 1 else 0)
+
+            // Set bounding box uniforms for debug visualization
+            glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMin"), boundingBoxMinX, boundingBoxMinY)
+            glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMax"), boundingBoxMaxX, boundingBoxMaxY)
+
+            // Convert polygon points to screen coordinates and pass to shader
+            // Calculate the maximum number of points the shader can handle after smoothing
+            val maxShaderPoints = calculateMaxPointsAfterSmoothing(boundsCount)
+
+            // Set polygon points directly as uniforms
+            setPolygonPointUniforms(maxShaderPoints)
+
+            // Set debug polygon uniform
+            glUniform1i(glGetUniformLocation(shaderProgram, "debugPolygon"), if (debugMode) 1 else 0)
+
+            // Enable blending for transparency
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
             // Draw full-screen quad to render the points
             glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
