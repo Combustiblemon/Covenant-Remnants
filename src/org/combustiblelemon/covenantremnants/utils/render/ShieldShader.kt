@@ -44,6 +44,7 @@ class ShieldShader(
     private var splineSubdivisions: Int = 8
     private var debugMode: Boolean = false
     private var enableSplineSmoothing: Boolean = true
+    private var enableBoundingBoxOptimization: Boolean = true // Re-enabled, scissor test disabled
 
     // Pre-calculated values for performance
     private var shieldBoundsMinX: Float = 0f
@@ -51,6 +52,14 @@ class ShieldShader(
     private var effectiveMinX: Float = 0f
     private var effectiveMaxX: Float = 0f
     private var effectiveWidth: Float = 0f
+
+    // Bounding box for optimization
+    private var boundingBoxMinX: Float = 0f
+    private var boundingBoxMaxX: Float = 0f
+    private var boundingBoxMinY: Float = 0f
+    private var boundingBoxMaxY: Float = 0f
+    private var boundingBoxWidth: Float = 0f
+    private var boundingBoxHeight: Float = 0f
 
     // Add animation properties
     private var time = 0f
@@ -166,6 +175,10 @@ class ShieldShader(
         uniform float popWaveEndScale;
         uniform float popWaveIntensity;
         uniform float popEffectRadius;
+
+        // Bounding box uniforms for debug visualization
+        uniform vec2 boundingBoxMin;
+        uniform vec2 boundingBoxMax;
 
         // Polygon points as individual uniform arrays - no UBO needed
         uniform vec2 points[POINT_COUNT_PLACEHOLDER];
@@ -309,9 +322,32 @@ class ShieldShader(
             // Convert texture coordinates to screen pixel coordinates
             vec2 pixelPos = TexCoord * resolution;
 
-            // Debug mode: show polygon outline and points
+            // Debug mode: show polygon outline, points, and bounding box
             if(debugMode) {
                 const int numPoints = POINT_COUNT_PLACEHOLDER;
+
+                // Show bounding box outline (red rectangle)
+                float boundingBoxLeft = boundingBoxMin.x;
+                float boundingBoxRight = boundingBoxMax.x;
+                float boundingBoxTop = boundingBoxMax.y;
+                float boundingBoxBottom = boundingBoxMin.y;
+
+                // Check if pixel is near bounding box edges
+                float distToLeft = abs(pixelPos.x - boundingBoxLeft);
+                float distToRight = abs(pixelPos.x - boundingBoxRight);
+                float distToTop = abs(pixelPos.y - boundingBoxTop);
+                float distToBottom = abs(pixelPos.y - boundingBoxBottom);
+
+                bool nearLeftEdge = distToLeft < 3.0 && pixelPos.y >= boundingBoxBottom && pixelPos.y <= boundingBoxTop;
+                bool nearRightEdge = distToRight < 3.0 && pixelPos.y >= boundingBoxBottom && pixelPos.y <= boundingBoxTop;
+                bool nearTopEdge = distToTop < 3.0 && pixelPos.x >= boundingBoxLeft && pixelPos.x <= boundingBoxRight;
+                bool nearBottomEdge = distToBottom < 3.0 && pixelPos.x >= boundingBoxLeft && pixelPos.x <= boundingBoxRight;
+
+                if(nearLeftEdge || nearRightEdge || nearTopEdge || nearBottomEdge) {
+                    FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red bounding box outline
+                    return;
+                }
+
                 // Show all polygon points as small circles (only valid points)
                 for(int i = 0; i < numPoints; i++) {
                     float dist = distance(pixelPos, points[i].xy);
@@ -357,7 +393,7 @@ class ShieldShader(
         vao = glGenVertexArrays()
         glBindVertexArray(vao)
 
-        // Create VBO with full-screen quad vertices in NDC space (-1 to 1)
+        // Create VBO - initially with full-screen quad, will be updated with bounding box
         val vertices = floatArrayOf(
             -1.0f, -1.0f,  // Bottom-left
             1.0f, -1.0f,  // Bottom-right
@@ -373,7 +409,7 @@ class ShieldShader(
         buffer.put(vertices)
         buffer.flip()
 
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, buffer, GL_DYNAMIC_DRAW) // Changed to DYNAMIC_DRAW for updates
 
         // Set up vertex attributes
         glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0)
@@ -382,6 +418,55 @@ class ShieldShader(
         glBindVertexArray(0)
 
         // No UBO needed - using direct uniforms instead
+    }
+
+    private fun updateQuadVertices() {
+        if (boundingBoxWidth <= 0f || boundingBoxHeight <= 0f) {
+            // Fallback to full-screen quad if bounding box is invalid
+            val vertices = floatArrayOf(
+                -1.0f, -1.0f,  // Bottom-left
+                1.0f, -1.0f,  // Bottom-right
+                1.0f, 1.0f,  // Top-right
+                -1.0f, 1.0f   // Top-left
+            )
+            updateVBO(vertices)
+            return
+        }
+
+        // Convert screen coordinates to NDC coordinates
+        val left = (boundingBoxMinX / screenWidth) * 2.0f - 1.0f
+        val right = (boundingBoxMaxX / screenWidth) * 2.0f - 1.0f
+        val bottom = (boundingBoxMinY / screenHeight) * 2.0f - 1.0f
+        val top = (boundingBoxMaxY / screenHeight) * 2.0f - 1.0f
+
+        val vertices = floatArrayOf(
+            left, bottom,   // Bottom-left
+            right, bottom,  // Bottom-right
+            right, top,     // Top-right
+            left, top       // Top-left
+        )
+
+        Global.getLogger(this.javaClass).debug(
+            "Quad vertices updated: left=$left, right=$right, bottom=$bottom, top=$top, " +
+            "boundingBox: minX=$boundingBoxMinX, maxX=$boundingBoxMaxX, minY=$boundingBoxMinY, maxY=$boundingBoxMaxY, " +
+            "screen: ${screenWidth}x${screenHeight}"
+        )
+
+        updateVBO(vertices)
+    }
+
+    private fun updateVBO(vertices: FloatArray) {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+
+        // Convert float array to FloatBuffer
+        val buffer = BufferUtils.createFloatBuffer(vertices.size)
+        buffer.put(vertices)
+        buffer.flip()
+
+        // Update the buffer data
+        glBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
     // UBO initialization removed - using direct uniforms instead
@@ -532,6 +617,50 @@ class ShieldShader(
         effectiveWidth = effectiveMaxX - effectiveMinX
     }
 
+    private fun calculateBoundingBox() {
+        if (polygonPoints.size < 6) {
+            boundingBoxMinX = 0f
+            boundingBoxMaxX = 0f
+            boundingBoxMinY = 0f
+            boundingBoxMaxY = 0f
+            boundingBoxWidth = 0f
+            boundingBoxHeight = 0f
+            return
+        }
+
+        // Calculate screen-space bounding box of the shield polygon
+        var minX = Float.MAX_VALUE
+        var maxX = Float.MIN_VALUE
+        var minY = Float.MAX_VALUE
+        var maxY = Float.MIN_VALUE
+
+        for (i in polygonPoints.indices step 2) {
+            val x = polygonPoints[i]
+            val y = polygonPoints[i + 1]
+
+            minX = minOf(minX, x)
+            maxX = maxOf(maxX, x)
+            minY = minOf(minY, y)
+            maxY = maxOf(maxY, y)
+        }
+
+        // Add margin for border effects and safety
+        val margin = maxOf(borderWidth, glowWidth) + 10f
+        boundingBoxMinX = minX - margin
+        boundingBoxMaxX = maxX + margin
+        boundingBoxMinY = minY - margin
+        boundingBoxMaxY = maxY + margin
+        boundingBoxWidth = boundingBoxMaxX - boundingBoxMinX
+        boundingBoxHeight = boundingBoxMaxY - boundingBoxMinY
+
+        Global.getLogger(this.javaClass).debug(
+            "Bounding box calculated: minX=$boundingBoxMinX, maxX=$boundingBoxMaxX, " +
+            "minY=$boundingBoxMinY, maxY=$boundingBoxMaxY, width=$boundingBoxWidth, height=$boundingBoxHeight, " +
+            "ship location: ${ship.location.x}, ${ship.location.y}, screen: ${screenWidth}x${screenHeight}, " +
+            "polygon points count: ${polygonPoints.size / 2}"
+        )
+    }
+
     fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f)) {
         scaleX = scale.x
         scaleY = scale.y
@@ -559,20 +688,8 @@ class ShieldShader(
             vertexData.add(viewport.convertWorldYtoScreenY(p1.y))
         }
 
-        // Apply scaling to the polygon points relative to the ship center
-        val scaledPoints = mutableListOf<Float>()
-
-        for (i in vertexData.indices step 2) {
-            val x = vertexData[i]
-            val y = vertexData[i + 1]
-
-            // Scale the points relative to the ship center
-            val scaledX = ship.location.x + (x - ship.location.x)
-            val scaledY = ship.location.y + (y - ship.location.y)
-
-            scaledPoints.add(scaledX)
-            scaledPoints.add(scaledY)
-        }
+        // The vertexData already contains screen coordinates, so use them directly
+        val scaledPoints = vertexData.toMutableList()
 
         // Apply smoothing to create smooth edges (optional)
         val finalPoints = when (smoothingMethod) {
@@ -600,6 +717,12 @@ class ShieldShader(
 
         // Calculate shield bounds for performance optimization
         calculateShieldBounds()
+
+        // Calculate bounding box for rendering optimization
+        calculateBoundingBox()
+
+        // Update quad vertices to match bounding box
+        updateQuadVertices()
     }
 
     private fun subdividePointsWithSplines(points: List<Float>, subdivisions: Int = 8): List<Float> {
@@ -663,8 +786,30 @@ class ShieldShader(
         zoomLevel = zoom
     }
 
+    fun updateScreenResolution(width: Float, height: Float) {
+        screenWidth = width
+        screenHeight = height
+        // Recalculate quad vertices when screen resolution changes
+        if (boundingBoxWidth > 0f && boundingBoxHeight > 0f) {
+            updateQuadVertices()
+        }
+    }
+
+    fun updateShipPosition() {
+        // Recalculate bounding box when ship moves
+        if (polygonPoints.isNotEmpty()) {
+            calculateBoundingBox()
+            updateQuadVertices()
+        }
+    }
+
     fun setDebugMode(enabled: Boolean) {
         debugMode = enabled
+    }
+
+    fun setBoundingBoxOptimization(enabled: Boolean) {
+        enableBoundingBoxOptimization = enabled
+        Global.getLogger(this.javaClass).info("Bounding box optimization ${if (enabled) "enabled" else "disabled"}")
     }
 
     fun setSplineSubdivisions(subdivisions: Int) {
@@ -938,6 +1083,12 @@ class ShieldShader(
             return
         }
 
+        // Ensure bounding box is up-to-date before rendering (if optimization is enabled)
+        if (enableBoundingBoxOptimization) {
+            calculateBoundingBox()
+            updateQuadVertices()
+        }
+
         // Save current OpenGL state
         glPushAttrib(GL_ALL_ATTRIB_BITS)
         glPushMatrix()
@@ -951,8 +1102,12 @@ class ShieldShader(
         val depthTestEnabled = glIsEnabled(GL_DEPTH_TEST)
         val stencilTestEnabled = glIsEnabled(GL_STENCIL_TEST)
         val texture2DEnabled = glIsEnabled(GL_TEXTURE_2D)
+        val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
 
         try {
+                        // Scissor test disabled for debugging - only using bounding box quad optimization
+            // The bounding box optimization is handled by the dynamic quad vertices
+
             // Use our shader program
             glUseProgram(shaderProgram)
 
@@ -1043,6 +1198,10 @@ class ShieldShader(
         // Set debug mode uniform
         glUniform1i(glGetUniformLocation(shaderProgram, "debugMode"), if (debugMode) 1 else 0)
 
+        // Set bounding box uniforms for debug visualization
+        glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMin"), boundingBoxMinX, boundingBoxMinY)
+        glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMax"), boundingBoxMaxX, boundingBoxMaxY)
+
         // Convert polygon points to screen coordinates and pass to shader
         // Calculate the maximum number of points the shader can handle after smoothing
         val maxShaderPoints = calculateMaxPointsAfterSmoothing(boundsCount)
@@ -1066,6 +1225,13 @@ class ShieldShader(
             glBindVertexArray(currentVAO)
             glBindBuffer(GL_ARRAY_BUFFER, currentVBO)
             glBindTexture(GL_TEXTURE_2D, currentTexture)
+
+            // Restore scissor test state
+            if (scissorTestEnabled) {
+                glEnable(GL_SCISSOR_TEST)
+            } else {
+                glDisable(GL_SCISSOR_TEST)
+            }
 
             // Restore enabled states
             if (blendEnabled) glEnable(GL_BLEND) else glDisable(GL_BLEND)

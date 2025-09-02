@@ -118,7 +118,7 @@ class CovenantShieldsRenderPlugin(
     private fun renderShield(viewport: ViewportAPI) {
         val vertexData = getShipVertexData()
 
-        shader.setDebugMode(false)
+        shader.setDebugMode(true)
         shader.updateZoomLevel(viewport.viewMult)
         shader.updatePolygon(vertexData, viewport, Vector2f(1.05f, 1.1f))
         shader.updateColor(133, 237, 255, 30)
