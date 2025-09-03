@@ -12,13 +12,12 @@ import java.util.*
 
 class CovenantShieldsRenderPlugin(
     private val attachedTo: ShipAPI,
-    shipDimensions: Array<Vector2f>,
     private val stats: CovenantShieldsStats
 ) :
     CombatLayeredRenderingPlugin {
 
     private val shader =
-        ShieldShader(attachedTo, shipDimensions, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
+        ShieldShader(attachedTo, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
 //    private val testShader = MVPShader()
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER

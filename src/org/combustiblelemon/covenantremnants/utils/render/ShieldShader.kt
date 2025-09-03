@@ -21,7 +21,6 @@ enum class SmoothingMethod {
 
 class ShieldShader(
     private val ship: ShipAPI,
-    private var shipDimensions: Array<Vector2f>,
     private var popEffectRadius: Float = 500f,  // Default pop effect radius
     private val boundsCount: Int,
     private val smoothingMethod: SmoothingMethod = SmoothingMethod.NONE

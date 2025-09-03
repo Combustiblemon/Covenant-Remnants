@@ -7,3 +7,5 @@ Improves energy weapon stats:
  Increase range by %s/%s/%s/%s depending on hull size.
  Reduce weapon flux generation by %s.",,,
 Covenant Test,covenant_remnants_testhullmod,,,Covenant,,,,,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.TestHull,Testing shit,,,
+Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,,,,TRUE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,Replace shield,,,
+covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,,,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,Replace shield,,,
