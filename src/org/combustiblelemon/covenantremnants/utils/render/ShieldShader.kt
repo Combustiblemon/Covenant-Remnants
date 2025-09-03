@@ -19,7 +19,6 @@ enum class SmoothingMethod {
 
 // TODO: Fix ripple effects to be consistent across zoom levels. Fix ripple radius and width to be consistent across zoom levels. Ripple is much faster zoomed out than zoomed in.
 
-
 class ShieldShader(
     private val ship: ShipAPI,
     private var shipDimensions: Array<Vector2f>,
@@ -77,16 +76,10 @@ class ShieldShader(
     private var time = 0f
     private var shieldHPPercent = 1f
 
-    // Hex grid parameters with default values
-    private var hexSpacing = 10f
-    private var hexSize = 20f
-    private var hexRotation = 45f
-    private var hexEdgeWidth = 15f
-    private var hexSpacingMultiplier = 1.0f  // 1.0 means edges touch
-    private var hexAnimationWidth = 0.01f  // Controls animation wave frequency
-    private var hexMinAlpha = 0.5f  // Minimum alpha for hex animation (0.0 = invisible, 1.0 = fully visible)
-
-    private var hexGridEnabled = true
+    // Honeycomb parameters - hardcoded
+    private var honeycombEnabled = true
+    private var honeycombSize = 10.0f
+    private var edgeWidth = 3.0f
 
     private data class Ripple(
         var center: Pair<Float, Float>,
@@ -199,15 +192,9 @@ class ShieldShader(
         uniform float shipFacing;
         uniform vec2 center;
         uniform float time;
-        uniform float hexSize;
-        uniform float hexRotation;
-        uniform float hexSpacing;
-        uniform float hexEdgeWidth;
-        uniform float hexSpacingMultiplier;
-        uniform float hexAnimationWidth;
-        uniform float hexMinAlpha;
-
-        uniform bool hexGridEnabled;
+        uniform bool honeycombEnabled;
+        uniform float honeycombSize;
+        uniform float edgeWidth;
         uniform vec2 scale;
         uniform float rotation;
         uniform float shieldSweepProgress;  // 0.0 to 1.0, controls sweep animation
@@ -267,86 +254,88 @@ class ShieldShader(
             return distance(point, closest);
         }
 
-                        // Helper function to calculate hex grid with vertical hexes
-        float calculateHexGrid(vec2 pixelPos) {
-            // Convert pixel position to ship-relative coordinates
-            vec2 shipRelPos = pixelPos - center;
+                                          // Helper function to render honeycomb pattern covering entire shield
+         float calculateHoneycomb(vec2 pixelPos) {
+             // Convert pixel position to ship-relative coordinates
+             vec2 shipRelPos = pixelPos - center;
 
-            // Use ship facing to calculate the correct x-axis direction for grid rotation
-            // The grid should align with the ship's facing direction
-            float facingRad = radians(shipFacing);
-            float cosFacing = cos(facingRad);
-            float sinFacing = sin(facingRad);
+             // Use ship facing to calculate the correct x-axis direction for grid rotation
+             float facingRad = radians(shipFacing);
+             float cosFacing = cos(facingRad);
+             float sinFacing = sin(facingRad);
 
-            // Rotate the grid to align with ship's x-axis (facing direction)
-            vec2 localPos = vec2(
-                shipRelPos.x * cosFacing + shipRelPos.y * sinFacing,
-                -shipRelPos.x * sinFacing + shipRelPos.y * cosFacing
-            );
+             // Rotate the position to align with ship's x-axis (facing direction)
+             vec2 localPos = vec2(
+                 shipRelPos.x * cosFacing + shipRelPos.y * sinFacing,
+                 -shipRelPos.x * sinFacing + shipRelPos.y * cosFacing
+             );
 
-            // Scale hex size with viewport for consistent visual size across zoom levels
-            float hexRadius = hexSize / viewportScale.x;
-            float scaledHexEdgeWidth = hexEdgeWidth / viewportScale.x;
+                             // Configurable hex parameters
+               float hexRadius = honeycombSize / viewportScale.x;  // Use uniform honeycombSize
+               float edgeThickness = edgeWidth / viewportScale.x;  // Use uniform edgeWidth
 
-                                    // Calculate spacing (2x radius * multiplier for both directions)
-            float hexSpacing = hexRadius * 2.0 * hexSpacingMultiplier;
+             // Proper honeycomb spacing - hexagons with touching sides
+             float hexSpacingX = hexRadius * 1.4;      // 1.5 * radius for touching hexagons
+             float hexSpacingY = hexRadius * 1.2;      // Even closer vertical spacing for overlapping rows
 
-            // Check multiple nearby hexes to allow overlapping
-            float maxHexEffect = 0.0;
+             // Calculate which hexagon this pixel belongs to
+             // First, determine which row we're in
+             float hexY = localPos.y / hexSpacingY;
+             int gridY = int(round(hexY));
 
-            // Check the 3x3 grid of hexes around the current position
-            for (int dx = -1; dx <= 1; dx++) {
-                for (int dy = -1; dy <= 1; dy++) {
-                    // Calculate hex center for this grid position
-                    float hexX = round(localPos.x / hexSpacing) * hexSpacing + dx * hexSpacing;
-                    float hexY = round(localPos.y / hexSpacing) * hexSpacing + dy * hexSpacing;
+             // Calculate row offset first
+             float rowOffset = 0.0;
+             if (mod(float(gridY), 2.0) != 0.0) {
+                 rowOffset = hexSpacingX * 0.5;
+             }
 
-                                        vec2 hexCenter = vec2(hexX, hexY);
-                    float distFromCenter = distance(localPos, hexCenter);
+             // Now calculate x position accounting for the row offset
+             float hexX = (localPos.x - rowOffset) / hexSpacingX;
+             int gridX = int(round(hexX));
 
-                    float distToHexEdge = 0.0;
+             // Calculate hex center position
+             vec2 hexCenter = vec2(
+                 float(gridX) * hexSpacingX + rowOffset,
+                 float(gridY) * hexSpacingY
+             );
 
-                    if (distFromCenter > 0.0) {
-                        // Calculate angle from hex center
-                        float angle = atan(localPos.y - hexCenter.y, localPos.x - hexCenter.x);
-                        angle += radians(hexRotation); // Additional hex rotation
+             // Calculate distance from pixel to hex center
+             float distFromCenter = distance(localPos, hexCenter);
 
-                        // Normalize angle to 0-60 degrees for hex symmetry
-                        angle = mod(angle, radians(60.0));
-                        if (angle < 0.0) angle += radians(60.0);
+                                                                 // Simple hexagon edge calculation with proper scaling and rotation
+             float distToHexEdge = 0.0;
+             if (distFromCenter > 0.0) {
+                                  // Calculate angle from hex center to pixel
+                 vec2 dir = (localPos - hexCenter) / distFromCenter;
+                 float angle = atan(dir.y, dir.x);
+                 if (angle < 0.0) angle += 2.0 * 3.14159265359;
 
-                        // Calculate distance to hex edge at this angle
-                        float hexEdgeDist;
-                        if (angle <= radians(30.0)) {
-                            hexEdgeDist = hexRadius / cos(angle);
-                        } else {
-                            hexEdgeDist = hexRadius / cos(radians(60.0) - angle);
-                        }
+                 // Rotate by 90 degrees (π/2) so sides touch instead of points
+                 angle += 3.14159265359 / 2.0;
 
-                        distToHexEdge = abs(distFromCenter - hexEdgeDist);
-                    }
+                 // Normalize angle to 0-60 degree range (hexagon has 6-fold symmetry)
+                 float normalizedAngle = mod(angle, 3.14159265359 / 3.0);
 
-                    // Calculate hex effect for this hex
-                    if (distToHexEdge < scaledHexEdgeWidth) {
-                        // Pixel-based animation using local position
-                        // Scale animation frequency with viewport to maintain consistent animation across zoom levels
-                        float animationFreqX = hexAnimationWidth * viewportScale.x;
-                        float animationFreqY = hexAnimationWidth * 0.6 * viewportScale.x; // Slightly different frequency for Y
-                        float pixelAlpha = hexMinAlpha + (1.0 - hexMinAlpha) * sin(time + localPos.x * animationFreqX + localPos.y * animationFreqY);
-                        pixelAlpha = max(hexMinAlpha, pixelAlpha); // Ensure minimum visibility
+                 // Simple hexagon edge distance with proper scaling
+                 float hexEdgeDist = (hexRadius * 0.7) / cos(normalizedAngle - 3.14159265359 / 6.0);
 
-                        // Calculate edge factor with scaled edge width
-                        float edgeFactor = 1.0 - (distToHexEdge / scaledHexEdgeWidth);
-                        float hexEffect = pixelAlpha * edgeFactor * 1.0;
+                 distToHexEdge = abs(distFromCenter - hexEdgeDist);
+             }
 
-                        // Take the maximum effect from all overlapping hexes
-                        maxHexEffect = max(maxHexEffect, hexEffect);
-                    }
-                }
-            }
+             // Calculate hex effect
+             if (distToHexEdge < edgeThickness) {
+                 // Simple animation
+                 float animationFreq = 0.01 * viewportScale.x;
+                 float pixelAlpha = 0.5 + 0.5 * sin(time + localPos.x * animationFreq + localPos.y * animationFreq * 0.6);
+                 pixelAlpha = max(0.5, pixelAlpha);
 
-            return maxHexEffect;
-        }
+                 // Calculate edge factor
+                 float edgeFactor = 1.0 - (distToHexEdge / edgeThickness);
+                 return pixelAlpha * edgeFactor;
+             }
+
+             return 0.0;
+         }
 
                                 // Point-in-polygon test using ray casting algorithm
         bool isPointInPolygon(vec2 point) {
@@ -469,14 +458,14 @@ class ShieldShader(
                 }
             }
 
-                        // Apply hex grid effect
-            if (hexGridEnabled) {
-                float hexEffect = calculateHexGrid(pixelPos);
-                if (hexEffect > 0.0) {
-                    vec4 hexColor = vec4(1.0, 1.0, 1.0, hexEffect);
-                    resultColor = mix(resultColor, hexColor, hexEffect);
-                }
-            }
+                                                 // Apply honeycomb effect
+             if (honeycombEnabled) {
+                 float honeycombEffect = calculateHoneycomb(pixelPos);
+                 if (honeycombEffect > 0.0) {
+                     vec4 honeycombColor = vec4(1.0, 1.0, 1.0, honeycombEffect);
+                     resultColor = mix(resultColor, honeycombColor, honeycombEffect);
+                 }
+             }
 
             return resultColor;
         }
@@ -1123,24 +1112,8 @@ class ShieldShader(
         }
     }
 
-    fun updateHexParameters(
-        size: Float? = null,
-        rotation: Float? = null,
-        edgeWidth: Float? = null,
-        spacingMultiplier: Float? = null,
-        animationWidth: Float? = null,
-        minAlpha: Float? = null
-    ) {
-        size?.let { hexSize = it.coerceAtLeast(1f) }
-        rotation?.let { hexRotation = it % 360f }
-        edgeWidth?.let { hexEdgeWidth = it.coerceAtLeast(0.5f) }
-        spacingMultiplier?.let { hexSpacingMultiplier = it.coerceAtLeast(0.5f) }
-        animationWidth?.let { hexAnimationWidth = it.coerceAtLeast(0.001f) }
-        minAlpha?.let { hexMinAlpha = it.coerceIn(0.0f, 1.0f) }
-    }
-
-    fun setHexGridEnabled(enabled: Boolean) {
-        hexGridEnabled = enabled
+    fun setHoneycombEnabled(enabled: Boolean) {
+        honeycombEnabled = enabled
     }
 
     fun triggerShieldPop(intensity: Float = 1.0f) {
@@ -1309,8 +1282,6 @@ class ShieldShader(
             glUniform1f(glGetUniformLocation(shaderProgram, "shieldHPPercent"), shieldHPPercent)
             glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
 
-
-
             // Set sweep position for fragment shader
             glUniform1f(glGetUniformLocation(shaderProgram, "sweepPosition"), sweepPosition)
             // Pass ship location in screen coordinates to match sweep bounds calculation
@@ -1328,16 +1299,11 @@ class ShieldShader(
             )
             glUniform2f(glGetUniformLocation(shaderProgram, "viewportScale"), viewportScaleX, viewportScaleY)
 
+            // Set honeycomb uniforms
+            glUniform1f(glGetUniformLocation(shaderProgram, "honeycombSize"), honeycombSize)
+            glUniform1f(glGetUniformLocation(shaderProgram, "edgeWidth"), edgeWidth)
 
-            glUniform1f(glGetUniformLocation(shaderProgram, "hexSize"), hexSize)
-            glUniform1f(glGetUniformLocation(shaderProgram, "hexRotation"), hexRotation)
-            glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacing"), hexSpacing)
-            glUniform1f(glGetUniformLocation(shaderProgram, "hexEdgeWidth"), hexEdgeWidth)
-            glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacingMultiplier"), hexSpacingMultiplier)
-            glUniform1f(glGetUniformLocation(shaderProgram, "hexAnimationWidth"), hexAnimationWidth)
-            glUniform1f(glGetUniformLocation(shaderProgram, "hexMinAlpha"), hexMinAlpha)
-
-            glUniform1i(glGetUniformLocation(shaderProgram, "hexGridEnabled"), if (hexGridEnabled) 1 else 0)
+            glUniform1i(glGetUniformLocation(shaderProgram, "honeycombEnabled"), if (honeycombEnabled) 1 else 0)
             // Scale uniform is already set above for vertex shader
             glUniform1f(
                 glGetUniformLocation(shaderProgram, "rotation"),
