@@ -125,7 +125,7 @@ class CovenantShieldsRenderPlugin(
         shader.updateColor(133, 237, 255, 30)
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
-        shader.updateHexParameters(20f, 45f, 6f, 0.9f)
+        shader.updateHexParameters(20f, 45f, 6f, 1.02f)
         shader.updateShieldHPPercent(stats.shieldHealth / stats.maxShieldHealth)
         shader.drawShield(viewport)
     }

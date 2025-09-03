@@ -272,10 +272,16 @@ class ShieldShader(
             // Convert pixel position to ship-relative coordinates
             vec2 shipRelPos = pixelPos - center;
 
-            // Apply ship rotation to get local coordinates
+            // Use ship facing to calculate the correct x-axis direction for grid rotation
+            // The grid should align with the ship's facing direction
+            float facingRad = radians(shipFacing);
+            float cosFacing = cos(facingRad);
+            float sinFacing = sin(facingRad);
+
+            // Rotate the grid to align with ship's x-axis (facing direction)
             vec2 localPos = vec2(
-                shipRelPos.x * shipRotationMatrix[0] + shipRelPos.y * shipRotationMatrix[1],
-                shipRelPos.x * shipRotationMatrix[2] + shipRelPos.y * shipRotationMatrix[3]
+                shipRelPos.x * cosFacing + shipRelPos.y * sinFacing,
+                -shipRelPos.x * sinFacing + shipRelPos.y * cosFacing
             );
 
             // Scale hex size with viewport for consistent visual size across zoom levels
@@ -295,7 +301,7 @@ class ShieldShader(
                     float hexX = round(localPos.x / hexSpacing) * hexSpacing + dx * hexSpacing;
                     float hexY = round(localPos.y / hexSpacing) * hexSpacing + dy * hexSpacing;
 
-                    vec2 hexCenter = vec2(hexX, hexY);
+                                        vec2 hexCenter = vec2(hexX, hexY);
                     float distFromCenter = distance(localPos, hexCenter);
 
                     float distToHexEdge = 0.0;
@@ -303,7 +309,7 @@ class ShieldShader(
                     if (distFromCenter > 0.0) {
                         // Calculate angle from hex center
                         float angle = atan(localPos.y - hexCenter.y, localPos.x - hexCenter.x);
-                        angle += radians(hexRotation);
+                        angle += radians(hexRotation); // Additional hex rotation
 
                         // Normalize angle to 0-60 degrees for hex symmetry
                         angle = mod(angle, radians(60.0));
