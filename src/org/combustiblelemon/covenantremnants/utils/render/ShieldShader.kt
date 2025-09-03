@@ -17,6 +17,9 @@ enum class SmoothingMethod {
     NONE      // Uses minimal smoothing for very subtle adjustments
 }
 
+// TODO: Fix ripple effects to be consistent across zoom levels. Fix ripple radius and width to be consistent across zoom levels. Ripple is much faster zoomed out than zoomed in.
+
+
 class ShieldShader(
     private val ship: ShipAPI,
     private var shipDimensions: Array<Vector2f>,
@@ -78,8 +81,12 @@ class ShieldShader(
     private var hexSpacing = 10f
     private var hexSize = 20f
     private var hexRotation = 45f
-    private var hexEdgeWidth = 2f
+    private var hexEdgeWidth = 15f
     private var hexSpacingMultiplier = 1.0f  // 1.0 means edges touch
+    private var hexAnimationWidth = 0.01f  // Controls animation wave frequency
+    private var hexMinAlpha = 0.5f  // Minimum alpha for hex animation (0.0 = invisible, 1.0 = fully visible)
+
+    private var hexGridEnabled = true
 
     private data class Ripple(
         var center: Pair<Float, Float>,
@@ -197,6 +204,10 @@ class ShieldShader(
         uniform float hexSpacing;
         uniform float hexEdgeWidth;
         uniform float hexSpacingMultiplier;
+        uniform float hexAnimationWidth;
+        uniform float hexMinAlpha;
+
+        uniform bool hexGridEnabled;
         uniform vec2 scale;
         uniform float rotation;
         uniform float shieldSweepProgress;  // 0.0 to 1.0, controls sweep animation
@@ -214,6 +225,7 @@ class ShieldShader(
         uniform vec2 rippleCenters[10];
         uniform float rippleRadii[10];
         uniform float rippleIntensities[10];
+        uniform float rippleWidths[10];
 
         // Pop wave uniforms
         uniform bool popWaveActive;
@@ -242,6 +254,7 @@ class ShieldShader(
 
         // Additional uniforms needed for coordinate transformations
         uniform vec4 shipRotationMatrix; // Pre-calculated rotation matrix as vec4 (m00, m01, m10, m11)
+        uniform vec2 viewportScale;      // For world-to-screen conversion
 
 
 
@@ -252,6 +265,81 @@ class ShieldShader(
             float t = clamp(dot(pointToStart, line) / dot(line, line), 0.0, 1.0);
             vec2 closest = lineStart + t * line;
             return distance(point, closest);
+        }
+
+                        // Helper function to calculate hex grid with vertical hexes
+        float calculateHexGrid(vec2 pixelPos) {
+            // Convert pixel position to ship-relative coordinates
+            vec2 shipRelPos = pixelPos - center;
+
+            // Apply ship rotation to get local coordinates
+            vec2 localPos = vec2(
+                shipRelPos.x * shipRotationMatrix[0] + shipRelPos.y * shipRotationMatrix[1],
+                shipRelPos.x * shipRotationMatrix[2] + shipRelPos.y * shipRotationMatrix[3]
+            );
+
+            // Scale hex size with viewport for consistent visual size across zoom levels
+            float hexRadius = hexSize / viewportScale.x;
+            float scaledHexEdgeWidth = hexEdgeWidth / viewportScale.x;
+
+                                    // Calculate spacing (2x radius * multiplier for both directions)
+            float hexSpacing = hexRadius * 2.0 * hexSpacingMultiplier;
+
+            // Check multiple nearby hexes to allow overlapping
+            float maxHexEffect = 0.0;
+
+            // Check the 3x3 grid of hexes around the current position
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    // Calculate hex center for this grid position
+                    float hexX = round(localPos.x / hexSpacing) * hexSpacing + dx * hexSpacing;
+                    float hexY = round(localPos.y / hexSpacing) * hexSpacing + dy * hexSpacing;
+
+                    vec2 hexCenter = vec2(hexX, hexY);
+                    float distFromCenter = distance(localPos, hexCenter);
+
+                    float distToHexEdge = 0.0;
+
+                    if (distFromCenter > 0.0) {
+                        // Calculate angle from hex center
+                        float angle = atan(localPos.y - hexCenter.y, localPos.x - hexCenter.x);
+                        angle += radians(hexRotation);
+
+                        // Normalize angle to 0-60 degrees for hex symmetry
+                        angle = mod(angle, radians(60.0));
+                        if (angle < 0.0) angle += radians(60.0);
+
+                        // Calculate distance to hex edge at this angle
+                        float hexEdgeDist;
+                        if (angle <= radians(30.0)) {
+                            hexEdgeDist = hexRadius / cos(angle);
+                        } else {
+                            hexEdgeDist = hexRadius / cos(radians(60.0) - angle);
+                        }
+
+                        distToHexEdge = abs(distFromCenter - hexEdgeDist);
+                    }
+
+                    // Calculate hex effect for this hex
+                    if (distToHexEdge < scaledHexEdgeWidth) {
+                        // Pixel-based animation using local position
+                        // Scale animation frequency with viewport to maintain consistent animation across zoom levels
+                        float animationFreqX = hexAnimationWidth * viewportScale.x;
+                        float animationFreqY = hexAnimationWidth * 0.6 * viewportScale.x; // Slightly different frequency for Y
+                        float pixelAlpha = hexMinAlpha + (1.0 - hexMinAlpha) * sin(time + localPos.x * animationFreqX + localPos.y * animationFreqY);
+                        pixelAlpha = max(hexMinAlpha, pixelAlpha); // Ensure minimum visibility
+
+                        // Calculate edge factor with scaled edge width
+                        float edgeFactor = 1.0 - (distToHexEdge / scaledHexEdgeWidth);
+                        float hexEffect = pixelAlpha * edgeFactor * 1.0;
+
+                        // Take the maximum effect from all overlapping hexes
+                        maxHexEffect = max(maxHexEffect, hexEffect);
+                    }
+                }
+            }
+
+            return maxHexEffect;
         }
 
                                 // Point-in-polygon test using ray casting algorithm
@@ -351,6 +439,37 @@ class ShieldShader(
             if (sweepEdgeColor.a > 0.0) {
                 // Blend sweep edge with the current shield color
                 resultColor = mix(resultColor, sweepEdgeColor, sweepEdgeColor.a);
+            }
+
+                        // Apply ripple effects
+            for (int i = 0; i < numRipples; i++) {
+                float distanceToRipple = distance(pixelPos, rippleCenters[i]);
+                // Use ripple radius and width directly (already converted to screen coordinates)
+                float rippleRadius = rippleRadii[i];
+                float rippleWidth = rippleWidths[i];
+
+                // Check if pixel is within the ripple ring
+                if (distanceToRipple >= rippleRadius - rippleWidth && distanceToRipple <= rippleRadius) {
+                    // Scale the fade calculation to maintain consistent visual appearance across zoom levels
+                    // When zoomed out (viewportScale.x > 1), we want sharper fades
+                    // When zoomed in (viewportScale.x < 1), we want more gradual fades
+                    float fadeWidth = rippleWidth / viewportScale.x;
+                    float rippleFactor = 1.0 - abs(distanceToRipple - rippleRadius) / fadeWidth;
+                    rippleFactor = clamp(rippleFactor, 0.0, 1.0);
+                    rippleFactor *= rippleIntensities[i];
+
+                    // Blend ripple color with current color
+                    resultColor = mix(resultColor, rippleColors[i], rippleFactor * rippleColors[i].a);
+                }
+            }
+
+                        // Apply hex grid effect
+            if (hexGridEnabled) {
+                float hexEffect = calculateHexGrid(pixelPos);
+                if (hexEffect > 0.0) {
+                    vec4 hexColor = vec4(1.0, 1.0, 1.0, hexEffect);
+                    resultColor = mix(resultColor, hexColor, hexEffect);
+                }
             }
 
             return resultColor;
@@ -622,7 +741,7 @@ class ShieldShader(
         glDeleteShader(fragmentShader)
     }
 
-    private fun calculateBoundingBox(viewport: ViewportAPI? = null) {
+    private fun calculateBoundingBox() {
         if (polygonPoints.size < 6) {
             boundingBoxMinX = 0f
             boundingBoxMaxX = 0f
@@ -742,7 +861,7 @@ class ShieldShader(
         // Shield bounds are now calculated inline above
 
         // Calculate bounding box for rendering optimization
-        calculateBoundingBox(viewport)
+        calculateBoundingBox()
 
         // Update quad vertices to match bounding box
         updateQuadVertices()
@@ -991,7 +1110,9 @@ class ShieldShader(
     fun updateRipple(deltaTime: Float, speed: Float = 400f) {
         activeRipples.removeAll { ripple ->
             ripple.time += deltaTime
-            ripple.radius += speed * deltaTime
+            // Scale speed inversely with viewport scale to maintain consistent visual speed
+            val visualSpeed = speed / viewportScaleX
+            ripple.radius += visualSpeed * deltaTime
             ripple.radius > ripple.maxDistance
         }
     }
@@ -1000,12 +1121,20 @@ class ShieldShader(
         size: Float? = null,
         rotation: Float? = null,
         edgeWidth: Float? = null,
-        spacingMultiplier: Float? = null
+        spacingMultiplier: Float? = null,
+        animationWidth: Float? = null,
+        minAlpha: Float? = null
     ) {
         size?.let { hexSize = it.coerceAtLeast(1f) }
         rotation?.let { hexRotation = it % 360f }
         edgeWidth?.let { hexEdgeWidth = it.coerceAtLeast(0.5f) }
         spacingMultiplier?.let { hexSpacingMultiplier = it.coerceAtLeast(0.5f) }
+        animationWidth?.let { hexAnimationWidth = it.coerceAtLeast(0.001f) }
+        minAlpha?.let { hexMinAlpha = it.coerceIn(0.0f, 1.0f) }
+    }
+
+    fun setHexGridEnabled(enabled: Boolean) {
+        hexGridEnabled = enabled
     }
 
     fun triggerShieldPop(intensity: Float = 1.0f) {
@@ -1108,6 +1237,10 @@ class ShieldShader(
     fun drawShield(viewport: ViewportAPI) {
         if (polygonPoints.isEmpty()) return
 
+        // Update viewport scale for ripple calculations
+        viewportScaleX = viewport.viewMult
+        viewportScaleY = viewport.viewMult
+
         // Validate polygon before rendering
         if (polygonPoints.size < 6) {
             Global.getLogger(this.javaClass)
@@ -1187,6 +1320,7 @@ class ShieldShader(
                 glGetUniformLocation(shaderProgram, "shipRotationMatrix"),
                 shipRotationMatrix[0], shipRotationMatrix[1], shipRotationMatrix[2], shipRotationMatrix[3]
             )
+            glUniform2f(glGetUniformLocation(shaderProgram, "viewportScale"), viewportScaleX, viewportScaleY)
 
 
             glUniform1f(glGetUniformLocation(shaderProgram, "hexSize"), hexSize)
@@ -1194,6 +1328,10 @@ class ShieldShader(
             glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacing"), hexSpacing)
             glUniform1f(glGetUniformLocation(shaderProgram, "hexEdgeWidth"), hexEdgeWidth)
             glUniform1f(glGetUniformLocation(shaderProgram, "hexSpacingMultiplier"), hexSpacingMultiplier)
+            glUniform1f(glGetUniformLocation(shaderProgram, "hexAnimationWidth"), hexAnimationWidth)
+            glUniform1f(glGetUniformLocation(shaderProgram, "hexMinAlpha"), hexMinAlpha)
+
+            glUniform1i(glGetUniformLocation(shaderProgram, "hexGridEnabled"), if (hexGridEnabled) 1 else 0)
             // Scale uniform is already set above for vertex shader
             glUniform1f(
                 glGetUniformLocation(shaderProgram, "rotation"),
@@ -1208,12 +1346,20 @@ class ShieldShader(
                     glGetUniformLocation(shaderProgram, "rippleColors[$i]"),
                     ripple.color[0], ripple.color[1], ripple.color[2], ripple.color[3]
                 )
+                // Convert ripple center to screen coordinates
+                val rippleScreenX = viewport.convertWorldXtoScreenX(ripple.center.first)
+                val rippleScreenY = viewport.convertWorldYtoScreenY(ripple.center.second)
                 glUniform2f(
                     glGetUniformLocation(shaderProgram, "rippleCenters[$i]"),
-                    ripple.center.first, ripple.center.second
+                    rippleScreenX, rippleScreenY
                 )
-                glUniform1f(glGetUniformLocation(shaderProgram, "rippleRadii[$i]"), ripple.radius)
+                // Convert ripple radius to screen coordinates (same as centers)
+                val rippleScreenRadius = ripple.radius * viewport.viewMult
+                glUniform1f(glGetUniformLocation(shaderProgram, "rippleRadii[$i]"), rippleScreenRadius)
                 glUniform1f(glGetUniformLocation(shaderProgram, "rippleIntensities[$i]"), ripple.intensity)
+                // Convert ripple width to screen coordinates (same as centers)
+                val rippleScreenWidth = ripple.width * viewport.viewMult
+                glUniform1f(glGetUniformLocation(shaderProgram, "rippleWidths[$i]"), rippleScreenWidth)
             }
 
             // Set pop wave uniforms

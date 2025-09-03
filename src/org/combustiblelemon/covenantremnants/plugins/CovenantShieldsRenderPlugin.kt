@@ -118,13 +118,14 @@ class CovenantShieldsRenderPlugin(
     private fun renderShield(viewport: ViewportAPI) {
         val vertexData = getShipVertexData()
 
-        shader.setDebugMode(true)
+        shader.setDebugMode(false)
+        shader.setHexGridEnabled(true)
         shader.updateZoomLevel(viewport.viewMult)
         shader.updatePolygon(vertexData, viewport, Vector2f(1.05f, 1.1f))
         shader.updateColor(133, 237, 255, 30)
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
         shader.updateGlow(10f, 10f)
-        shader.updateHexParameters(20f, 90f, 2f, 1.2f)
+        shader.updateHexParameters(20f, 45f, 6f, 0.9f)
         shader.updateShieldHPPercent(stats.shieldHealth / stats.maxShieldHealth)
         shader.drawShield(viewport)
     }
