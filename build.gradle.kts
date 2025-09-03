@@ -48,6 +48,9 @@ dependencies {
 
     // Log4j for logging (Starsector standard)
     compileOnly("log4j:log4j:1.2.17")
+
+    // LunaLib dependency
+    compileOnly(files("../LunaLib/jars/LunaLib.jar"))
 }
 
 java {
