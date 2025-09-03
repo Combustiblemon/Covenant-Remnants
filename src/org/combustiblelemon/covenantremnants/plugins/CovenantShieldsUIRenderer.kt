@@ -28,12 +28,6 @@ class CovenantShieldsUIRenderer(private val ship: ShipAPI) {
         // Disable texture mapping as we're drawing shapes
         glDisable(GL_TEXTURE_2D)
 
-        // Get mouse position
-        val mouseX = viewport.convertScreenXToWorldX(245f)
-        val mouseY = viewport.convertScreenYToWorldY(130f)
-
-//        renderCooldownBar(mouseX, mouseY)
-
         // Restore the OpenGL state
         glPopAttrib()
     }
@@ -50,6 +44,5 @@ class CovenantShieldsUIRenderer(private val ship: ShipAPI) {
 
         // Draw progress
         glColor4f(0.0f, 0.8f, 1.0f, 0.8f)
-        // Add progress bar drawing code here based on cooldown
     }
 }

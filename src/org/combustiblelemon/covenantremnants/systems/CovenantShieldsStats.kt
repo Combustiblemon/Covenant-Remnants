@@ -48,15 +48,15 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     // first value is damage number and second is time it happened
     private var damageInstances: MutableList<List<Float>> = mutableListOf()
 
-    private var maxShieldHealth: Float = 20000f
-        set(value) {
+    var maxShieldHealth: Float = 20000f
+        private set(value) {
             if (shieldHealth > maxShieldHealth) {
                 shieldHealth = maxShieldHealth
             }
             field = value
         }
-    private var shieldHealth: Float = maxShieldHealth
-        set(value) {
+    var shieldHealth: Float = maxShieldHealth
+        private set(value) {
             if (breakCooldownActive) {
                 field = 0f
                 return
@@ -150,7 +150,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         }
 
         if (renderPlugin == null) {
-            renderPlugin = CovenantShieldsRenderPlugin(_ship, Utils.getShipDimensions(_ship))
+            renderPlugin = CovenantShieldsRenderPlugin(_ship, this)
             Global.getCombatEngine().addLayeredRenderingPlugin(renderPlugin)
         }
 

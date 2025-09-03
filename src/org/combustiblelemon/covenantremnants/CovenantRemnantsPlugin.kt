@@ -4,7 +4,6 @@ import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 
 class CovenantRemnantsPlugin : BaseModPlugin() {
-    
     override fun onApplicationLoad() {
         super.onApplicationLoad()
 

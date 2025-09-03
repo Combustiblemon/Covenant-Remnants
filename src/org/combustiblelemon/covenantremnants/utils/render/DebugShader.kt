@@ -1,40 +1,59 @@
 package org.combustiblelemon.covenantremnants.utils.render
 
-import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
-import org.combustiblelemon.covenantremnants.utils.Utils
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
-import org.lwjgl.util.vector.Matrix4f
+import org.lwjgl.opengl.GL31.GL_UNIFORM_BUFFER
+import org.lwjgl.util.vector.Vector2f
 
-class DebugShader(private val ship: ShipAPI) {
+class DebugShader {
     companion object {
         private const val VERTEX_SHADER = """
             #version 330 core
             layout (location = 0) in vec2 aPos;
-            layout (location = 1) in vec4 aColor;
 
-            uniform mat4 transform;
-
-            out vec4 Color;
+            out vec2 TexCoord;
 
             void main() {
-                gl_Position = transform * vec4(aPos, 0.0, 1.0);
-                Color = aColor;
+                // Pass through the position directly (already in NDC space)
+                gl_Position = vec4(aPos, 0.0, 1.0);
+                // Convert NDC to texture coordinates (0 to 1)
+                TexCoord = aPos * 0.5 + 0.5;
             }
         """
 
         private const val FRAGMENT_SHADER = """
             #version 330 core
-            in vec4 Color;
+            in vec2 TexCoord;
             out vec4 FragColor;
 
+            uniform vec2 resolution;
+            uniform vec2 points[100];  // Array of points in screen coordinates
+            uniform int pointCount;    // Number of points to draw
+
             void main() {
-                FragColor = Color;
+                // Convert texture coordinates to screen pixel coordinates
+                vec2 pixelPos = TexCoord * resolution;
+
+                // Debug: Draw points as small circles to verify they're in the right place
+                for(int i = 0; i < pointCount; i++) {
+                    float dist = length(pixelPos - points[i]);
+                    if(dist < 5.0) {
+                        FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red for points
+                        return;
+                    }
+                }
+
+                // Draw circle (half screen size)
+                vec2 center = resolution * 0.5;
+                float radius = min(resolution.x, resolution.y) * 0.25;
+                float circleDist = length(pixelPos - center);
+                float circleAlpha = smoothstep(radius, radius - 1.0, circleDist);
+
+                FragColor = vec4(1.0, 1.0, 1.0, circleAlpha * 0.5);
             }
         """
     }
@@ -43,10 +62,14 @@ class DebugShader(private val ship: ShipAPI) {
     private var vao: Int = 0
     private var vbo: Int = 0
     private var ebo: Int = 0
+    private var pointsBuffer: Int = 0
+    private var pointCount: Int = 0
+    private val maxPoints = 100
 
     init {
         initShaders()
         initBuffers()
+        initPointsBuffer()
     }
 
     private fun initShaders() {
@@ -87,26 +110,59 @@ class DebugShader(private val ship: ShipAPI) {
         vao = glGenVertexArrays()
         glBindVertexArray(vao)
 
-        // Create VBO
+        // Create VBO with full-screen quad vertices in NDC space (-1 to 1)
+        val vertices = floatArrayOf(
+            -1.0f, -1.0f,  // Bottom-left
+            1.0f, -1.0f,  // Bottom-right
+            1.0f, 1.0f,  // Top-right
+            -1.0f, 1.0f   // Top-left
+        )
+
         vbo = glGenBuffers()
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        glBufferData(GL_ARRAY_BUFFER, 0, GL_STATIC_DRAW)
 
-        // Create EBO
-        ebo = glGenBuffers()
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, GL_STATIC_DRAW)
+        // Convert float array to FloatBuffer
+        val buffer = BufferUtils.createFloatBuffer(vertices.size)
+        buffer.put(vertices)
+        buffer.flip()
+
+        glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW)
 
         // Set up vertex attributes
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 6 * 4, 0)
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0)
         glEnableVertexAttribArray(0)
-        glVertexAttribPointer(1, 4, GL_FLOAT, false, 6 * 4, 2 * 4)
-        glEnableVertexAttribArray(1)
 
         glBindVertexArray(0)
     }
 
-    fun drawDebugSquare(viewport: ViewportAPI) {
+    private fun initPointsBuffer() {
+        pointsBuffer = glGenBuffers()
+        glBindBuffer(GL_UNIFORM_BUFFER, pointsBuffer)
+
+        // Create initial buffer with zeros
+        val initialBuffer = BufferUtils.createFloatBuffer(maxPoints * 2)
+        glBufferData(GL_UNIFORM_BUFFER, maxPoints * 2 * 4L, GL_DYNAMIC_DRAW) // 4 bytes per float
+        glBindBuffer(GL_UNIFORM_BUFFER, 0)
+    }
+
+    fun convertWorldPointsToScreen(worldPoints: Array<Vector2f>, viewport: ViewportAPI): FloatArray {
+        val screenPoints = FloatArray(worldPoints.size * 2)
+        val viewMult = viewport.viewMult
+
+        for (i in worldPoints.indices) {
+            val worldPoint = worldPoints[i]
+            // Convert world coordinates to screen pixel coordinates, accounting for zoom
+            val screenX = viewport.convertWorldXtoScreenX(worldPoint.x)
+            val screenY = viewport.convertWorldYtoScreenY(worldPoint.y)
+
+            screenPoints[i * 2] = screenX * viewMult
+            screenPoints[i * 2 + 1] = screenY * viewMult
+        }
+
+        return screenPoints
+    }
+
+    fun drawShader(viewport: ViewportAPI, worldPoints: Array<Vector2f>) {
         // Save current OpenGL state
         glPushAttrib(GL_ALL_ATTRIB_BITS)
         glPushMatrix()
@@ -114,63 +170,33 @@ class DebugShader(private val ship: ShipAPI) {
         // Save current shader program
         val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
 
-        // Enable blending
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
         // Use our shader program
         glUseProgram(shaderProgram)
 
-        // Set up transform matrix
-        val transform = Matrix4f()
-        transform.setIdentity()
-        val transformBuffer = BufferUtils.createFloatBuffer(16)
-        transform.store(transformBuffer)
-        transformBuffer.flip()
-        val transformLocation = glGetUniformLocation(shaderProgram, "transform")
-        glUniformMatrix4(transformLocation, false, transformBuffer)
+        // Convert world points to screen coordinates
+        val screenPoints = convertWorldPointsToScreen(worldPoints, viewport)
+        pointCount = minOf(worldPoints.size, maxPoints)
 
-        val dimensions = Utils.getShipDimensions(ship)
+        // Set uniforms directly instead of using uniform buffer
+        val resolutionLoc = glGetUniformLocation(shaderProgram, "resolution")
+        glUniform2f(resolutionLoc, viewport.visibleWidth.toFloat(), viewport.visibleHeight.toFloat())
 
-        val shaderDims = Utils.convertWorldPointToNDC(ship.location)
+        val pointCountLoc = glGetUniformLocation(shaderProgram, "pointCount")
+        glUniform1i(pointCountLoc, pointCount)
 
-        println(
-            "screen coords " + viewport.convertWorldXtoScreenX(ship.location.x) + "/" + Global.getSettings().screenWidthPixels + " " + viewport.convertWorldYtoScreenY(
-                ship.location.y
-            ) + "/" + Global.getSettings().screenHeightPixels
-        )
-        println("" + shaderDims)
+        // Set points array directly
+        for (i in 0 until pointCount) {
+            val pointLoc = glGetUniformLocation(shaderProgram, "points[$i]")
+            glUniform2f(pointLoc, screenPoints[i * 2], screenPoints[i * 2 + 1])
+        }
 
-        // Create vertices for a white square using normalized device coordinates
-        val vertices = floatArrayOf(
-            // Position (2 floats) | Color (4 floats)
-            shaderDims.x - 0.1f, shaderDims.y - 0.1f, 1.0f, 1.0f, 1.0f, 1.0f,  // Bottom-left
-            shaderDims.x + 0.1f, shaderDims.y - 0.1f, 1.0f, 1.0f, 1.0f, 1.0f,   // Bottom-right
-            shaderDims.x + 0.1f, shaderDims.y + 0.1f, 1.0f, 1.0f, 1.0f, 1.0f,    // Top-right
-            shaderDims.x - 0.1f, shaderDims.y + 0.1f, 1.0f, 1.0f, 1.0f, 1.0f    // Top-left
-        )
+        // Enable blending for transparency
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        // Create indices for the square
-        val indices = intArrayOf(
-            0, 1, 2,  // First triangle
-            0, 2, 3   // Second triangle
-        )
-
-        // Update VBO
-        glBindBuffer(GL_ARRAY_BUFFER, vbo)
-        val vertexBuffer = BufferUtils.createFloatBuffer(vertices.size)
-        vertexBuffer.put(vertices).flip()
-        glBufferData(GL_ARRAY_BUFFER, vertexBuffer, GL_STATIC_DRAW)
-
-        // Update EBO
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-        val indexBuffer = BufferUtils.createIntBuffer(indices.size)
-        indexBuffer.put(indices).flip()
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBuffer, GL_STATIC_DRAW)
-
-        // Draw the square
+        // Draw full-screen quad
         glBindVertexArray(vao)
-        glDrawElements(GL_TRIANGLES, indices.size, GL_UNSIGNED_INT, 0)
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
         glBindVertexArray(0)
 
         // Restore previous shader program
@@ -185,6 +211,7 @@ class DebugShader(private val ship: ShipAPI) {
         glDeleteVertexArrays(vao)
         glDeleteBuffers(vbo)
         glDeleteBuffers(ebo)
+        glDeleteBuffers(pointsBuffer)
         glDeleteProgram(shaderProgram)
     }
 }
