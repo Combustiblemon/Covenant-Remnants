@@ -178,11 +178,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                             getInt(
                                 "covenant_remnants",
                                 "covenant_remnants_fighter_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 300f
                         shieldRegen = getInt(
                             "covenant_remnants",
                             "covenant_remnants_fighter_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 50f
                         shieldDamageMult = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_fighter_hull_shieldDamageMult"
@@ -190,7 +190,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                         breakCooldownTime = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_fighter_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 5f
                     } else {
                         maxShieldHealth = 300f
                         shieldRegen = 50f
@@ -205,11 +205,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                             getInt(
                                 "covenant_remnants",
                                 "covenant_remnants_frigate_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 500f
                         shieldRegen = getInt(
                             "covenant_remnants",
                             "covenant_remnants_frigate_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 100f
                         shieldDamageMult = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_frigate_hull_shieldDamageMult"
@@ -217,7 +217,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                         breakCooldownTime = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_frigate_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 5f
                     } else {
                         maxShieldHealth = 500f
                         shieldRegen = 100f
@@ -232,7 +232,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                             getInt(
                                 "covenant_remnants",
                                 "covenant_remnants_destroyer_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 800f
                         shieldRegen = getInt(
                             "covenant_remnants",
                             "covenant_remnants_destroyer_hull_shieldRegen"
@@ -244,7 +244,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                         breakCooldownTime = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_destroyer_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 7f
                     } else {
                         maxShieldHealth = 800f
                         shieldRegen = 150f
@@ -259,11 +259,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                             getInt(
                                 "covenant_remnants",
                                 "covenant_remnants_cruiser_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 1500f
                         shieldRegen = getInt(
                             "covenant_remnants",
                             "covenant_remnants_cruiser_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 300f
                         shieldDamageMult = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_cruiser_hull_shieldDamageMult"
@@ -271,7 +271,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                         breakCooldownTime = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_cruiser_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 8f
                     } else {
                         maxShieldHealth = 1500f
                         shieldRegen = 300f
@@ -286,11 +286,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                             getInt(
                                 "covenant_remnants",
                                 "covenant_remnants_capital_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 2500f
                         shieldRegen = getInt(
                             "covenant_remnants",
                             "covenant_remnants_capital_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 450f
                         shieldDamageMult = getDouble(
                             "covenant_remnants",
                             "covenant_remnants_capital_hull_shieldDamageMult"

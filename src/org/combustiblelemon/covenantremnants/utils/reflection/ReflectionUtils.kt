@@ -192,6 +192,24 @@ internal object ReflectionUtils {
         return invokeMethodHandle.invoke(method, instance, arguments)
     }
 
+    @Suppress("USELESS_CAST")
+    fun invoke(methodName: String, clazz: Class<*>, vararg arguments: Any?, declared: Boolean = false): Any? {
+        val method: Any?
+
+        val args = arguments.map { it!!::class.javaPrimitiveType ?: it::class.java }
+        val methodType = MethodType.methodType(Void.TYPE, args)
+
+        method = if (!declared) {
+            clazz.getMethod(methodName, *methodType.parameterArray()) as Any?
+        } else {
+            clazz.getDeclaredMethod(methodName, *methodType.parameterArray()) as Any?
+        }
+
+        if (declared) setMethodAccessibleHandle.invoke(method, true)
+
+        return invokeMethodHandle.invoke(method, clazz, arguments)
+    }
+
     fun rawInvoke(method: Any?, instance: Any, vararg arguments: Any?): Any? {
         return invokeMethodHandle.invoke(method, instance, arguments)
     }
@@ -233,6 +251,16 @@ internal object ReflectionUtils {
             .map { getMethodParametersHandle.invoke(it) as Array<Class<*>> }
     }
 
+    fun getMethodArguments2(clazz: Class<*>): List<MethodInfo> {
+        val instancesOfMethods: Array<out Any> = clazz.declaredMethods
+        return instancesOfMethods.map {
+            MethodInfo(
+                parameters = getMethodParametersHandle.invoke(it) as Array<Class<*>>,
+                name = getMethodNameHandle.invoke(it) as String
+            )
+        }
+    }
+
     fun hasConstructorOfParameters(instance: Any, vararg parameterTypes: Class<*>): Boolean {
         val constructors = instance.javaClass.getDeclaredConstructors() as Array<*>
         // Iterate over each constructor and check its parameter types.
@@ -270,3 +298,9 @@ internal object ReflectionUtils {
             invokeMethodHandle.invoke(method, instance, arguments)
     }
 }
+
+// Data class to hold method information
+data class MethodInfo(
+    val parameters: Array<Class<*>>,
+    val name: String
+)
