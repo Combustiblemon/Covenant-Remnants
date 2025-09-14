@@ -297,6 +297,58 @@ internal object ReflectionUtils {
         fun invoke(instance: Any?, vararg arguments: Any?): Any? =
             invokeMethodHandle.invoke(method, instance, arguments)
     }
+
+    fun iterateOverAllClasses() {
+        val classLoader = Thread.currentThread().contextClassLoader
+            val packagePath = "com/fs/starfarer/title"
+            val resources = classLoader.getResources(packagePath)
+
+            while (resources.hasMoreElements()) {
+                val resource = resources.nextElement()
+                if (resource.protocol == "jar") {
+                    val jarConnection = resource.openConnection() as java.net.JarURLConnection
+                    val jarFile = jarConnection.jarFile
+                    val entries = jarFile.entries()
+
+                    while (entries.hasMoreElements()) {
+                        val entry = entries.nextElement()
+                        val entryName = entry.name
+
+                        if (entryName.startsWith(packagePath)
+
+                        ) {
+
+                            if (!entryName.endsWith(".class")) {
+                                continue
+                            }
+
+                            val className = entryName.replace('/', '.').substring(0, entryName.length - 6)
+
+                            try {
+                                val clazz = Class.forName(className)
+
+                                var a = ""
+
+                                clazz.enumConstants.forEach { it -> a = "${a}${it}\n" }
+
+
+                                if (a.isNotEmpty()) {
+                                    println(a)
+                                }
+
+                                // Debug: Print class info
+                                println("Found class: $a")
+                                println("  Methods: ${clazz.declaredMethods.size}")
+                                println("  Fields: ${clazz.declaredFields.size}")
+
+                            } catch (e: Exception) {
+                                // Skip classes that can't be loaded
+                            }
+                        }
+                    }
+                }
+            }
+    }
 }
 
 // Data class to hold method information

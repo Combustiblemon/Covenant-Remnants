@@ -4,6 +4,9 @@ import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 
 class CovenantRemnantsPlugin : BaseModPlugin() {
+    companion object {
+        const val MOD_ID = "combustiblelemon_covenant_remnants"
+    }
 
     override fun onApplicationLoad() {
         super.onApplicationLoad()
@@ -14,7 +17,7 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
             throw RuntimeException("This mod requires MagicLib to work.")
         }
 
-        val isLazyLibEnabled = Global.getSettings().modManager.isModEnabled("LazyLib")
+        val isLazyLibEnabled = Global.getSettings().modManager.isModEnabled("lw_lazylib")
         if (!isLazyLibEnabled) {
             throw RuntimeException("This mod requires LazyLib to work.")
         }
