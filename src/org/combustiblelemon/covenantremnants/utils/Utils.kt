@@ -6,6 +6,7 @@ import org.lwjgl.util.vector.Vector2f
 import java.awt.geom.AffineTransform
 import kotlin.math.abs
 import kotlin.math.cos
+import kotlin.math.round
 import kotlin.math.sin
 
 /**
@@ -259,4 +260,8 @@ fun hasPerpendicularIntersectionPoint(segment: Array<Vector2f>, point: Vector2f)
 
 fun getUnapplicableReasonForHullmod(hullmodId: String): String? {
     return "Cannot be installed alongside ${Global.getSettings().getHullModSpec(hullmodId).displayName}"
+}
+
+fun getPercentage(number: Float): Int {
+    return abs(round((number - 1f) * 100f)).toInt()
 }

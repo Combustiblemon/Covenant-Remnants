@@ -8,9 +8,6 @@ Improves energy weapon stats:
 Nanolaminate Armor,covenant_remnants_nanolaminate_armor,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, defensive, engines","Defenses, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.NanolaminateArmor,"Reduces damage from energy weapons by %s.
 Increases damage from other sources by %s.
 Increases speed and acceleration by %s.
-Reduces armor by %s.
-
-Smod:
-Reduces corona effect by %s.",,,
+Reduces armor by %s.",,Reduces corona effect by %s.,
 Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, shields, defensive","Shields, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,Replace defence with covenant shield,,,
 covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,"hide_in_codex, no_drop, no_drop_salvage",,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,"Hullmod manager facilitating functionality for the rest of the hullmods, you should not be seeing this",,,
