@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import org.lwjgl.util.vector.Vector2f
 import java.awt.geom.AffineTransform
@@ -256,3 +257,6 @@ fun hasPerpendicularIntersectionPoint(segment: Array<Vector2f>, point: Vector2f)
     return t in 0f..1f
 }
 
+fun getUnapplicableReasonForHullmod(hullmodId: String): String? {
+    return "Cannot be installed alongside ${Global.getSettings().getHullModSpec(hullmodId).displayName}"
+}

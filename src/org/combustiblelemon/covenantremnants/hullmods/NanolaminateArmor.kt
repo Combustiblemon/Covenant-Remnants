@@ -5,6 +5,7 @@ import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.api.impl.campaign.ids.Stats
+import org.combustiblelemon.covenantremnants.utils.getUnapplicableReasonForHullmod
 import org.magiclib.util.MagicIncompatibleHullmods
 
 class NanolaminateArmor : BaseHullMod() {
@@ -20,6 +21,11 @@ class NanolaminateArmor : BaseHullMod() {
     override fun getUnapplicableReason(ship: ShipAPI?): String? {
         if (ship == null) {
             return "This hullmod is only applicable to ships."
+        }
+
+        val hullmodId = ship.variant.hullMods.find { BLOCKED_HULLMODS.contains(it) }
+        if (hullmodId != null) {
+            return getUnapplicableReasonForHullmod(hullmodId)
         }
 
         return null
