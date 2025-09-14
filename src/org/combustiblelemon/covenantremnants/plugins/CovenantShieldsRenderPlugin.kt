@@ -3,7 +3,8 @@ package org.combustiblelemon.covenantremnants.plugins
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
-import org.combustiblelemon.covenantremnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.getRandomPointsInPolygon
+import org.combustiblelemon.covenantremnants.utils.getShipPolygonInWorld
 import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
 import org.combustiblelemon.covenantremnants.utils.render.SmoothingMethod
 import org.lwjgl.util.vector.Vector2f
@@ -67,9 +68,9 @@ class CovenantShieldsRenderPlugin(
     }
 
     private fun spawnLightning() {
-        val polygonData = Utils.getShipPolygonInWorld(attachedTo)
+        val polygonData = getShipPolygonInWorld(attachedTo)
         val lightningArcNumbers = 3
-        val arcPoints = Utils.getRandomPointsInPolygon(polygonData, lightningArcNumbers * 2)
+        val arcPoints = getRandomPointsInPolygon(polygonData, lightningArcNumbers * 2)
 
         val engine = Global.getCombatEngine()
 

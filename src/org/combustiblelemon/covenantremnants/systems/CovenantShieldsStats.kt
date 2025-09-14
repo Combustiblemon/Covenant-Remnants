@@ -15,7 +15,10 @@ import lunalib.lunaSettings.LunaSettings.getInt
 import org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
-import org.combustiblelemon.covenantremnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.getPointAlongSegmentFromEnd
+import org.combustiblelemon.covenantremnants.utils.getShipDimensions
+import org.combustiblelemon.covenantremnants.utils.hasPerpendicularIntersectionPoint
+import org.combustiblelemon.covenantremnants.utils.rotatePointByDegrees
 import org.lwjgl.util.vector.Vector2f
 import org.magiclib.util.MagicUI
 import kotlin.math.abs
@@ -143,7 +146,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             _ship = stats.entity as ShipAPI
             player = _ship === Global.getCombatEngine().playerShip
             ship = _ship
-            shipDimensions = Utils.getShipDimensions(_ship)
+            shipDimensions = getShipDimensions(_ship)
 
             when (_ship.hullSpec.hullSize) {
                 ShipAPI.HullSize.DEFAULT -> {
@@ -386,14 +389,14 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 val engine = Global.getCombatEngine()
 
                 val percentPoint = if (attachedTo.phaseCloak.effectLevel < 1f) {
-                    Utils.getPointAlongSegmentFromEnd(
+                    getPointAlongSegmentFromEnd(
                         listOf(
-                            Utils.rotatePointByDegrees(
+                            rotatePointByDegrees(
                                 Vector2f(
                                     parent.shipDimensions!![1].x + attachedTo.location.x,
                                     parent.shipDimensions!![0].y + attachedTo.location.y
                                 ), attachedTo.location, attachedTo.facing
-                            ), Utils.rotatePointByDegrees(
+                            ), rotatePointByDegrees(
                                 Vector2f(
                                     parent.shipDimensions!![0].x + attachedTo.location.x,
                                     parent.shipDimensions!![0].y + attachedTo.location.y
@@ -410,9 +413,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 }
 
                 val hitPastShield = if (percentPoint !== null) {
-                    Utils.hasPerpendicularIntersectionPoint(
+                    hasPerpendicularIntersectionPoint(
                         listOf(
-                            Utils.rotatePointByDegrees(
+                            rotatePointByDegrees(
                                 Vector2f(
                                     parent.shipDimensions!![1].x + attachedTo.location.x,
                                     parent.shipDimensions!![0].y + attachedTo.location.y
