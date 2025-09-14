@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
-import com.fs.starfarer.api.util.Misc
+import org.combustiblelemon.covenantremnants.utils.getPercentage
 import org.magiclib.util.MagicIncompatibleHullmods
 
 class CovenantSystems : BaseHullMod() {
@@ -18,6 +18,8 @@ class CovenantSystems : BaseHullMod() {
     }
 
     private val ENERGY_WEAPON_FLUX_MULT = 0.8f
+    private val MAX_COMBAT_READINESS_MULT = 20f
+    private val REPAIR_PER_DAY_MULT = 0.75f
 
     companion object {
         private val BLOCKED_HULLMODS: MutableSet<String> = HashSet(2)
@@ -26,10 +28,12 @@ class CovenantSystems : BaseHullMod() {
             BLOCKED_HULLMODS.add("dedicated_targeting_core")
             BLOCKED_HULLMODS.add("targetingunit")
         }
+
+        const val ID = "covenant_remnants_covenantsystems"
     }
 
     override fun isApplicableToShip(ship: ShipAPI): Boolean {
-        return false
+        return true
     }
 
     override fun applyEffectsAfterShipCreation(ship: ShipAPI, id: String) {
@@ -38,7 +42,7 @@ class CovenantSystems : BaseHullMod() {
                 MagicIncompatibleHullmods.removeHullmodWithWarning(
                     ship.variant,
                     tmp,
-                    "covenant_remnants_covenantsystems"
+                    ID
                 )
             }
         }
@@ -55,27 +59,28 @@ class CovenantSystems : BaseHullMod() {
                 1f
             }
         }
-        stats.energyWeaponRangeBonus.modifyMult(id, rangeMult)
-        stats.energyWeaponFluxCostMod.modifyMult(id, ENERGY_WEAPON_FLUX_MULT)
-    }
+        stats.energyWeaponRangeBonus.modifyMult(ID, rangeMult)
+        stats.energyWeaponFluxCostMod.modifyMult(ID, ENERGY_WEAPON_FLUX_MULT)
 
-    private fun convertToPercent(number: Float): Float {
-        return ((number - 1.0) * 100.0).toFloat()
+        if (stats.variant != null && stats.variant.hullMods.contains(HuragokCrew.ID)) {
+            stats.maxCombatReadiness.modifyFlat(ID, MAX_COMBAT_READINESS_MULT)
+            stats.repairRatePercentPerDay.modifyMult(ID, REPAIR_PER_DAY_MULT)
+        }
     }
 
     override fun getDescriptionParam(index: Int, hullSize: HullSize): String {
-        val value = when (index) {
-            0 -> Misc.getRoundedValue(convertToPercent(ENERGY_WEAPON_RANGE_MULT.FRIGATE.value)).toString()
-            1 -> Misc.getRoundedValue(convertToPercent(ENERGY_WEAPON_RANGE_MULT.DESTROYER.value)).toString()
-            2 -> Misc.getRoundedValue(convertToPercent(ENERGY_WEAPON_RANGE_MULT.CRUISER.value)).toString()
-            3 -> Misc.getRoundedValue(convertToPercent(ENERGY_WEAPON_RANGE_MULT.CAPITAL_SHIP.value)).toString()
-            4 -> Misc.getRoundedValue(convertToPercent(ENERGY_WEAPON_FLUX_MULT) * -1).toString()
+        return when (index) {
+            0 -> "${MAX_COMBAT_READINESS_MULT.toInt()}%"
+            1 -> "${getPercentage(REPAIR_PER_DAY_MULT)}%"
+            2 -> "${getPercentage(ENERGY_WEAPON_RANGE_MULT.FRIGATE.value)}%"
+            3 -> "${getPercentage(ENERGY_WEAPON_RANGE_MULT.DESTROYER.value)}%"
+            4 -> "${getPercentage(ENERGY_WEAPON_RANGE_MULT.CRUISER.value)}%"
+            5 -> "${getPercentage(ENERGY_WEAPON_RANGE_MULT.CAPITAL_SHIP.value)}%"
+            6 -> "${getPercentage(ENERGY_WEAPON_FLUX_MULT)}%"
             else -> {
                 ""
             }
         }
-
-        return "$value%"
     }
 
 }

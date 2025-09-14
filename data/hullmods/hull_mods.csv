@@ -1,13 +1,19 @@
 name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,script,desc,short,sModDesc,sprite
 #Fourteenth Battlegroup,,,,,,,,,TRUE,,0,0,0,0,,,,,
 #Militarized Hegemony Auxiliary,,,,,,,,,TRUE,,0,0,0,0,,,,,
-Covenant Systems,covenant_remnants_covenantsystems,,,Covenant,"req_spaceport, no_drop, no_drop_salvage","Special, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantSystems,"Increased CR decay rate by %s
+Covenant Systems,covenant_remnants_covenantsystems,,,Covenant,"req_spaceport, no_drop, no_drop_salvage",Requires Dock,,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantSystems,"Decrease max CR by %s
+Decrease repair rate by %s
+
 Improves energy weapon stats:
  Increase range by %s/%s/%s/%s depending on hull size.
  Reduce weapon flux generation by %s.",,,
 Nanolaminate Armor,covenant_remnants_nanolaminate_armor,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, defensive, engines","Defenses, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.NanolaminateArmor,"Reduces damage taken from energy weapons by %s.
 Increases damage taken from other sources by %s.
 Increases speed and acceleration by %s.
-Reduces armor by %s.",,Reduces corona effect by %s.,
+Reduces armor by %s.",,,
 Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, shields, defensive","Shields, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,Replace defence with covenant shield,,,
 covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,"hide_in_codex, no_drop, no_drop_salvage",,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,"Hullmod manager facilitating functionality for the rest of the hullmods, you should not be seeing this",,,
+Huragok Crew,covenant_remnants_huragok_crew,,,Covenant,"no_drop, no_drop_salvage, defensive",,,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HuragokCrew,"Increase max CR by %s
+Increase repair rate by %s 
+
+Counteracts negative effects of %s hullmod if present.",,,

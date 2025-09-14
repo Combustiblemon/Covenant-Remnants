@@ -3,7 +3,6 @@ package org.combustiblelemon.covenantremnants.hullmods
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import com.fs.starfarer.api.impl.campaign.ids.Stats
 import org.combustiblelemon.covenantremnants.utils.getPercentage
 import org.combustiblelemon.covenantremnants.utils.getUnapplicableReasonForHullmod
 import org.magiclib.util.MagicIncompatibleHullmods
@@ -24,7 +23,6 @@ class NanolaminateArmor : BaseHullMod() {
         const val ARMOR_BONUS_MULT = 0.8f
         const val MAX_SPEED_MULT = 1.2f
         const val ACCELERATION_MULT = 1.2f
-        const val CORONA_EFFECT_MULT = 0.25f
     }
 
     override fun getUnapplicableReason(ship: ShipAPI?): String? {
@@ -53,17 +51,13 @@ class NanolaminateArmor : BaseHullMod() {
             return
         }
 
-        stats.energyDamageTakenMult.modifyMult(this.spec.id, ENERGY_DAMAGE_MULT)
-        stats.fragmentationDamageTakenMult.modifyMult(this.spec.id, FRAGMENTATION_DAMAGE_MULT)
-        stats.highExplosiveDamageTakenMult.modifyMult(this.spec.id, HIGH_EXPLOSIVE_DAMAGE_MULT)
-        stats.kineticDamageTakenMult.modifyMult(this.spec.id, KINETIC_DAMAGE_MULT)
-        stats.armorBonus.modifyMult(this.spec.id, ARMOR_BONUS_MULT)
-        stats.maxSpeed.modifyMult(this.spec.id, MAX_SPEED_MULT)
-        stats.acceleration.modifyMult(this.spec.id, ACCELERATION_MULT)
-
-        if (isSMod(stats)) {
-            stats.dynamic.getStat(Stats.CORONA_EFFECT_MULT).modifyMult(this.spec.id, CORONA_EFFECT_MULT)
-        }
+        stats.energyDamageTakenMult.modifyMult(id, ENERGY_DAMAGE_MULT)
+        stats.fragmentationDamageTakenMult.modifyMult(id, FRAGMENTATION_DAMAGE_MULT)
+        stats.highExplosiveDamageTakenMult.modifyMult(id, HIGH_EXPLOSIVE_DAMAGE_MULT)
+        stats.kineticDamageTakenMult.modifyMult(id, KINETIC_DAMAGE_MULT)
+        stats.armorBonus.modifyMult(id, ARMOR_BONUS_MULT)
+        stats.maxSpeed.modifyMult(id, MAX_SPEED_MULT)
+        stats.acceleration.modifyMult(id, ACCELERATION_MULT)
     }
 
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
@@ -94,9 +88,5 @@ class NanolaminateArmor : BaseHullMod() {
         }
 
         return null
-    }
-
-    override fun getSModDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {
-        return "${getPercentage(CORONA_EFFECT_MULT)}%"
     }
 }
