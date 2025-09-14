@@ -1,11 +1,13 @@
 name,id,tier,rarity,tech/manufacturer,tags,uiTags,base value,unlocked,hidden,hiddenEverywhere,cost_frigate,cost_dest,cost_cruiser,cost_capital,script,desc,short,sModDesc,sprite
 #Fourteenth Battlegroup,,,,,,,,,TRUE,,0,0,0,0,,,,,
 #Militarized Hegemony Auxiliary,,,,,,,,,TRUE,,0,0,0,0,,,,,
-Covenant Systems,covenant_remnants_covenantsystems,,,Covenant,,,,,TRUE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantSystems,"This ship’s systems are incoprehensible and are clearly not domain technology.
-
+Covenant Systems,covenant_remnants_covenantsystems,,,Covenant,"req_spaceport, no_drop, no_drop_salvage","Special, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantSystems,"Increased CR decay rate by %s
 Improves energy weapon stats:
  Increase range by %s/%s/%s/%s depending on hull size.
  Reduce weapon flux generation by %s.",,,
-Covenant Test,covenant_remnants_testhullmod,,,Covenant,,,,,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.TestHull,Testing shit,,,
-Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,,,,TRUE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,Replace shield,,,
-covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,,,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,Replace shield,,,
+Nanolaminate Armor,covenant_remnants_nanolaminate_armor,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, defensive, engines","Defenses, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.NanolaminateArmor,"Reduces damage from energy weapons by %s.
+Increases damage from other sources by %s.
+Increases speed and acceleration by %s.
+Reduces armor by %s.",,Reduces corona effect by %s.,
+Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, shields, defensive","Shields, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,Replace defence with covenant shield,,,
+covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,"hide_in_codex, no_drop, no_drop_salvage",,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,"Hullmod manager facilitating functionality for the rest of the hullmods, you should not be seeing this",,,

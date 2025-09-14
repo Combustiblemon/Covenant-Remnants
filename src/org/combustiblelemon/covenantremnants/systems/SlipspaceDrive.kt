@@ -8,7 +8,8 @@ import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
 import org.combustiblelemon.covenantremnants.plugins.SlipspaceDriveRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
-import org.combustiblelemon.covenantremnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.getVelocityVectorInFacing
+import org.combustiblelemon.covenantremnants.utils.normalize
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.combat.CombatUtils
 import org.lwjgl.util.vector.Vector2f
@@ -79,8 +80,8 @@ class SlipspaceDrive : BaseShipSystemScript() {
                 isActive = true
                 launchStartTime = currentTime
             } else {
-                val number = Utils.normalize((currentTime - launchStartTime).toDouble(), 0.0, 4.0)
-                ship.velocity.set(Utils.getVelocityVectorInFacing(ship, launchSpeed * cubicFunction.getTime(number)))
+                val number = normalize((currentTime - launchStartTime).toDouble(), 0.0, 4.0)
+                ship.velocity.set(getVelocityVectorInFacing(ship, launchSpeed * cubicFunction.getTime(number)))
             }
         }
         if (state == ShipSystemStatsScript.State.OUT) {
@@ -91,7 +92,7 @@ class SlipspaceDrive : BaseShipSystemScript() {
                 stats.acceleration.unmodify(id)
                 stats.combatEngineRepairTimeMult.unmodify(id)
                 ship.location.set(portalExit)
-                ship.velocity.set(Utils.getVelocityVectorInFacing(ship, 15f))
+                ship.velocity.set(getVelocityVectorInFacing(ship, 15f))
             }
             ship.setJitter(this, Color.white, ship.system.effectLevel, 4, 40f)
         }

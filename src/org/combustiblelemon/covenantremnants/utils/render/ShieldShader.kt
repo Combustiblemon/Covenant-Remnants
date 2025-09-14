@@ -3,7 +3,7 @@ package org.combustiblelemon.covenantremnants.utils.render
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
-import org.combustiblelemon.covenantremnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.rotatePointByDegrees
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -825,7 +825,7 @@ class ShieldShader(
             val worldPoint = Vector2f(smoothedWorldPoints[i], smoothedWorldPoints[i + 1])
             val scaledPoint = Vector2f(worldPoint.x * scaleX, worldPoint.y * scaleY)
             val translatedPoint = Vector2f(scaledPoint.x + ship.location.x, scaledPoint.y + ship.location.y)
-            val rotatedPoint = Utils.rotatePointByDegrees(translatedPoint, ship.location, ship.facing)
+            val rotatedPoint = rotatePointByDegrees(translatedPoint, ship.location, ship.facing)
 
             // Convert to screen coordinates using viewport
             val screenX = viewport.convertWorldXtoScreenX(rotatedPoint.x)

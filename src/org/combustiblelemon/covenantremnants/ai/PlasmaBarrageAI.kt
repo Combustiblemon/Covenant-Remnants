@@ -3,7 +3,7 @@ package org.combustiblelemon.covenantremnants.ai
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.util.IntervalUtil
 import com.fs.starfarer.api.util.Misc
-import org.combustiblelemon.covenantremnants.utils.Utils
+import org.combustiblelemon.covenantremnants.utils.isShieldFacingShip
 import org.lwjgl.util.vector.Vector2f
 
 class PlasmaBarrageAI : ShipSystemAIScript {
@@ -20,11 +20,8 @@ class PlasmaBarrageAI : ShipSystemAIScript {
     }
 
     override fun advance(amount: Float, missileDangerDir: Vector2f, collisionDangerDir: Vector2f, target: ShipAPI) {
-        if (target == null) {
-            return
-        }
         val targetInRange = Misc.getDistance(ship!!.location, target.location) < RANGE
-        if (targetInRange && (!Utils.isShieldFacingShip(ship!!, target) || target.shield.isOff)) {
+        if (targetInRange && (!isShieldFacingShip(ship!!, target) || target.shield.isOff)) {
             ship!!.useSystem()
         }
     }
