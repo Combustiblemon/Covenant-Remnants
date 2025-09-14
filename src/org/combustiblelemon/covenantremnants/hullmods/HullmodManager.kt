@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.hullmods
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.fleet.FleetMemberAPI
+import org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin
 import org.combustiblelemon.covenantremnants.utils.reflection.ReflectionUtils
 
 const val TEMP_SHIP_PREFIX = "covenant_remnants_covenant_shield_temp"
@@ -25,10 +26,8 @@ class HullmodManager : BaseHullMod() {
         val hullmodId = variant.hullMods.find { it == "covenant_remnants_covenantshieldhullmod" }
 
         if (hullmodId == null) {
-            if (variant.hullSpec.hullId.startsWith(TEMP_SHIP_PREFIX)) {
-                val hullId = variant.hullSpec.hullId.split(":")[1]
-
-                val originalHullSpec = Global.getSettings().getHullSpec(hullId)
+            if (variant.hullSpec.hasTag(TEMP_SHIP_PREFIX)) {
+                val originalHullSpec = Global.getSettings().getHullSpec(variant.hullSpec.hullId)
                 if (originalHullSpec != null) {
                     variant.setHullSpecAPI(originalHullSpec)
                 }
@@ -37,67 +36,55 @@ class HullmodManager : BaseHullMod() {
             return
         }
 
-        val hullIdPrefix = "${TEMP_SHIP_PREFIX}:"
-        val hullIdCombined = hullIdPrefix + variant.hullSpec.hullId
+        val newSpec = createNewSpec(variant.hullSpec)
 
-        if (variant.hullSpec.hullId.startsWith(hullIdPrefix)) {
+        if (newSpec == null) {
             return
         }
 
-        var newSpec: ShipHullSpecAPI? = null
+        variant.setHullSpecAPI(newSpec)
+    }
 
-        try {
-            newSpec = Global.getSettings().getHullSpec(hullIdCombined)
-        } catch (_: RuntimeException) {
-            // nothing needed here, getHullSpec crashes if there is nothing found
-        }
-
-        if (newSpec == null) {
-            val hullSpec = variant.hullSpec
-
-            if (hullSpec.hullId.startsWith(hullIdPrefix)) {
-                return
+    companion object {
+        fun createNewSpec(hullSpec: ShipHullSpecAPI): ShipHullSpecAPI? {
+            if (hullSpec.hasTag(TEMP_SHIP_PREFIX)) {
+                return null
             }
 
-            newSpec = ReflectionUtils.invoke("clone", hullSpec) as ShipHullSpecAPI
+            var newSpec: ShipHullSpecAPI? = null
 
-            val stringFields = ReflectionUtils.getFieldsOfType(newSpec, newSpec.hullId.javaClass)
+            if (newSpec == null) {
+                newSpec = ReflectionUtils.invoke("clone", hullSpec) as ShipHullSpecAPI
 
-            for (field in stringFields) {
-                val fieldValue = ReflectionUtils.get(field, newSpec)
-                if (fieldValue is String && fieldValue == hullSpec.hullId) {
-                    ReflectionUtils.set(field, newSpec, hullIdCombined)
-                    break
-                }
-            }
+                newSpec.addTag(TEMP_SHIP_PREFIX)
+                newSpec.shipDefenseId = "covenant_remnants_covenantshield"
 
-            newSpec.shipDefenseId = "covenant_remnants_covenantshield"
+                if (hullSpec.defenseType != ShieldAPI.ShieldType.PHASE) {
+                    val shieldSpecField = ReflectionUtils.getFieldsOfType(newSpec, hullSpec.shieldSpec.javaClass)
 
-            if (variant.hullSpec.defenseType != ShieldAPI.ShieldType.PHASE) {
-                val shieldSpecField = ReflectionUtils.getFieldsOfType(newSpec, variant.hullSpec.shieldSpec.javaClass)
+                    if (shieldSpecField.isNotEmpty()) {
+                        val field = shieldSpecField[0]
+                        val fieldValue = ReflectionUtils.get(field, newSpec)
 
-                if (shieldSpecField.isNotEmpty()) {
-                    val field = shieldSpecField[0]
-                    val fieldValue = ReflectionUtils.get(field, newSpec)
+                        if (fieldValue is ShipHullSpecAPI.ShieldSpecAPI) {
+                            val shieldTypeField =
+                                ReflectionUtils.getFieldsOfType(fieldValue, hullSpec.shieldType.javaClass)
 
-                    if (fieldValue is ShipHullSpecAPI.ShieldSpecAPI) {
-                        val shieldTypeField =
-                            ReflectionUtils.getFieldsOfType(fieldValue, variant.hullSpec.shieldType.javaClass)
+                            if (shieldTypeField.isNotEmpty()) {
+                                val field2 = shieldTypeField[0]
+                                val fieldValue2 = ReflectionUtils.get(field2, fieldValue)
 
-                        if (shieldTypeField.isNotEmpty()) {
-                            val field2 = shieldTypeField[0]
-                            val fieldValue2 = ReflectionUtils.get(field2, fieldValue)
-
-                            if (fieldValue2 is ShieldAPI.ShieldType) {
-                                ReflectionUtils.set(field2, fieldValue, ShieldAPI.ShieldType.PHASE)
+                                if (fieldValue2 is ShieldAPI.ShieldType) {
+                                    ReflectionUtils.set(field2, fieldValue, ShieldAPI.ShieldType.PHASE)
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        variant.setHullSpecAPI(newSpec)
+            return newSpec
+        }
     }
 
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {

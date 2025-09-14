@@ -192,6 +192,24 @@ internal object ReflectionUtils {
         return invokeMethodHandle.invoke(method, instance, arguments)
     }
 
+    @Suppress("USELESS_CAST")
+    fun invoke(methodName: String, clazz: Class<*>, vararg arguments: Any?, declared: Boolean = false): Any? {
+        val method: Any?
+
+        val args = arguments.map { it!!::class.javaPrimitiveType ?: it::class.java }
+        val methodType = MethodType.methodType(Void.TYPE, args)
+
+        method = if (!declared) {
+            clazz.getMethod(methodName, *methodType.parameterArray()) as Any?
+        } else {
+            clazz.getDeclaredMethod(methodName, *methodType.parameterArray()) as Any?
+        }
+
+        if (declared) setMethodAccessibleHandle.invoke(method, true)
+
+        return invokeMethodHandle.invoke(method, clazz, arguments)
+    }
+
     fun rawInvoke(method: Any?, instance: Any, vararg arguments: Any?): Any? {
         return invokeMethodHandle.invoke(method, instance, arguments)
     }
@@ -233,6 +251,16 @@ internal object ReflectionUtils {
             .map { getMethodParametersHandle.invoke(it) as Array<Class<*>> }
     }
 
+    fun getMethodArguments2(clazz: Class<*>): List<MethodInfo> {
+        val instancesOfMethods: Array<out Any> = clazz.declaredMethods
+        return instancesOfMethods.map {
+            MethodInfo(
+                parameters = getMethodParametersHandle.invoke(it) as Array<Class<*>>,
+                name = getMethodNameHandle.invoke(it) as String
+            )
+        }
+    }
+
     fun hasConstructorOfParameters(instance: Any, vararg parameterTypes: Class<*>): Boolean {
         val constructors = instance.javaClass.getDeclaredConstructors() as Array<*>
         // Iterate over each constructor and check its parameter types.
@@ -269,4 +297,62 @@ internal object ReflectionUtils {
         fun invoke(instance: Any?, vararg arguments: Any?): Any? =
             invokeMethodHandle.invoke(method, instance, arguments)
     }
+
+    fun iterateOverAllClasses() {
+        val classLoader = Thread.currentThread().contextClassLoader
+            val packagePath = "com/fs/starfarer/title"
+            val resources = classLoader.getResources(packagePath)
+
+            while (resources.hasMoreElements()) {
+                val resource = resources.nextElement()
+                if (resource.protocol == "jar") {
+                    val jarConnection = resource.openConnection() as java.net.JarURLConnection
+                    val jarFile = jarConnection.jarFile
+                    val entries = jarFile.entries()
+
+                    while (entries.hasMoreElements()) {
+                        val entry = entries.nextElement()
+                        val entryName = entry.name
+
+                        if (entryName.startsWith(packagePath)
+
+                        ) {
+
+                            if (!entryName.endsWith(".class")) {
+                                continue
+                            }
+
+                            val className = entryName.replace('/', '.').substring(0, entryName.length - 6)
+
+                            try {
+                                val clazz = Class.forName(className)
+
+                                var a = ""
+
+                                clazz.enumConstants.forEach { it -> a = "${a}${it}\n" }
+
+
+                                if (a.isNotEmpty()) {
+                                    println(a)
+                                }
+
+                                // Debug: Print class info
+                                println("Found class: $a")
+                                println("  Methods: ${clazz.declaredMethods.size}")
+                                println("  Fields: ${clazz.declaredFields.size}")
+
+                            } catch (e: Exception) {
+                                // Skip classes that can't be loaded
+                            }
+                        }
+                    }
+                }
+            }
+    }
 }
+
+// Data class to hold method information
+data class MethodInfo(
+    val parameters: Array<Class<*>>,
+    val name: String
+)

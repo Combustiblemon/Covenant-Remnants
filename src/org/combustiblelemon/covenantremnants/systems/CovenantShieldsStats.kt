@@ -12,6 +12,7 @@ import com.fs.starfarer.combat.entities.BeamWeaponRay
 import com.fs.starfarer.combat.entities.Missile
 import lunalib.lunaSettings.LunaSettings.getDouble
 import lunalib.lunaSettings.LunaSettings.getInt
+import org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.Utils
@@ -50,7 +51,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     // first value is damage number and second is time it happened
     private var damageInstances: MutableList<List<Float>> = mutableListOf()
 
-    var maxShieldHealth: Float = 20000f
+    var maxShieldHealth: Float = 1f
         private set(value) {
             if (shieldHealth > maxShieldHealth) {
                 shieldHealth = maxShieldHealth
@@ -122,7 +123,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 }
             } else {
                 if ((parent.shieldHealth < parent.maxShieldHealth)) {
-                    parent.shieldHealth += 1000f * amount
+                    parent.shieldHealth += parent.shieldRegen * amount
                 }
             }
 
@@ -149,19 +150,19 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     if (Global.getSettings().modManager.isModEnabled("lunalib")) {
                         maxShieldHealth =
                             getInt(
-                                "covenant_remnants",
+                                CovenantRemnantsPlugin.MOD_ID,
                                 "covenant_remnants_default_hull_maxShieldHealth"
                             )?.toFloat() ?: 1000f
                         shieldRegen = getInt(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_default_hull_shieldRegen"
                         )?.toFloat() ?: 150f
                         shieldDamageMult = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_default_hull_shieldDamageMult"
                         )?.toFloat() ?: 1f
                         breakCooldownTime = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_default_hull_breakCooldownTime"
                         )?.toFloat() ?: 9f
                     } else {
@@ -176,21 +177,21 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     if (Global.getSettings().modManager.isModEnabled("lunalib")) {
                         maxShieldHealth =
                             getInt(
-                                "covenant_remnants",
+                                CovenantRemnantsPlugin.MOD_ID,
                                 "covenant_remnants_fighter_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 300f
                         shieldRegen = getInt(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_fighter_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 50f
                         shieldDamageMult = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_fighter_hull_shieldDamageMult"
                         )?.toFloat() ?: 1f
                         breakCooldownTime = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_fighter_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 5f
                     } else {
                         maxShieldHealth = 300f
                         shieldRegen = 50f
@@ -203,21 +204,21 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     if (Global.getSettings().modManager.isModEnabled("lunalib")) {
                         maxShieldHealth =
                             getInt(
-                                "covenant_remnants",
+                                CovenantRemnantsPlugin.MOD_ID,
                                 "covenant_remnants_frigate_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 500f
                         shieldRegen = getInt(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_frigate_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 100f
                         shieldDamageMult = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_frigate_hull_shieldDamageMult"
                         )?.toFloat() ?: 1f
                         breakCooldownTime = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_frigate_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 5f
                     } else {
                         maxShieldHealth = 500f
                         shieldRegen = 100f
@@ -230,21 +231,21 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     if (Global.getSettings().modManager.isModEnabled("lunalib")) {
                         maxShieldHealth =
                             getInt(
-                                "covenant_remnants",
+                                CovenantRemnantsPlugin.MOD_ID,
                                 "covenant_remnants_destroyer_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 800f
                         shieldRegen = getInt(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_destroyer_hull_shieldRegen"
                         )?.toFloat() ?: 150f
                         shieldDamageMult = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_destroyer_hull_shieldDamageMult"
                         )?.toFloat() ?: 1f
                         breakCooldownTime = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_destroyer_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 7f
                     } else {
                         maxShieldHealth = 800f
                         shieldRegen = 150f
@@ -257,21 +258,21 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     if (Global.getSettings().modManager.isModEnabled("lunalib")) {
                         maxShieldHealth =
                             getInt(
-                                "covenant_remnants",
+                                CovenantRemnantsPlugin.MOD_ID,
                                 "covenant_remnants_cruiser_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 1500f
                         shieldRegen = getInt(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_cruiser_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 300f
                         shieldDamageMult = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_cruiser_hull_shieldDamageMult"
                         )?.toFloat() ?: 1f
                         breakCooldownTime = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_cruiser_hull_breakCooldownTime"
-                        )?.toFloat() ?: 9f
+                        )?.toFloat() ?: 8f
                     } else {
                         maxShieldHealth = 1500f
                         shieldRegen = 300f
@@ -284,19 +285,19 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     if (Global.getSettings().modManager.isModEnabled("lunalib")) {
                         maxShieldHealth =
                             getInt(
-                                "covenant_remnants",
+                                CovenantRemnantsPlugin.MOD_ID,
                                 "covenant_remnants_capital_hull_maxShieldHealth"
-                            )?.toFloat() ?: 1000f
+                            )?.toFloat() ?: 2500f
                         shieldRegen = getInt(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_capital_hull_shieldRegen"
-                        )?.toFloat() ?: 150f
+                        )?.toFloat() ?: 450f
                         shieldDamageMult = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_capital_hull_shieldDamageMult"
                         )?.toFloat() ?: 1f
                         breakCooldownTime = getDouble(
-                            "covenant_remnants",
+                            CovenantRemnantsPlugin.MOD_ID,
                             "covenant_remnants_capital_hull_breakCooldownTime"
                         )?.toFloat() ?: 9f
                     } else {
@@ -357,6 +358,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
             if (parent.lastDamageIsShield) {
                 result?.damageToShields = parent.lastDamageToShield * 0.3f
+                return
             }
 
             parent.lastDamageIsShield = false

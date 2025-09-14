@@ -198,3 +198,5 @@ nbdist/
 fx stuff/asd.kra
 fx stuff/asd.kra-autosave.kra
 fx stuff/asd.kra~
+/temp_data
+/bin/main
