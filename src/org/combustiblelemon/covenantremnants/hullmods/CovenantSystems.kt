@@ -14,7 +14,6 @@ class CovenantSystems : BaseHullMod() {
         DESTROYER(1.4f),
         FRIGATE(1.2f),
         FIGHTER(1.2f)
-
     }
 
     private val ENERGY_WEAPON_FLUX_MULT = 0.8f
@@ -82,5 +81,4 @@ class CovenantSystems : BaseHullMod() {
             }
         }
     }
-
 }

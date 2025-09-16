@@ -17,9 +17,9 @@ class NanolaminateArmor : BaseHullMod() {
         }
 
         const val ENERGY_DAMAGE_MULT = 0.8f
-        const val FRAGMENTATION_DAMAGE_MULT = 1.5f
+        const val FRAGMENTATION_DAMAGE_MULT = 1.6f
         const val HIGH_EXPLOSIVE_DAMAGE_MULT = 0.8f
-        const val KINETIC_DAMAGE_MULT = 1.5f
+        const val KINETIC_DAMAGE_MULT = 1.6f
         const val ARMOR_BONUS_MULT = 0.8f
         const val MAX_SPEED_MULT = 1.2f
         const val ACCELERATION_MULT = 1.2f

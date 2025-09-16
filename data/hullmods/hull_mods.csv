@@ -7,7 +7,7 @@ Decrease repair rate by %s
 Improves energy weapon stats:
  Increase range by %s/%s/%s/%s depending on hull size.
  Reduce weapon flux generation by %s.",,,
-Nanolaminate Armor,covenant_remnants_nanolaminate_armor,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, defensive, engines","Defenses, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.NanolaminateArmor,"Reduces damage taken from energy weapons by %s.
+Nanolaminate Armor,covenant_remnants_nanolaminate_armor,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, defensive, engines","Defenses, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.NanolaminateArmor,"Reduces damage taken from Energy and High explosive weapons by %s.
 Increases damage taken from other sources by %s.
 Increases speed and acceleration by %s.
 Reduces armor by %s.",,,
