@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants
 
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
+import org.combustiblelemon.covenantremnants.campaign.systems.generateSlipspaceSystem
 
 class CovenantRemnantsPlugin : BaseModPlugin() {
     companion object {
@@ -21,5 +22,9 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         if (!isLazyLibEnabled) {
             throw RuntimeException("This mod requires LazyLib to work.")
         }
+    }
+
+    override fun onNewGame() {
+        generateSlipspaceSystem(Global.getSector())
     }
 }
