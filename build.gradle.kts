@@ -51,6 +51,9 @@ dependencies {
 
     // LunaLib dependency
     compileOnly(files("../LunaLib/jars/LunaLib.jar"))
+
+    // Console Commands dependency
+    compileOnly(files("../Console Commands/jars/lw_Console.jar"))
 }
 
 java {

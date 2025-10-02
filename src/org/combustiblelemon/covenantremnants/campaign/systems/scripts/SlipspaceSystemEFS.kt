@@ -10,10 +10,12 @@ class SlipspaceSystemEFS : EveryFrameScript {
     }
 
     override fun runWhilePaused(): Boolean {
-        return false
+        return true
     }
 
     override fun advance(amount: Float) {
+        Global.getCombatEngine().addLayeredRenderingPlugin()
         Global.getSector().playerFleet.getAbility(Abilities.TRANSVERSE_JUMP)?.forceDisable()
+
     }
 }

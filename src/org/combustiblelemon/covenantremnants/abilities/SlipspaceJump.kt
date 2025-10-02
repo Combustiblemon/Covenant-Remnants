@@ -3,9 +3,11 @@ package org.combustiblelemon.covenantremnants.abilities
 import com.fs.starfarer.api.EveryFrameScript
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.BattleAPI
+import com.fs.starfarer.api.campaign.CampaignEngineLayers
 import com.fs.starfarer.api.campaign.CampaignFleetAPI
 import com.fs.starfarer.api.campaign.StarSystemAPI
 import com.fs.starfarer.api.campaign.econ.MarketAPI
+import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.api.impl.campaign.abilities.BaseDurationAbility
 import com.fs.starfarer.api.impl.campaign.ids.Pings
@@ -44,6 +46,10 @@ class SlipspaceJump : BaseDurationAbility() {
         } else {
             deactivate()
         }
+    }
+
+    override fun render(layer: CampaignEngineLayers?, viewport: ViewportAPI?) {
+        super.render(layer, viewport)
     }
 
     override fun deactivate() {
@@ -94,7 +100,7 @@ class SlipspaceJump : BaseDurationAbility() {
             return false
         }
 
-        if (getFleet() == null) {
+        if (fleet == null) {
             return false
         }
 
@@ -297,7 +303,7 @@ class SlipspaceJump : BaseDurationAbility() {
     }
 
     fun showAlarm(): Boolean {
-        if (getFleet() != null && getFleet().isInHyperspace) return false
+        if (fleet != null && fleet.isInHyperspace) return false
         return !getNonReadyShips().isEmpty() && !isOnCooldown && !isActiveOrInProgress && isUsable()
     }
 
