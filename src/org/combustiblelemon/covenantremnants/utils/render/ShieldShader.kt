@@ -24,7 +24,7 @@ class ShieldShader(
     private var popEffectRadius: Float = 500f,  // Default pop effect radius
     private val boundsCount: Int,
     private val smoothingMethod: SmoothingMethod = SmoothingMethod.NONE
-) {
+) : Shader {
     private var polygonPoints: List<Float> = listOf()
     private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 1f)
     private var borderColorRGBA: FloatArray = floatArrayOf(1f, 1f, 1f, 1f)
@@ -88,7 +88,35 @@ class ShieldShader(
         var time: Float,
         var intensity: Float,
         var maxDistance: Float
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Ripple
+
+            if (radius != other.radius) return false
+            if (width != other.width) return false
+            if (time != other.time) return false
+            if (intensity != other.intensity) return false
+            if (maxDistance != other.maxDistance) return false
+            if (center != other.center) return false
+            if (!color.contentEquals(other.color)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = radius.hashCode()
+            result = 31 * result + width.hashCode()
+            result = 31 * result + time.hashCode()
+            result = 31 * result + intensity.hashCode()
+            result = 31 * result + maxDistance.hashCode()
+            result = 31 * result + center.hashCode()
+            result = 31 * result + color.contentHashCode()
+            return result
+        }
+    }
 
     private val activeRipples = mutableListOf<Ripple>()
 
@@ -102,7 +130,39 @@ class ShieldShader(
         var endScale: Float = 3.0f,
         var intensity: Float = 1.0f,
         var radialLines: List<RadialLine> = listOf()
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as PopWave
+
+            if (time != other.time) return false
+            if (maxTime != other.maxTime) return false
+            if (thickness != other.thickness) return false
+            if (startScale != other.startScale) return false
+            if (endScale != other.endScale) return false
+            if (intensity != other.intensity) return false
+            if (!color.contentEquals(other.color)) return false
+            if (!darkerColor.contentEquals(other.darkerColor)) return false
+            if (radialLines != other.radialLines) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = time.hashCode()
+            result = 31 * result + maxTime.hashCode()
+            result = 31 * result + thickness.hashCode()
+            result = 31 * result + startScale.hashCode()
+            result = 31 * result + endScale.hashCode()
+            result = 31 * result + intensity.hashCode()
+            result = 31 * result + color.contentHashCode()
+            result = 31 * result + darkerColor.contentHashCode()
+            result = 31 * result + radialLines.hashCode()
+            return result
+        }
+    }
 
     private var activePopWave: PopWave? = null
 
@@ -110,8 +170,8 @@ class ShieldShader(
 
     private data class RadialLine(
         val angle: Float,       // Angle in radians
-        val length: Float,      // Length of the line (0-1, will be multiplied by radius)
-        val startOffset: Float, // Offset from center (0-1, will be multiplied by radius)
+        val length: Float,      // Radius will multiply the length of the line (0-1)
+        val startOffset: Float, // Radius will multiply offset from center (0-1)
         val thickness: Float,   // Thickness of the line
         val alpha: Float,       // Base alpha/opacity
         val speedMultiplier: Float  // How fast this line expands compared to others
@@ -970,7 +1030,7 @@ class ShieldShader(
         return smoothingMethod
     }
 
-    // Alternative smoothing method: simple edge smoothing by repositioning points
+    // Alternative smoothing method: simple-edge smoothing by repositioning points
     private fun smoothEdgesSimple(points: List<Float>, subdivisions: Int = 2): List<Float> {
         val result = mutableListOf<Float>()
         val numPoints = points.size / 2
@@ -983,7 +1043,7 @@ class ShieldShader(
         // Apply simple smoothing by moving points towards edge midpoints
         val smoothedPoints = simpleEdgeSmoothing(pairs, subdivisions)
 
-        // Return smoothed points as flat list
+        // Return smoothed points as a flat list
         for (point in smoothedPoints) {
             result.add(point.first)
             result.add(point.second)
@@ -1034,7 +1094,7 @@ class ShieldShader(
         // Apply very subtle smoothing by slightly adjusting point positions
         val smoothedPoints = minimalSmoothing(pairs, subdivisions)
 
-        // Return smoothed points as flat list
+        // Return smoothed points as a flat list
         for (point in smoothedPoints) {
             result.add(point.first)
             result.add(point.second)
@@ -1212,7 +1272,7 @@ class ShieldShader(
         shieldHPPercent = percent
     }
 
-    fun drawShield(viewport: ViewportAPI) {
+    override fun render(viewport: ViewportAPI) {
         if (polygonPoints.isEmpty()) return
 
         // Update viewport scale for ripple calculations
@@ -1411,7 +1471,7 @@ class ShieldShader(
         }
     }
 
-    fun cleanup() {
+    override fun cleanup() {
         try {
             // Clean up OpenGL resources
             if (vbo != 0) {
