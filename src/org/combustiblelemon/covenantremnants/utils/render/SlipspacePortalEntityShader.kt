@@ -49,6 +49,20 @@ class SlipspacePortalEntityShader : Shader {
     var innerEdgeWaveFrequency: Float = 8.0f  // Number of waves around the circle
     var innerEdgeWaveSpeed: Float = 2f  // Speed of wave animation
 
+    // Animation state parameters
+    enum class AnimationState {
+        CLOSED,     // Simple circle, small radius
+        OPENING,    // Transitioning from closed to open
+        OPEN,       // Full portal effect
+        CLOSING     // Transitioning from open to closed
+    }
+
+    private var animationState: AnimationState = AnimationState.CLOSED
+    private var animationProgress: Float = 0f  // 0.0 = closed, 1.0 = open
+    private var animationSpeed: Float = 1.0f  // Speed of animation (1.0 = 1 second)
+    private var closedStateRadius: Float = 0.1f  // Radius when closed (as fraction of full radius)
+    private var closedStateColor: FloatArray = floatArrayOf(1.0f, 1.0f, 1.0f)  // White for closed state
+
     // Vertex shader - passes through position and texture coordinates
     private val vertexShaderSource = """
         #version 330 core
@@ -99,6 +113,11 @@ class SlipspacePortalEntityShader : Shader {
         uniform float innerEdgeWaveAmplitude;
         uniform float innerEdgeWaveFrequency;
         uniform float innerEdgeWaveSpeed;
+
+        // Animation uniforms
+        uniform float animationProgress;
+        uniform float closedStateRadius;
+        uniform vec3 closedStateColor;
 
         const float TWO_PI = 6.28318530718;
 
@@ -153,18 +172,18 @@ class SlipspacePortalEntityShader : Shader {
 
         // Calculate outer ring with fade effect and inner edge wave distortion
         // Returns intensity (0.0 to 1.0) with fade from center to edges
-        float calculateOuterRing(vec2 coord, float dist) {
-            // Ring overlaps the circle, with outer edge at the circle edge (1.0)
-            // Inner edge is inside the circle
-            float ringOuterRadius = 1.0;
-            float ringCenterRadius = 1.0 - (outerRingThickness / 2.0);
+        float calculateOuterRing(vec2 coord, float dist, float effectiveRadius) {
+            // Ring follows the effective radius during animation
+            // Outer edge is always at the current effective radius
+            float ringOuterRadius = effectiveRadius;
+            float ringCenterRadius = effectiveRadius - (outerRingThickness / 2.0);
 
             // Calculate angle for wave distortion
             float angle = atan(coord.y, coord.x);
 
             // Create wave distortion on inner edge
             // Waves move inward from the base inner radius
-            float baseInnerRadius = 1.0 - outerRingThickness;
+            float baseInnerRadius = effectiveRadius - outerRingThickness;
             float waveOffset = sin(angle * innerEdgeWaveFrequency + time * innerEdgeWaveSpeed) * innerEdgeWaveAmplitude;
             float ringInnerRadius = baseInnerRadius - waveOffset; // Wave goes inward (positive offset)
 
@@ -180,13 +199,16 @@ class SlipspacePortalEntityShader : Shader {
             // Normalize distance from ring center (0.0 at ring center, 1.0 at ring edges)
             float normalizedDist = distFromRingCenter / halfThickness;
 
-            // Start fading at outerRingFadeStart (30% from ring center)
+            // Disable ring fading during animation (when not fully open)
             float intensity = 1.0;
-            if (normalizedDist > outerRingFadeStart) {
-                // Fade from fadeStart to edge
-                float fadeRange = 1.0 - outerRingFadeStart;
-                float fadeProgress = (normalizedDist - outerRingFadeStart) / fadeRange;
-                intensity = 1.0 - smoothstep(0.0, 1.0, fadeProgress);
+            if (animationProgress >= 1.0) {
+                // Only apply fading when fully open
+                if (normalizedDist > outerRingFadeStart) {
+                    // Fade from fadeStart to edge
+                    float fadeRange = 1.0 - outerRingFadeStart;
+                    float fadeProgress = (normalizedDist - outerRingFadeStart) / fadeRange;
+                    intensity = 1.0 - smoothstep(0.0, 1.0, fadeProgress);
+                }
             }
 
             return intensity;
@@ -305,9 +327,20 @@ class SlipspacePortalEntityShader : Shader {
             // Calculate distance from center using adjusted coordinates
             float dist = length(adjustedCoord);
 
-            // Discard fragments outside the main circle
-            if (dist > 1.0) {
+            // Calculate current effective radius based on animation progress
+            // Interpolate between closed radius and full radius (1.0)
+            float effectiveRadius = mix(closedStateRadius, 1.0, animationProgress);
+
+            // Discard fragments outside the current effective circle
+            if (dist > effectiveRadius) {
                 discard;
+            }
+
+            // If animation progress is very low (closed state), render simple circle
+            if (animationProgress < 0.01) {
+                // Simple closed state - just a solid circle
+                FragColor = vec4(closedStateColor, 1.0);
+                return;
             }
 
             // Calculate edge fade (COMMENTED OUT FOR NOW)
@@ -332,7 +365,7 @@ class SlipspacePortalEntityShader : Shader {
             finalColor += energyFlowColor * flowStreaks * flowStreakIntensity;
 
             // Calculate and apply outer ring (on top of everything else)
-            float ringIntensity = calculateOuterRing(adjustedCoord, dist);
+            float ringIntensity = calculateOuterRing(adjustedCoord, dist, effectiveRadius);
 
             // Render ring if intensity > 0
             if (ringIntensity > 0.0) {
@@ -448,6 +481,86 @@ class SlipspacePortalEntityShader : Shader {
      */
     fun updateTime(amount: Float) {
         time += amount
+
+        // Update animation progress if we're animating
+        if (animationState == AnimationState.OPENING || animationState == AnimationState.CLOSING) {
+            val progressDelta = amount * animationSpeed
+            if (animationState == AnimationState.OPENING) {
+                animationProgress += progressDelta
+                if (animationProgress >= 1.0f) {
+                    animationProgress = 1.0f
+                    animationState = AnimationState.OPEN
+                }
+            } else { // CLOSING
+                animationProgress -= progressDelta
+                if (animationProgress <= 0.0f) {
+                    animationProgress = 0.0f
+                    animationState = AnimationState.CLOSED
+                }
+            }
+        }
+    }
+
+    /**
+     * Trigger the portal opening animation
+     */
+    fun triggerOpening() {
+        if (animationState == AnimationState.CLOSED || animationState == AnimationState.CLOSING) {
+            animationState = AnimationState.OPENING
+        }
+    }
+
+    /**
+     * Trigger the portal closing animation
+     */
+    fun triggerClosing() {
+        if (animationState == AnimationState.OPEN || animationState == AnimationState.OPENING) {
+            animationState = AnimationState.CLOSING
+        }
+    }
+
+    /**
+     * Set the animation speed (1.0 = 1 second for full animation)
+     * @param speed Animation speed multiplier
+     */
+    fun setAnimationSpeed(speed: Float) {
+        animationSpeed = speed
+    }
+
+    /**
+     * Set the closed state radius as a fraction of the full radius
+     * @param radiusFraction Fraction of full radius (0.1 = 10% of full radius)
+     */
+    fun setClosedStateRadius(radiusFraction: Float) {
+        closedStateRadius = radiusFraction
+    }
+
+    /**
+     * Set the closed state color
+     * @param r Red component (0.0 to 1.0)
+     * @param g Green component (0.0 to 1.0)
+     * @param b Blue component (0.0 to 1.0)
+     */
+    fun setClosedStateColor(r: Float, g: Float, b: Float) {
+        closedStateColor[0] = r
+        closedStateColor[1] = g
+        closedStateColor[2] = b
+    }
+
+    /**
+     * Get the current animation state
+     * @return Current animation state
+     */
+    fun getAnimationState(): AnimationState {
+        return animationState
+    }
+
+    /**
+     * Get the current animation progress (0.0 = closed, 1.0 = open)
+     * @return Animation progress
+     */
+    fun getAnimationProgress(): Float {
+        return animationProgress
     }
 
     override fun render(viewport: ViewportAPI) {
@@ -556,6 +669,16 @@ class SlipspacePortalEntityShader : Shader {
             glUniform1f(glGetUniformLocation(shaderProgram, "innerEdgeWaveAmplitude"), innerEdgeWaveAmplitude)
             glUniform1f(glGetUniformLocation(shaderProgram, "innerEdgeWaveFrequency"), innerEdgeWaveFrequency)
             glUniform1f(glGetUniformLocation(shaderProgram, "innerEdgeWaveSpeed"), innerEdgeWaveSpeed)
+
+            // Animation uniforms
+            glUniform1f(glGetUniformLocation(shaderProgram, "animationProgress"), animationProgress)
+            glUniform1f(glGetUniformLocation(shaderProgram, "closedStateRadius"), closedStateRadius)
+            glUniform3f(
+                glGetUniformLocation(shaderProgram, "closedStateColor"),
+                closedStateColor[0],
+                closedStateColor[1],
+                closedStateColor[2]
+            )
 
             // Bind VAO
             glBindVertexArray(vao)
