@@ -30,7 +30,7 @@ fun generateSlipspaceSystem(sector: SectorAPI) {
 
     system.initNonStarCenter()
     system.lightColor = Color(25, 25, 60) // light color in entire system, affects all entities
-
+    
     system.addCustomEntity(SLIPSPACE_JUMP_POINT_ENTRANCE, "Jump point", SLIPSPACE_JUMP_POINT_ENTITY, "neutral")
     system.addCustomEntity(SLIPSPACE_JUMP_POINT_EXIT, "Jump point", SLIPSPACE_JUMP_POINT_ENTITY, "neutral")
 

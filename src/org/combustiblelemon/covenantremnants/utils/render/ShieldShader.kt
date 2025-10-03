@@ -1384,12 +1384,12 @@ class ShieldShader(
                     glGetUniformLocation(shaderProgram, "rippleCenters[$i]"),
                     rippleScreenX, rippleScreenY
                 )
-                // Convert ripple radius to screen coordinates (same as centers)
-                val rippleScreenRadius = ripple.radius * viewport.viewMult
+                // Convert ripple radius to screen coordinates
+                val rippleScreenRadius = ripple.radius / viewport.viewMult
                 glUniform1f(glGetUniformLocation(shaderProgram, "rippleRadii[$i]"), rippleScreenRadius)
                 glUniform1f(glGetUniformLocation(shaderProgram, "rippleIntensities[$i]"), ripple.intensity)
-                // Convert ripple width to screen coordinates (same as centers)
-                val rippleScreenWidth = ripple.width * viewport.viewMult
+                // Convert ripple width to screen coordinates
+                val rippleScreenWidth = ripple.width / viewport.viewMult
                 glUniform1f(glGetUniformLocation(shaderProgram, "rippleWidths[$i]"), rippleScreenWidth)
             }
 

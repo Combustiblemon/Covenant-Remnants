@@ -14,8 +14,6 @@ class SlipspaceSystemEFS : EveryFrameScript {
     }
 
     override fun advance(amount: Float) {
-        Global.getCombatEngine().addLayeredRenderingPlugin()
         Global.getSector().playerFleet.getAbility(Abilities.TRANSVERSE_JUMP)?.forceDisable()
-
     }
 }
