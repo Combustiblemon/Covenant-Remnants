@@ -122,7 +122,7 @@ class SlipspaceJump : BaseDurationAbility() {
             return true
         }
 
-        return fleet.isInSlipspace
+        return !fleet.isInSlipspace
     }
 
     override fun createTooltip(tooltip: TooltipMakerAPI, expanded: Boolean) {

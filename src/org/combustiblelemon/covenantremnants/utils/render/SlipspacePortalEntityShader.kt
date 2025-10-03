@@ -26,6 +26,29 @@ class SlipspacePortalEntityShader : Shader {
     var vortexSpeed: Float = 1.0f  // Rotation speed multiplier
     var vortexArms: Int = 3  // Number of vortex spiral arms
 
+    // Energy flow parameters
+    var energyFlowSpeed: Float = 0.5f  // Speed of energy flowing inward
+    var energyFlowColor: FloatArray = floatArrayOf(0.7f, 0.8f, 1.0f)  // Light blue/white energy
+    var energyFlowIntensity: Float = 0.5f  // Overall intensity of the flow effect
+    var energyFlowStreams: Int = 12  // Number of energy streams
+
+    // Animated flow parameters
+    var flowStreakSpeed: Float = 0.7f  // Speed of animated flows
+    var flowStreakIntensity: Float = 0.6f  // Brightness of flow streaks
+    var flowStreakCount: Int = 16  // Number of constant energy flow lines
+    var flowStreakWidth: Float = 0.45f  // Width of each traveling highlight
+    var flowStreakGap: Float = 0.40f  // Gap between highlights (spacing between them)
+
+    // Outer ring parameters
+    var outerRingThickness: Float = 0.2f  // Thickness as fraction of radius (12% = 0.12, 20% bigger than 0.1)
+    var outerRingColor: FloatArray = floatArrayOf(1.0f, 1.0f, 1.0f)  // White for debugging
+    var outerRingFadeStart: Float = 0.3f  // Start fading at 30% from center of ring
+
+    // Inner edge wave distortion parameters
+    var innerEdgeWaveAmplitude: Float = 0.02f  // Amplitude of wave distortion
+    var innerEdgeWaveFrequency: Float = 8.0f  // Number of waves around the circle
+    var innerEdgeWaveSpeed: Float = 2f  // Speed of wave animation
+
     // Vertex shader - passes through position and texture coordinates
     private val vertexShaderSource = """
         #version 330 core
@@ -54,6 +77,31 @@ class SlipspacePortalEntityShader : Shader {
         uniform float vortexSpeed;
         uniform int vortexArms;
 
+        // Energy flow uniforms
+        uniform float energyFlowSpeed;
+        uniform vec3 energyFlowColor;
+        uniform float energyFlowIntensity;
+        uniform int energyFlowStreams;
+
+        // Animated flow uniforms
+        uniform float flowStreakSpeed;
+        uniform float flowStreakIntensity;
+        uniform int flowStreakCount;
+        uniform float flowStreakWidth;
+        uniform float flowStreakGap;
+
+        // Outer ring uniforms
+        uniform float outerRingThickness;
+        uniform vec3 outerRingColor;
+        uniform float outerRingFadeStart;
+
+        // Inner edge wave distortion uniforms
+        uniform float innerEdgeWaveAmplitude;
+        uniform float innerEdgeWaveFrequency;
+        uniform float innerEdgeWaveSpeed;
+
+        const float TWO_PI = 6.28318530718;
+
         // Calculate edge fade based on distance from center
         float calculateEdgeFade(float dist) {
             if (dist < edgeFadeStart) {
@@ -65,23 +113,188 @@ class SlipspacePortalEntityShader : Shader {
             return 1.0 - smoothstep(0.0, 1.0, fadeAmount);
         }
 
-        // Calculate vortex spiral pattern
+        // Calculate breathing pattern (pulsing effect)
         float calculateVortexPattern(vec2 coord, float dist) {
-            // Calculate angle from center
+            // Create breathing effect using sine wave over time
+            // This creates a smooth pulsing/breathing animation
+            float breathe = sin(time * vortexSpeed) * 0.5 + 0.5;
+
+            // Optional: Add subtle distance-based variation for depth
+            float distanceVariation = sin(dist * 3.0) * 0.2 + 0.8;
+
+            return breathe * distanceVariation;
+        }
+
+        // Simple pseudo-random function based on angle
+        float random(float angle, float seed) {
+            return fract(sin(angle * 12.9898 + seed * 78.233) * 43758.5453);
+        }
+
+        // Calculate constant energy intensity (base layer)
+        float calculateEnergyFlow(vec2 coord, float dist) {
+            // Base intensity that gets brighter towards center
+            // Use inverse distance to make it brighter at center
+            float centerBrightness = 1.0 + (1.0 - dist) * 0.5; // 1.0 at edge, 1.5 at center
+            float intensity = centerBrightness;
+
+            // Add subtle radial variation for depth
+            float radialVariation = sin(dist * 5.0) * 0.1 + 0.9;
+            intensity *= radialVariation;
+
+            // Fade out in the inner 10% (from 0% to 10% of radius)
+            float centerFade = smoothstep(0.0, 0.10, dist);
+
+            // Fade in from edge
+            float edgeFade = 1.0 - smoothstep(0.98, 1.0, dist);
+
+            // Combine all elements
+            return intensity * centerFade * edgeFade;
+        }
+
+        // Calculate outer ring with fade effect and inner edge wave distortion
+        // Returns intensity (0.0 to 1.0) with fade from center to edges
+        float calculateOuterRing(vec2 coord, float dist) {
+            // Ring overlaps the circle, with outer edge at the circle edge (1.0)
+            // Inner edge is inside the circle
+            float ringOuterRadius = 1.0;
+            float ringCenterRadius = 1.0 - (outerRingThickness / 2.0);
+
+            // Calculate angle for wave distortion
             float angle = atan(coord.y, coord.x);
 
-            // Create spiral effect by combining angle with distance
-            // Multiple arms create the vortex appearance
-            float spiral = angle * float(vortexArms) + dist * 10.0 - time * vortexSpeed;
+            // Create wave distortion on inner edge
+            // Waves move inward from the base inner radius
+            float baseInnerRadius = 1.0 - outerRingThickness;
+            float waveOffset = sin(angle * innerEdgeWaveFrequency + time * innerEdgeWaveSpeed) * innerEdgeWaveAmplitude;
+            float ringInnerRadius = baseInnerRadius - waveOffset; // Wave goes inward (positive offset)
 
-            // Create alternating bright/dark bands using sine wave
-            float pattern = sin(spiral) * 0.5 + 0.5;
+            // Check if we're in the ring
+            if (dist < ringInnerRadius || dist > ringOuterRadius) {
+                return 0.0;
+            }
 
-            // Make pattern fade towards center and edge
-            float centerFade = smoothstep(0.0, 0.3, dist);  // Fade in from center
-            float edgeFade = 1.0 - smoothstep(0.7, 1.0, dist);  // Fade out at edge
+            // Calculate distance from ring center (not circle center)
+            float distFromRingCenter = abs(dist - ringCenterRadius);
+            float halfThickness = outerRingThickness / 2.0;
 
-            return pattern * centerFade * edgeFade;
+            // Normalize distance from ring center (0.0 at ring center, 1.0 at ring edges)
+            float normalizedDist = distFromRingCenter / halfThickness;
+
+            // Start fading at outerRingFadeStart (30% from ring center)
+            float intensity = 1.0;
+            if (normalizedDist > outerRingFadeStart) {
+                // Fade from fadeStart to edge
+                float fadeRange = 1.0 - outerRingFadeStart;
+                float fadeProgress = (normalizedDist - outerRingFadeStart) / fadeRange;
+                intensity = 1.0 - smoothstep(0.0, 1.0, fadeProgress);
+            }
+
+            return intensity;
+        }
+
+        // Calculate constant animated flow streaks
+        float calculateFlowStreaks(vec2 coord, float dist) {
+            float angle = atan(coord.y, coord.x);
+            float normalizedAngle = (angle / TWO_PI) + 0.5;
+
+            float totalStreaks = 0.0;
+
+            // Create 16 constant flow lines evenly distributed
+            for (int i = 0; i < 16; i++) {
+                if (i >= flowStreakCount) break;
+
+                float streakAngle = float(i) / float(flowStreakCount);
+
+                // Angular width of streak - alternate between thin and thick lines
+                float streakWidth = (i % 2 == 0) ? 0.03 : 0.06; // Every second line is thicker
+                float angleDiff = abs(normalizedAngle - streakAngle);
+                if (angleDiff > 0.5) angleDiff = 1.0 - angleDiff;
+
+                float angularIntensity = smoothstep(streakWidth, 0.0, angleDiff);
+
+                // Constant base intensity for the band (always visible)
+                float baseIntensity = 0.5;
+
+                // Create traveling highlight that moves from edge to center
+                // Add randomized offset for each streak to desync animations
+                float streakRandomOffset = random(float(i), 42.0) * 10.0; // Random offset for this streak
+                float animatedPosition = -time * flowStreakSpeed + streakRandomOffset;
+
+                // Create multiple staggered highlights for smooth continuous animation
+                // Ensure minimum spacing to prevent overlap
+                float minSpacing = flowStreakWidth + max(flowStreakGap, 0.05);
+                float highlightSpacing = minSpacing;
+
+                // Determine how many highlights we need to cover the full radius
+                int numHighlights = int(ceil(1.0 / highlightSpacing)) + 1;
+
+                float highlight = 0.0;
+
+                for (int h = 0; h < numHighlights; h++) {
+                    // Offset each highlight by spacing to prevent overlap
+                    float offset = float(h) * highlightSpacing;
+                    float basePosition = animatedPosition + offset;
+
+                    // The highlight travels from edge (1.0) to center (0.0)
+                    // Head is at basePosition, tail extends outward (toward edge)
+                    float headPosition = fract(basePosition);
+                    float tailPosition = fract(basePosition + flowStreakWidth);
+
+                    // Check if current distance is within the highlight range
+                    // Handle wrapping case where tail > head (highlight wraps around from edge)
+                    float isInHighlight = 0.0;
+
+                    if (tailPosition > headPosition) {
+                        // Normal case: tail is further from center than head
+                        if (dist >= headPosition && dist <= tailPosition) {
+                            // Within the highlight range
+                            float distFromHead = dist - headPosition;
+                            float gradientPos = distFromHead / flowStreakWidth;
+
+                            // Smooth fade at head (first 50% of width) and tail (last 80% of width)
+                            float headFade = smoothstep(0.0, 0.5, gradientPos);
+                            float tailFade = smoothstep(1.0, 0.2, gradientPos);
+
+                            isInHighlight = headFade * tailFade;
+                        }
+                    } else {
+                        // Wrapping case: highlight crosses the edge (1.0 -> 0.0 boundary)
+                        if (dist >= headPosition || dist <= tailPosition) {
+                            // Calculate distance from head, handling wrap
+                            float distFromHead;
+                            if (dist >= headPosition) {
+                                distFromHead = dist - headPosition;
+                            } else {
+                                distFromHead = (1.0 - headPosition) + dist;
+                            }
+                            float gradientPos = distFromHead / flowStreakWidth;
+
+                            // Smooth fade at head and tail
+                            float headFade = smoothstep(0.0, 0.5, gradientPos);
+                            float tailFade = smoothstep(1.0, 0.2, gradientPos);
+
+                            isInHighlight = headFade * tailFade;
+                        }
+                    }
+
+                    // Accumulate highlights (use max to prevent overlapping brightening)
+                    highlight = max(highlight, isInHighlight);
+                }
+
+                // Boost highlight brightness
+                highlight = pow(highlight, 0.5) * 0.8;
+
+                // Combine base intensity with traveling highlight
+                float flowIntensity = baseIntensity + highlight;
+
+                // Fade out at center
+                float centerFade = smoothstep(0.0, 0.10, dist);
+
+                // Combine this streak
+                totalStreaks += angularIntensity * flowIntensity * centerFade;
+            }
+
+            return clamp(totalStreaks, 0.0, 1.0);
         }
 
         void main() {
@@ -92,19 +305,40 @@ class SlipspacePortalEntityShader : Shader {
             // Calculate distance from center using adjusted coordinates
             float dist = length(adjustedCoord);
 
-            // Discard fragments outside the circle
+            // Discard fragments outside the main circle
             if (dist > 1.0) {
                 discard;
             }
 
-            // Calculate edge fade
+            // Calculate edge fade (COMMENTED OUT FOR NOW)
             float edgeFade = calculateEdgeFade(dist);
 
-            // Calculate vortex pattern using adjusted coordinates for circular appearance
+            // Calculate breathing pattern using adjusted coordinates
             float vortexPattern = calculateVortexPattern(adjustedCoord, dist);
 
-            // Blend base color with vortex color based on pattern
+            // Calculate base energy flow effect
+            float energyFlow = calculateEnergyFlow(adjustedCoord, dist);
+
+            // Calculate animated flow streaks
+            float flowStreaks = calculateFlowStreaks(adjustedCoord, dist);
+
+            // Blend base color with vortex color based on breathing pattern
             vec3 finalColor = mix(baseColor, vortexColor, vortexPattern);
+
+            // Add base energy flow on top with additive blending
+            finalColor += energyFlowColor * energyFlow * energyFlowIntensity;
+
+            // Add brighter animated flow streaks
+            finalColor += energyFlowColor * flowStreaks * flowStreakIntensity;
+
+            // Calculate and apply outer ring (on top of everything else)
+            float ringIntensity = calculateOuterRing(adjustedCoord, dist);
+
+            // Render ring if intensity > 0
+            if (ringIntensity > 0.0) {
+                // Blend ring color with existing color based on intensity
+                finalColor = mix(finalColor, outerRingColor, ringIntensity);
+            }
 
             // Apply edge fade to alpha
             float alpha = edgeFade;
@@ -225,8 +459,10 @@ class SlipspacePortalEntityShader : Shader {
         // viewMult is higher when zoomed in, so divide to get proper screen-space radius
         val screenRadius = radius / viewport.viewMult
 
-        // Get actual OpenGL viewport dimensions (not affected by zoom)
+        // No need to expand the quad since ring is inside the main circle
+        val expandedScreenRadius = screenRadius
 
+        // Get actual OpenGL viewport dimensions (not affected by zoom)
         val screenWidth = viewport.visibleWidth / viewport.viewMult
         val screenHeight = viewport.visibleHeight / viewport.viewMult
 
@@ -238,8 +474,8 @@ class SlipspacePortalEntityShader : Shader {
         // Standard NDC conversion: (coord / dimension) * 2 - 1
         val ndcCenterX = (circleScreenX / screenWidth) * 2f - 1f
         val ndcCenterY = (circleScreenY / screenHeight) * 2f - 1f
-        val ndcRadiusX = (screenRadius / screenWidth) * 2f
-        val ndcRadiusY = (screenRadius / screenHeight) * 2f
+        val ndcRadiusX = (expandedScreenRadius / screenWidth) * 2f
+        val ndcRadiusY = (expandedScreenRadius / screenHeight) * 2f
 
         val ndcLeft = ndcCenterX - ndcRadiusX
         val ndcRight = ndcCenterX + ndcRadiusX
@@ -279,9 +515,47 @@ class SlipspacePortalEntityShader : Shader {
             glUniform1f(glGetUniformLocation(shaderProgram, "time"), time)
             glUniform1f(glGetUniformLocation(shaderProgram, "edgeFadeStart"), edgeFadeStart)
             glUniform3f(glGetUniformLocation(shaderProgram, "baseColor"), baseColor[0], baseColor[1], baseColor[2])
-            glUniform3f(glGetUniformLocation(shaderProgram, "vortexColor"), vortexColor[0], vortexColor[1], vortexColor[2])
+            glUniform3f(
+                glGetUniformLocation(shaderProgram, "vortexColor"),
+                vortexColor[0],
+                vortexColor[1],
+                vortexColor[2]
+            )
             glUniform1f(glGetUniformLocation(shaderProgram, "vortexSpeed"), vortexSpeed)
             glUniform1i(glGetUniformLocation(shaderProgram, "vortexArms"), vortexArms)
+
+            // Energy flow uniforms
+            glUniform1f(glGetUniformLocation(shaderProgram, "energyFlowSpeed"), energyFlowSpeed)
+            glUniform3f(
+                glGetUniformLocation(shaderProgram, "energyFlowColor"),
+                energyFlowColor[0],
+                energyFlowColor[1],
+                energyFlowColor[2]
+            )
+            glUniform1f(glGetUniformLocation(shaderProgram, "energyFlowIntensity"), energyFlowIntensity)
+            glUniform1i(glGetUniformLocation(shaderProgram, "energyFlowStreams"), energyFlowStreams)
+
+            // Animated flow streak uniforms
+            glUniform1f(glGetUniformLocation(shaderProgram, "flowStreakSpeed"), flowStreakSpeed)
+            glUniform1f(glGetUniformLocation(shaderProgram, "flowStreakIntensity"), flowStreakIntensity)
+            glUniform1i(glGetUniformLocation(shaderProgram, "flowStreakCount"), flowStreakCount)
+            glUniform1f(glGetUniformLocation(shaderProgram, "flowStreakWidth"), flowStreakWidth)
+            glUniform1f(glGetUniformLocation(shaderProgram, "flowStreakGap"), flowStreakGap)
+
+            // Outer ring uniforms
+            glUniform1f(glGetUniformLocation(shaderProgram, "outerRingThickness"), outerRingThickness)
+            glUniform3f(
+                glGetUniformLocation(shaderProgram, "outerRingColor"),
+                outerRingColor[0],
+                outerRingColor[1],
+                outerRingColor[2]
+            )
+            glUniform1f(glGetUniformLocation(shaderProgram, "outerRingFadeStart"), outerRingFadeStart)
+
+            // Inner edge wave distortion uniforms
+            glUniform1f(glGetUniformLocation(shaderProgram, "innerEdgeWaveAmplitude"), innerEdgeWaveAmplitude)
+            glUniform1f(glGetUniformLocation(shaderProgram, "innerEdgeWaveFrequency"), innerEdgeWaveFrequency)
+            glUniform1f(glGetUniformLocation(shaderProgram, "innerEdgeWaveSpeed"), innerEdgeWaveSpeed)
 
             // Bind VAO
             glBindVertexArray(vao)

@@ -6,6 +6,7 @@ import com.fs.starfarer.api.impl.campaign.BaseCustomEntityPlugin
 import org.combustiblelemon.covenantremnants.utils.render.SlipspacePortalEntityShader
 
 class SlipspacePortalEntity : BaseCustomEntityPlugin() {
+    @Transient
     var shader: SlipspacePortalEntityShader = SlipspacePortalEntityShader()
 
     override fun getRenderRange(): Float {
@@ -13,7 +14,7 @@ class SlipspacePortalEntity : BaseCustomEntityPlugin() {
     }
 
     override fun advance(amount: Float) {
-       shader.updateTime(amount)
+        shader.updateTime(amount)
     }
 
     override fun render(layer: CampaignEngineLayers?, viewport: ViewportAPI?) {
@@ -21,7 +22,7 @@ class SlipspacePortalEntity : BaseCustomEntityPlugin() {
             return
         }
 
-        shader?.setPosition(this.entity.location.x, this.entity.location.y, 45f)
-        shader?.render(viewport)
+        shader.setPosition(this.entity.location.x, this.entity.location.y, 45f)
+        shader.render(viewport)
     }
 }

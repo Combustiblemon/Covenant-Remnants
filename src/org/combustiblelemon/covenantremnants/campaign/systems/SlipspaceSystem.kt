@@ -20,7 +20,7 @@ fun generateSlipspaceSystem(sector: SectorAPI) {
     system.doNotShowIntelFromThisLocationOnMap = true
     system.addTag(Tags.DO_NOT_RESPAWN_PLAYER_IN)
     system.addTag(Tags.REPORT_NO_SYSTEM)
-    system.addTag(Tags.SYSTEM_ABYSSAL)
+//    system.addTag(Tags.SYSTEM_ABYSSAL)
     system.addTag(Tags.SYSTEM_CUT_OFF_FROM_HYPER)
     system.addTag(Tags.HIDE_IN_CODEX)
     system.addTag(Tags.NO_TOPOGRAPHY_SCANS)
@@ -30,7 +30,7 @@ fun generateSlipspaceSystem(sector: SectorAPI) {
 
     system.initNonStarCenter()
     system.lightColor = Color(25, 25, 60) // light color in entire system, affects all entities
-    
+
     system.addCustomEntity(SLIPSPACE_JUMP_POINT_ENTRANCE, "Jump point", SLIPSPACE_JUMP_POINT_ENTITY, "neutral")
     system.addCustomEntity(SLIPSPACE_JUMP_POINT_EXIT, "Jump point", SLIPSPACE_JUMP_POINT_ENTITY, "neutral")
 
