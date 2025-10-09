@@ -1,4 +1,4 @@
-package org.combustiblelemon.covenantremnants.abilities
+package org.combustiblelemon.covenantremnants.campaign.abilities
 
 import com.fs.starfarer.api.EveryFrameScript
 import com.fs.starfarer.api.Global
@@ -16,21 +16,22 @@ import com.fs.starfarer.api.impl.campaign.intel.BaseIntelPlugin
 import com.fs.starfarer.api.impl.campaign.tutorial.TutorialMissionIntel
 import com.fs.starfarer.api.ui.TooltipMakerAPI
 import com.fs.starfarer.api.util.Misc
-import com.fs.starfarer.campaign.CampaignEntity
 import org.combustiblelemon.covenantremnants.utils.abilities.initiateSlipspaceJump
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
+import org.combustiblelemon.covenantremnants.utils.render.SlipspaceJumpShader
 import java.awt.Color
 import kotlin.math.max
 
 class SlipspaceJump : BaseDurationAbility() {
+
+    @Transient
+    val shader: SlipspaceJumpShader = SlipspaceJumpShader()
 
     var CR_COST_MULT = 0.1f
     var FUEL_USE_MULT = 1f
 
     var primed: Boolean? = null
     var ping: EveryFrameScript? = null
-    var exitPoint: CampaignEntity? = null
-    var entryPoint: CampaignEntity? = null
 
     override fun activateImpl() {
         val fleet: CampaignFleetAPI? = getFleet()
@@ -307,13 +308,6 @@ class SlipspaceJump : BaseDurationAbility() {
         return !getNonReadyShips().isEmpty() && !isOnCooldown && !isActiveOrInProgress && isUsable()
     }
 
-    //	@Override
-    //	public boolean isUsable() {
-    //		return super.isUsable() &&
-    //					getFleet() != null &&
-    //					//getNonReadyShips().isEmpty() &&
-    //					(getFleet().isAIMode() || computeFuelCost() <= getFleet().getCargo().getFuel());
-    //	}
     override fun getCooldownFraction(): Float {
         if (showAlarm()) {
             return 0f
