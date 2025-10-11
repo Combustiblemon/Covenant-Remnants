@@ -265,3 +265,17 @@ fun getUnapplicableReasonForHullmod(hullmodId: String): String? {
 fun getPercentage(number: Float): Int {
     return abs(round((number - 1f) * 100f)).toInt()
 }
+
+private val shaderCodeMap: MutableMap<String, String> = mutableMapOf()
+
+fun getShaderCode(filepath: String): String {
+    var code = shaderCodeMap[filepath]
+
+    if (code != null) {
+        return code
+    }
+
+    code = Global.getSettings().loadText(filepath)
+    shaderCodeMap[filepath] = code
+    return code
+}

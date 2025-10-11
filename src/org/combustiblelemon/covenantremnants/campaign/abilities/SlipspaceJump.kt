@@ -18,14 +18,10 @@ import com.fs.starfarer.api.ui.TooltipMakerAPI
 import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.utils.abilities.initiateSlipspaceJump
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
-import org.combustiblelemon.covenantremnants.utils.render.SlipspaceJumpShader
 import java.awt.Color
 import kotlin.math.max
 
 class SlipspaceJump : BaseDurationAbility() {
-
-    @Transient
-    val shader: SlipspaceJumpShader = SlipspaceJumpShader()
 
     var CR_COST_MULT = 0.1f
     var FUEL_USE_MULT = 1f

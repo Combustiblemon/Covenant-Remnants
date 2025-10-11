@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants.utils.render
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.getShaderCode
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -18,24 +19,10 @@ class MinimalShader : Shader {
     private var shaderProgram: Int = 0
 
     // Simple vertex shader - passes through NDC coordinates
-    private val vertexShaderSource = """
-        #version 330 core
-        layout (location = 0) in vec2 aPos;
-
-        void main() {
-            gl_Position = vec4(aPos, 0.0, 1.0);
-        }
-    """.trimIndent()
+    private val vertexShaderSource = getShaderCode("data/shaders/minimalShader.vert")
 
     // Simple fragment shader - outputs white color
-    private val fragmentShaderSource = """
-        #version 330 core
-        out vec4 FragColor;
-
-        void main() {
-            FragColor = vec4(1.0, 1.0, 1.0, 1.0); // White color
-        }
-    """.trimIndent()
+    private val fragmentShaderSource = getShaderCode("data/shaders/minimalShader.frag")
 
     init {
         initBuffers()
@@ -51,9 +38,9 @@ class MinimalShader : Shader {
         // NDC range: -1 to 1, so this creates a square from -0.25 to 0.25 on both axes
         val vertices = floatArrayOf(
             -0.25f, -0.25f,  // Bottom-left
-             0.25f, -0.25f,  // Bottom-right
-             0.25f,  0.25f,  // Top-right
-            -0.25f,  0.25f   // Top-left
+            0.25f, -0.25f,  // Bottom-right
+            0.25f, 0.25f,  // Top-right
+            -0.25f, 0.25f   // Top-left
         )
 
         // Create VBO

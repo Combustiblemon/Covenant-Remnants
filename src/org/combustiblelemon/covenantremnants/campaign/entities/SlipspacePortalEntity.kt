@@ -5,13 +5,14 @@ import com.fs.starfarer.api.campaign.CampaignEngineLayers
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.impl.campaign.BaseCustomEntityPlugin
 import com.fs.starfarer.api.util.Misc
+import com.fs.starfarer.campaign.save.`null`
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
 import org.combustiblelemon.covenantremnants.utils.render.SlipspacePortalEntityShader
 import org.combustiblelemon.covenantremnants.utils.render.SlipspacePortalEntityShader.AnimationState
 
 class SlipspacePortalEntity : BaseCustomEntityPlugin() {
     @Transient
-    var shader: SlipspacePortalEntityShader = SlipspacePortalEntityShader()
+    var shader: SlipspacePortalEntityShader? = null
 
     companion object {
         const val RADIUS_TO_ANIMATE = 100f
@@ -22,16 +23,20 @@ class SlipspacePortalEntity : BaseCustomEntityPlugin() {
     }
 
     override fun advance(amount: Float) {
+        if (shader == null) {
+            shader = SlipspacePortalEntityShader()
+        }
+
         val playerFleet = Global.getSector().playerFleet
 
         if (playerFleet.isInSlipspace) {
             val location = playerFleet.location
-            val animationState = shader.getAnimationState()
+            val animationState = shader!!.getAnimationState()
 
             if (Misc.getDistance(this.entity.location, location) <= RADIUS_TO_ANIMATE) {
                 when (animationState) {
                     AnimationState.CLOSED,
-                    AnimationState.CLOSING -> shader.triggerOpening()
+                    AnimationState.CLOSING -> shader!!.triggerOpening()
 
                     AnimationState.OPENING,
                     AnimationState.OPEN -> {
@@ -44,12 +49,12 @@ class SlipspacePortalEntity : BaseCustomEntityPlugin() {
                     }
 
                     AnimationState.OPENING,
-                    AnimationState.OPEN -> shader.triggerClosing()
+                    AnimationState.OPEN -> shader!!.triggerClosing()
                 }
             }
         }
 
-        shader.updateTime(amount)
+        shader!!.updateTime(amount)
     }
 
     override fun render(layer: CampaignEngineLayers?, viewport: ViewportAPI?) {
@@ -57,7 +62,11 @@ class SlipspacePortalEntity : BaseCustomEntityPlugin() {
             return
         }
 
-        shader.setPosition(this.entity.location.x, this.entity.location.y, 45f)
-        shader.render(viewport)
+        if (shader == null) {
+            shader = SlipspacePortalEntityShader()
+        }
+
+        shader!!.setPosition(this.entity.location.x, this.entity.location.y, 45f)
+        shader!!.render(viewport)
     }
 }
