@@ -4,10 +4,8 @@ import com.fs.graphics.util.Fader
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.CampaignFleetAPI
 import com.fs.starfarer.api.campaign.JumpPointAPI.JumpDestination
-import com.fs.starfarer.api.campaign.OrbitAPI
 import com.fs.starfarer.api.campaign.SectorEntityToken
 import com.fs.starfarer.api.campaign.StarSystemAPI
-import com.fs.starfarer.api.combat.ShipAPI.HullSize
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import com.fs.starfarer.api.impl.campaign.abilities.EmergencyBurnAbility
 import com.fs.starfarer.api.impl.campaign.ids.Stats
@@ -15,11 +13,9 @@ import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.api.util.Misc.FleetMemberDamageLevel
 import com.fs.starfarer.campaign.BaseLocation
 import com.fs.starfarer.campaign.BaseScript
-import com.fs.starfarer.campaign.CampaignEngine
 import com.fs.starfarer.campaign.CampaignEngine.TransitionState
 import com.fs.starfarer.campaign.JumpPoint
 import com.fs.starfarer.campaign.fleet.CampaignFleet
-import com.fs.starfarer.campaign.fleet.CampaignFleetMemberView
 import com.fs.starfarer.util.IntervalTracker
 import org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin
 import org.combustiblelemon.covenantremnants.campaign.systems.SLIPSPACE_JUMP_POINT_ENTRANCE
@@ -27,7 +23,6 @@ import org.combustiblelemon.covenantremnants.campaign.systems.SLIPSPACE_JUMP_POI
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
 import org.lwjgl.util.vector.Vector2f
 import org.magiclib.kotlin.pickHiddenLocationNotNearStar
-import java.awt.Color
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -194,9 +189,18 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
             // val fleetViews: MutableCollection<CampaignFleetMemberView> = campaignFleet.fleetView.views
             campaignFleet.setNoEngaging(30.0f)
 
+            val combatEngine = Global.getCombatEngine()
+
             when (this.state) {
                 TransitionState.START -> {
-
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump start",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
 
 
 
@@ -217,6 +221,15 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.MOVING_TO_POINT -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace moving to point",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
                     this.untilCanWarpOut -= amount
                     campaignFleet.setMoveDestinationOverride(fleet.location.x, fleet.location.y)
                     var distanceTo = Misc.getDistance(fleet.location, campaignFleet.location)
@@ -240,6 +253,15 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.WARPING_OUT -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump warping out",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
                     this.elapsedWarpingOut += amount
                     campaignFleet.setMoveDestinationOverride(fleet.location.x, fleet.location.y)
                     campaignFleet.isInJumpTransitionWarpOutStage = true
@@ -250,6 +272,15 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.FADE_OUT -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump fade out",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
                     campaignFleet.setMoveDestinationOverride(fleet.location.x, fleet.location.y)
 
                     this.fader.advance(amount)
@@ -260,6 +291,15 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.SWITCHING_LOCATIONS -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump switching locations",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
                     val destinationToken: SectorEntityToken = destination.destination
                     val destinationLocation = destinationToken.containingLocation
                     val currentLocation: BaseLocation = campaignFleet.containingLocation
@@ -275,8 +315,14 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                     val offsetX = cos(Math.toRadians(angle.toDouble())).toFloat() * distance
                     val offsetY = sin(Math.toRadians(angle.toDouble())).toFloat() * distance
                     campaignFleet.orbit = null
-                    campaignFleet.setLocation(destinationToken.location.x + offsetX, destinationToken.location.y + offsetY)
-                    campaignFleet.setMoveDestinationOverride(destinationToken.location.x + offsetX, destinationToken.location.y + offsetY)
+                    campaignFleet.setLocation(
+                        destinationToken.location.x + offsetX,
+                        destinationToken.location.y + offsetY
+                    )
+                    campaignFleet.setMoveDestinationOverride(
+                        destinationToken.location.x + offsetX,
+                        destinationToken.location.y + offsetY
+                    )
                     if (isPlayerFleet) {
                         this.state = TransitionState.FADE_IN
                         this.fader.fadeOut()
@@ -287,6 +333,15 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.FADE_IN -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump fade in",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
                     this.fader.advance(amount)
 
                     if (this.fader.isFadedOut) {
@@ -296,6 +351,16 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.WARPING_IN -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump warp in",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
+
                     this.elapsedWarpingIn += amount
 
 
@@ -312,6 +377,16 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.FINISH -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump finish",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
+
                     sector.viewport.alphaMult = 1.0f
                     campaignFleet.setNoEngaging(1.0f)
                     if (campaignFleet.getMoveDestinationSetWhileInLocation() == null || !campaignFleet.getMoveDestinationSetWhileInLocation()
@@ -325,6 +400,15 @@ fun doSlipspaceTransition(destination: JumpDestination, fleet: CampaignFleetAPI,
                 }
 
                 TransitionState.ABORT -> {
+                    combatEngine.addFloatingText(
+                        combatEngine.playerShip.location,
+                        "Slipspace jump abort",
+                        40f,
+                        Misc.getTextColor(),
+                        combatEngine.playerShip,
+                        0f, 0f
+                    )
+
                     sector.viewport.alphaMult = 1.0f
                     campaignFleet.setMoveDestinationOverride(campaignFleet.location.x, campaignFleet.location.y)
                     campaignFleet.isInJumpTransitionWarpOutStage = false
