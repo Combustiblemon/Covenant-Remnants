@@ -1,0 +1,105 @@
+{
+  "hullName": "Destroyer 1",
+  "hullId": "covenantremnants_destroyer1",
+  "hullSize": "DESTROYER",
+  "spriteName": "graphics/ships/covenantremnants_destroyer1.png",
+  "style": "HIGH_TECH",
+  "height": 215,
+  "width": 94,
+  "center": [47, 107.5],
+  "collisionRadius": 135.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 135.5,
+  "viewOffset": 0,
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 25,
+      "angle": 0,
+      "locations": [95.5, -0]
+    },
+    {
+      "id": "WS0002",
+      "size": "SMALL",
+      "type": "SYNERGY",
+      "mount": "TURRET",
+      "arc": 125,
+      "angle": 25,
+      "locations": [19.5, 21.5]
+    },
+    {
+      "id": "WS0003",
+      "size": "SMALL",
+      "type": "SYNERGY",
+      "mount": "TURRET",
+      "arc": 125,
+      "angle": -25,
+      "locations": [19.5, -21.5]
+    },
+    {
+      "id": "WS0004",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 125,
+      "angle": 25,
+      "locations": [-12, 27.5]
+    },
+    {
+      "id": "WS0005",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 125,
+      "angle": -25,
+      "locations": [-12, -27.5]
+    },
+    {
+      "id": "WS0006",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 125,
+      "angle": 45,
+      "locations": [-38.5, 15]
+    },
+    {
+      "id": "WS0007",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 125,
+      "angle": -45,
+      "locations": [-38.5, -15]
+    }
+  ],
+  "engineSlots": [],
+  "bounds": [
+    -106.5, -5.5,
+    -97, -13.5,
+    -61.5, -22.5,
+    -30.5, -37,
+    -12.5, -43.5,
+    -1.5, -43,
+    36.5, -27,
+    45.5, -27,
+    51.5, -23.5,
+    91.5, -21,
+    101.5, -13.5,
+    106.5, -0,
+    101.5, 13.5,
+    91.5, 21,
+    51.5, 23.5,
+    45.5, 27,
+    36.5, 27,
+    -1.5, 43,
+    -12.5, 43.5,
+    -30.5, 37,
+    -61.5, 22.5,
+    -97, 13.5,
+    -106.5, 5.5
+  ]
+}

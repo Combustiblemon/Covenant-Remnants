@@ -1,0 +1,191 @@
+{
+  "hullName": "Battle Cruiser",
+  "hullId": "covenantremnants_battlecruiser",
+  "hullSize": "CAPITAL_SHIP",
+  "spriteName": "graphics/ships/covenantremnants_battlecruiser.png",
+  "style": "HIGH_TECH",
+  "height": 395,
+  "width": 153,
+  "center": [76.5, 197.5],
+  "collisionRadius": 216,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 216.5,
+  "viewOffset": 0,
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 114.5,
+      "locations": [-121, 33]
+    },
+    {
+      "id": "WS0002",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -114.5,
+      "locations": [-121, -33]
+    },
+    {
+      "id": "WS0003",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 78.5,
+      "locations": [-73, 54]
+    },
+    {
+      "id": "WS0004",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -78.5,
+      "locations": [-73, -54]
+    },
+    {
+      "id": "WS0005",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 78.5,
+      "locations": [-51.5, 63.5]
+    },
+    {
+      "id": "WS0006",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -78.5,
+      "locations": [-51.5, -63.5]
+    },
+    {
+      "id": "WS0007",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 78.5,
+      "locations": [-17.5, 50.5]
+    },
+    {
+      "id": "WS0008",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -78.5,
+      "locations": [-17.5, -50.5]
+    },
+    {
+      "id": "WS0009",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 78.5,
+      "locations": [4, 42.5]
+    },
+    {
+      "id": "WS0010",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -78.5,
+      "locations": [4, -42.5]
+    },
+    {
+      "id": "WS0011",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 78.5,
+      "locations": [66, 32]
+    },
+    {
+      "id": "WS0012",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -78.5,
+      "locations": [66, -32]
+    },
+    {
+      "id": "WS0013",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 78.5,
+      "locations": [90.5, 23.5]
+    },
+    {
+      "id": "WS0014",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": -78.5,
+      "locations": [90.5, -23.5]
+    },
+    {
+      "id": "WS0015",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 0,
+      "angle": 0,
+      "locations": [184.5, -0.5]
+    }
+  ],
+  "engineSlots": [],
+  "bounds": [
+    -181, -8.5,
+    -173, -16,
+    -176.5, -24.5,
+    -176.5, -47,
+    -165, -53,
+    -115.5, -56.5,
+    -97.5, -69.5,
+    -55, -75.5,
+    -44, -68.5,
+    -34.5, -67,
+    11, -57,
+    34.5, -41,
+    56, -40.5,
+    103, -26,
+    115, -25.5,
+    140, -29.5,
+    173, -30,
+    190.5, -20,
+    197.5, -0.5,
+    190.5, 20,
+    173, 30,
+    140, 29.5,
+    115, 25.5,
+    103, 26,
+    56, 40.5,
+    34.5, 41,
+    11, 57,
+    -34.5, 67,
+    -44, 68.5,
+    -55, 75.5,
+    -97.5, 69.5,
+    -115.5, 56.5,
+    -165, 53,
+    -176.5, 47,
+    -176.5, 24.5,
+    -173, 16,
+    -181, 8.5
+  ]
+}

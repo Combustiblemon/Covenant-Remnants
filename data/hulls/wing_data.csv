@@ -1,5 +1,4 @@
 id,variant,tags,tier,rarity,fleet pts,op cost,formation,range,attackRunRange,attackPositionOffset,num,role,role desc,refit,base value,,,,,,,,,,,,,number
-covenant_remnants_banshee_variant_wing,covenant_remnants_banshee_variant,"covenant_bp, fighter, high, no_bp_drop",0,,0,0,BOX,2000,200,0,4,FIGHTER,Fighter,10,2000,,,,,,,,,,,,,
-covenant_remnants_banshee2_variant_wing,covenant_remnants_banshee2_variant,"covenant_bp, fighter, high, no_bp_drop",2,,0,0,CLAW,4000,500,0,3,FIGHTER,Fighter,10,2000,,,,,,,,,,,,,
-covenant_remnants_banshee_heavy_variant_wing,covenant_remnants_banshee_heavy_variant,"covenant_bp, no_bp_drop",2,,0,0,BOX,4000,500,0,2,INTERCEPTOR,Interceptor,10,2000,,,,,,,,,,,,,
-covenant_remnants_seraph_variant_wing,covenant_remnants_seraph_variant,"bomber, covenant_bp, attack_at_an_angle, high, no_bp_drop",3,,6,10,V,4000,2000,600,2,BOMBER,Bomber,10,4000,,,,,,,,,,,,,
+covenantremnants_wing1,covenantremnants_wing1_variant,fighter,3,0.5,7,18,V,0,500,,2,SUPPORT,Support,15,11000,,,,,,,,,,,,,2
+covenantremnants_wing2,covenantremnants_wing2_variant,fighter,3,0.5,5,16,V,0,500,,2,SUPPORT,Support,15,10000,,,,,,,,,,,,,2
+covenantremnants_wing3,covenantremnants_wing3_variant,fighter,3,0.5,6,17,V,0,500,,2,SUPPORT,Support,15,12000,,,,,,,,,,,,,2

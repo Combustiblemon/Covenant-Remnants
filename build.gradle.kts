@@ -33,6 +33,7 @@ dependencies {
     compileOnly(files("../../starsector-core/fs.common_obf.jar"))
     compileOnly(files("../../starsector-core/fs.sound_obf.jar"))
     compileOnly(files("../../starsector-core/starfarer_obf.jar"))
+    compileOnly(files("../../starsector-core/json.jar")) // loadCSV() returns org.json.JSONArray
 
     // LWJGL for Vector2f and other game library classes
     compileOnly(files("../../starsector-core/lwjgl.jar"))
