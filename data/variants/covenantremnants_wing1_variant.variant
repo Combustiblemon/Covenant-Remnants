@@ -1,0 +1,24 @@
+{
+  "variantId": "covenantremnants_wing1_variant",
+  "hullId": "covenantremnants_wing1",
+  "displayName": "New Variant",
+  "goalVariant": false,
+  "fluxCapacitors": 0,
+  "fluxVents": 0,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "ioncannon",
+        "WS0002": "taclaser",
+        "WS0003": "taclaser"
+      }
+    }
+  ],
+  "modules": [],
+  "wings": []
+}

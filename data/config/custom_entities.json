@@ -1,0 +1,17 @@
+{
+  "slipspace_jump_point": {
+    "defaultName": "Slipspace Portal",
+    "defaultRadius": 45,
+    "detectionRange": 0,
+    "showInCampaign": true,
+    "icon": "graphics/icons/abyssal_light.png",
+    "iconWidth": 18,
+    "iconHeight": 18,
+    "customDescriptionId": "abyssal_light",
+    "renderCircleIndicator": false,
+    "interactionImage": "graphics/illustrations/abyssal_light.jpg",
+    "tags": ["has_interaction_dialog", "neutrino_high"],
+    "layers": ["STATIONS", "TERRAIN_8"],
+    "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
+  }
+}

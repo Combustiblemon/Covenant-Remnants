@@ -4,7 +4,7 @@
   },
   "graphics": {
     "covenant_remnants": {
-      "shield_noise": "graphics/covenant_remnants/fx/shield/noise.png"
+      "slipspace_bg": "graphics/covenant_remnants/backgrounds/slipspace_bg.png"
     }
   }
 }

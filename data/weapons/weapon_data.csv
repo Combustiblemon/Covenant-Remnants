@@ -1,16 +1,9 @@
-name,id,tier,rarity,base value,range,damage/second,damage/shot,emp,impact,turn rate,OPs,ammo,ammo/sec,reload size,type,energy/shot,energy/second,chargeup,chargedown,burst size,burst delay,min spread,max spread,spread/shot,spread decay/sec,beam speed,proj speed,launch speed,flight time,proj hitpoints,autofireAccBonus,extraArcForAI,hints,tags,groupTag,tech/manufacturer,for weapon tooltip>>,primaryRoleStr,speedStr,trackingStr,turnRateStr,accuracyStr,customPrimary,customPrimaryHL,customAncillary,customAncillaryHL,noDPSInTooltip,number
-Plasma Torpedo Launcher,covenant_remnants_plasmamissile,3,,40000,2000,,1500,,15,50,15,5,0.05,,HIGH_EXPLOSIVE,1000,,0,5,1,,0,0,0,0,,1000,200,10,400,,,"DO_NOT_AIM, DO_NOT_CONSERVE","covenant_bp, rare_bp",,The Covenant,,Anti Capital,Extremely Fast,Excellent,,,,,,,,1
-Plasma Missile Launcher,.,3,,40000,1000,,1500,,15,50,8,2,0.05,,HIGH_EXPLOSIVE,1000,,0,5,1,,0,0,0,0,,1000,200,10,400,,,"DO_NOT_AIM, DO_NOT_CONSERVE","covenant_bp, rare_bp",,The Covenant,,Anti Capital,Extremely Fast,Excellent,,,,,,,,1
-Plasma Lance,covenant_remnants_plasmalance,3,,8000,1000,7500,,1000,0,7,30,,,,FRAGMENTATION,,4000,1,1,1,4,,,,,10000,,,,,,,"USE_LESS_VS_SHIELDS,NO_TURN_RATE_BOOST_WHEN_IDLE,STRIKE ","covenant_bp, rare_bp",,The Covenant,,Anti Capital,,,,,,,,,TRUE,3
-Heavy Plasma Beam,covenant_remnants_plasmabeam,3,,8000,800,1000,,500,0,10,25,,,,ENERGY,,700,1,0.7,1,4,,,,,10000,,,,,,,"USE_LESS_VS_SHIELDS,","covenant_bp, rare_bp",,The Covenant,,Anti Ship,,,,,,,,,,4
-Plasma Cannon,covenant_remnants_plasmacannon,2,,1000,800,,200,,0,7,10,3,0.1,1,KINETIC,300,,0.1,4,,,,,,,,300,,,,,,DO_NOT_CONSERVE,"covenant_bp, rare_bp",,The Covenant,,General,Slow,,,,,,,,,5
-Plasma Repeater,covenant_remnants_plasmarepeater,0,,100,300,,40,,1,50,3,,,,ENERGY,10,,0,0.4,5,0.2,0,5,1,15,,400,,,10,,,,"covenant_bp, rare_bp",,The Covenant,,General,,,,,,,,,,0.5
-Plasma Artillery,covenant_remnants_plasmaartillery,2,,6000,1000,,900,,20,10,24,,,,KINETIC,1100,,0,5,1,,0,5,1,10,,400,,,100,,,,"covenant_bp, rare_bp",,,,General,,,,,,,,,,7.5
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#SPECIAL,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-Energy Projector,covenant_remnants_energyprojector,3,,8000,1000,3000,,,0,5,0,,,,HIGH_EXPLOSIVE,,1000,1,2,3,15,,,,,10000,,,,,,,"USE_LESS_VS_SHIELDS,SYSTEM,NO_TURN_RATE_BOOST_WHEN_IDLE","no_drop, no_drop_salvage",,The Covenant,,Anti Capital,,,,,,,,,TRUE,2
-Plasma Missile Launcher (F),covenant_remnants_plasmamissile_fighter,3,,40000,1000,,1500,,15,50,0,1,,,HIGH_EXPLOSIVE,0,,0,5,1,,0,0,0,0,,1000,200,10,400,,,STRIKE,"no_drop, no_drop_salvage",,The Covenant,,Torpedo,Fast,Excellent,,,,,,,,1
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-#SYSTEM,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-Plasma Torpedo Launcher,covenant_remnants_plasmabarrage_capital,,,40000,1800,,1000,200,0,30,0,3,0.05,,ENERGY,1000,,2,10,1,10,0,0,0,0,,400,200,15,600,,,"DO_NOT_AIM, DO_NOT_CONSERVE, SYSTEM","no_drop, no_drop_salvage",,The Covenant,,Anti Capital,Extremely Fast,Excellent,,,,,,,,1
-,covenant_remnants_plasmabarrage_frigate,,,40000,1000,,1000,,0,50,0,1,2,,FRAGMENTATION,1000,,0,1,1,,0,0,0,0,,500,200,15,10000,,,"DO_NOT_AIM, DO_NOT_CONSERVE, SYSTEM","no_drop, no_drop_salvage",,The Covenant,,Anti Hull,Extremely Fast,Excellent,,,,,,,,1
+name,id,rarity,base_value,range,damage/second,damage/shot,emp,impact,turn rate,OPs,ammo,ammo/sec,reload size,type,energy/shot,energy/second,chargeup,chargedown,burst size,burst delay,min spread,max spread,spread/shot,spread decay/sec,beam speed,proj speed,launch speed,flight time,proj hitpoints,autofireAccBonus,extraArcForAI,hints,tags,groupTag,tech/manufacturer,for weapon tooltip>>,primaryRoleStr,speedStr,trackingStr,turnRateStr,accuracyStr,customPrimary,customPrimaryHL,customAncillary,customAncillaryHL,noDPSInTooltip,number
+#Energy,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Frigate Turret (Built-in),covenantremnants_frigate1_turret,1,1500,600,1000,,,0,20,10,,,,ENERGY,,800,0.25,0.5,1,4,,,,,3200,,,,,,,,"energy14, beam10, rare_bp, merc, ind",,,,General,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+#Decorative,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+supercap1covercap,supercap1covercap,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"no_drop, no_drop_salvage, restricted",,,,,,,,,,,,,,
+supercap1covercap,supercap2covercap,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"no_drop, no_drop_salvage, restricted",,,,,,,,,,,,,,
+capital1covercap,capital1covercap,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"no_drop, no_drop_salvage, restricted",,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
