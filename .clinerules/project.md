@@ -1,0 +1,1 @@
+This is a starsector mod. If you need to check the API or game internals, use the starsector-knowledge skill instead of asking me. If you still have questions about the mod itself, or starsector you can ask me.
