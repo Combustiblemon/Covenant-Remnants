@@ -1,0 +1,22 @@
+{
+  "variantId": "covenant_remnants_supercap1_std",
+  "hullId": "covenant_remnants_supercap1",
+  "displayName": "Standard",
+  "goalVariant": true,
+  "fluxCapacitors": 40,
+  "fluxVents": 40,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    { "autofire": false, "mode": "LINKED", "weapons": { "WS0001": "autopulse", "WS0002": "autopulse", "WS0003": "autopulse", "WS0004": "autopulse" } },
+    { "autofire": false, "mode": "LINKED", "weapons": { "WS0005": "gravitonbeam", "WS0006": "gravitonbeam", "WS0007": "gravitonbeam", "WS0008": "gravitonbeam" } },
+    { "autofire": true, "mode": "LINKED", "weapons": { "WS0009": "lrpdlaser", "WS0010": "lrpdlaser", "WS0011": "lrpdlaser", "WS0012": "lrpdlaser" } }
+  ],
+  "modules": [],
+  "wings": [
+    "broadsword_wing",
+    "broadsword_wing",
+    "broadsword_wing"
+  ]
+}

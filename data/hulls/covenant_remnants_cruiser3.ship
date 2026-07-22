@@ -1,0 +1,30 @@
+{
+  "hullName": "ORS-class Light Cruiser",
+  "hullId": "covenant_remnants_cruiser3",
+  "hullSize": "CRUISER",
+  "spriteName": "graphics/ships/covenant_remnants_cruiser3.png",
+  "style": "HIGH_TECH",
+  "height": 345,
+  "width": 194,
+  "center": [97, 172.5],
+  "collisionRadius": 171.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 171.5,
+  "viewOffset": 0,
+  "weaponSlots": [
+    { "id": "WS0001", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 6, "angle": 0, "locations": [70, 0] },
+    { "id": "WS0002", "size": "MEDIUM", "type": "ENERGY", "mount": "HARDPOINT", "arc": 5, "angle": 0, "locations": [40, 42] },
+    { "id": "WS0003", "size": "MEDIUM", "type": "ENERGY", "mount": "HARDPOINT", "arc": 5, "angle": 0, "locations": [40, -42] }
+  ],
+  "engineSlots": [
+    { "location": [-155, 20], "length": 36, "width": 10, "angle": 180, "contrailSize": 9, "style": "HIGH_TECH" },
+    { "location": [-158, 0], "length": 40, "width": 12, "angle": 180, "contrailSize": 10, "style": "HIGH_TECH" },
+    { "location": [-155, -20], "length": 36, "width": 10, "angle": 180, "contrailSize": 9, "style": "HIGH_TECH" }
+  ],
+  "bounds": [
+    7.5, -87.0, -23.5, -63.0, -37.5, -55.0, -53.5, -48.0, -128.5, -30.0, -124.5, 0.0,
+    -128.5, 31.0, -53.5, 49.0, -37.5, 56.0, -23.5, 64.0, 7.5, 89.0, 28.5, 95.0,
+    52.5, 95.0, 41.5, 44.0, 47.5, 33.0, 63.5, 27.0, 151.5, 33.0, 171.5, 1.0,
+    151.5, -32.0, 63.5, -26.0, 47.5, -32.0, 41.5, -43.0, 52.5, -94.0, 28.5, -94.0
+  ]
+}

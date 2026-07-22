@@ -1,0 +1,28 @@
+{
+  "hullName": "Type-27 Banshee",
+  "hullId": "covenant_remnants_wing3",
+  "hullSize": "FIGHTER",
+  "spriteName": "graphics/ships/wings/covenant_remnants_wing3.png",
+  "style": "HIGH_TECH",
+  "height": 57,
+  "width": 46,
+  "center": [23, 28.5],
+  "collisionRadius": 30,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 30,
+  "viewOffset": 0,
+  "weaponSlots": [
+    { "id": "WS0001", "size": "SMALL", "type": "ENERGY", "mount": "HIDDEN", "arc": 25, "angle": 0, "locations": [20, 6] },
+    { "id": "WS0002", "size": "SMALL", "type": "ENERGY", "mount": "HIDDEN", "arc": 25, "angle": 0, "locations": [20, -6] }
+  ],
+  "engineSlots": [
+    { "location": [-18, 5], "length": 9, "width": 3, "angle": 180, "contrailSize": 3, "style": "HIGH_TECH" },
+    { "location": [-18, -5], "length": 9, "width": 3, "angle": 180, "contrailSize": 3, "style": "HIGH_TECH" }
+  ],
+  "bounds": [
+    4.5, -13.0, 1.5, -12.0, -1.5, -10.0, -3.5, -10.0, -6.5, -8.0, -11.5, -7.0,
+    -17.5, -4.0, -11.5, 1.0, -17.5, 5.0, -11.5, 8.0, -6.5, 9.0, -3.5, 11.0,
+    -1.5, 11.0, 14.5, 23.0, 19.5, 20.0, 13.5, 8.0, 25.5, 5.0, 20.5, 1.0,
+    25.5, -4.0, 13.5, -7.0, 19.5, -19.0, 14.5, -22.0
+  ]
+}

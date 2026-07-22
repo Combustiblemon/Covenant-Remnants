@@ -1,0 +1,22 @@
+{
+  "variantId": "covenant_remnants_frigate3_std",
+  "hullId": "covenant_remnants_frigate3",
+  "displayName": "Standard",
+  "goalVariant": true,
+  "fluxCapacitors": 4,
+  "fluxVents": 4,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "taclaser"
+      }
+    }
+  ],
+  "modules": [],
+  "wings": []
+}

@@ -1,0 +1,8 @@
+{
+  "id": "covenant_remnants_pd_overdrive",
+  "type": "STAT_MOD",
+  "aiType": "NONE",
+  "statsScript": "org.combustiblelemon.covenantremnants.systems.PDOverdrive",
+
+  "outOfUsesSound": "gun_out_of_ammo"
+}

@@ -1,0 +1,76 @@
+{
+  "hullName": "Ceudar-pattern Heavy Corvette",
+  "hullId": "covenant_remnants_frigate2",
+  "hullSize": "FRIGATE",
+  "spriteName": "graphics/ships/covenant_remnants_frigate2.png",
+  "style": "HIGH_TECH",
+  "height": 119,
+  "width": 81,
+  "center": [40.5, 59.5],
+  "collisionRadius": 59.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 59.5,
+  "viewOffset": 0,
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "HARDPOINT",
+      "arc": 5,
+      "angle": 0,
+      "locations": [35, 0]
+    },
+    {
+      "id": "WS0002",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 240,
+      "angle": 90,
+      "locations": [10, 20]
+    },
+    {
+      "id": "WS0003",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 240,
+      "angle": -90,
+      "locations": [10, -20]
+    }
+  ],
+  "engineSlots": [
+    {
+      "location": [-48, 10],
+      "length": 16,
+      "width": 5,
+      "angle": 180,
+      "contrailSize": 4,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-52, 0],
+      "length": 16,
+      "width": 5,
+      "angle": 180,
+      "contrailSize": 4,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-48, -10],
+      "length": 16,
+      "width": 5,
+      "angle": 180,
+      "contrailSize": 4,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    5.5, -39.5, -3.5, -36.5, -16.5, -26.5, -23.5, -22.5, -30.5, -16.5, -51.5, -12.5,
+    -58.5, 0.5, -51.5, 13.5, -30.5, 17.5, -23.5, 23.5, -16.5, 27.5, -3.5, 37.5,
+    5.5, 40.5, 13.5, 39.5, 21.5, 35.5, 27.5, 28.5, 37.5, 26.5, 46.5, 20.5,
+    47.5, 10.5, 59.5, 0.5, 47.5, -9.5, 46.5, -19.5, 37.5, -25.5, 27.5, -27.5,
+    21.5, -34.5, 13.5, -38.5
+  ]
+}

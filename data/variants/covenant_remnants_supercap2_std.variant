@@ -1,0 +1,28 @@
+{
+  "variantId": "covenant_remnants_supercap2_std",
+  "hullId": "covenant_remnants_supercap2",
+  "displayName": "Standard",
+  "goalVariant": true,
+  "fluxCapacitors": 40,
+  "fluxVents": 40,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    { "autofire": false, "mode": "LINKED", "weapons": { "WS0001": "hurricane", "WS0002": "hurricane" } },
+    { "autofire": true, "mode": "LINKED", "weapons": { "WS0003": "gravitonbeam", "WS0004": "gravitonbeam", "WS0005": "gravitonbeam", "WS0006": "gravitonbeam" } },
+    { "autofire": true, "mode": "LINKED", "weapons": { "WS0007": "lrpdlaser", "WS0008": "lrpdlaser", "WS0009": "lrpdlaser", "WS0010": "lrpdlaser", "WS0011": "lrpdlaser", "WS0012": "lrpdlaser" } }
+  ],
+  "modules": [],
+  "wings": [
+    "broadsword_wing",
+    "broadsword_wing",
+    "broadsword_wing",
+    "thunder_wing",
+    "thunder_wing",
+    "thunder_wing",
+    "xyphos_wing",
+    "xyphos_wing",
+    "xyphos_wing"
+  ]
+}

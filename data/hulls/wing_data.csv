@@ -1,4 +1,5 @@
 id,variant,tags,tier,rarity,fleet pts,op cost,formation,range,attackRunRange,attackPositionOffset,num,role,role desc,refit,base value,,,,,,,,,,,,,number
-covenantremnants_wing1,covenantremnants_wing1_variant,fighter,3,0.5,7,18,V,0,500,,2,SUPPORT,Support,15,11000,,,,,,,,,,,,,2
-covenantremnants_wing2,covenantremnants_wing2_variant,fighter,3,0.5,5,16,V,0,500,,2,SUPPORT,Support,15,10000,,,,,,,,,,,,,2
-covenantremnants_wing3,covenantremnants_wing3_variant,fighter,3,0.5,6,17,V,0,500,,2,SUPPORT,Support,15,12000,,,,,,,,,,,,,2
+covenant_remnants_wing1_fighter,covenant_remnants_wing1_fighter,"fighter, rare_bp",3,,6,12,V,4000,500,,2,FIGHTER,Heavy Fighter,12,9000,,,,,,,,,,,,,1
+covenant_remnants_wing1_bomber,covenant_remnants_wing1_bomber,"bomber, rare_bp",3,,6,16,V,4000,2000,600,2,BOMBER,Bomber,16,10000,,,,,,,,,,,,,2
+covenant_remnants_wing2,covenant_remnants_wing2,"interceptor, rare_bp",1,,4,8,V,4000,500,600,5,INTERCEPTOR,Interceptor,6,5000,,,,,,,,,,,,,3
+covenant_remnants_wing3,covenant_remnants_wing3,"fighter, interceptor, rare_bp",3,,6,15,V,6000,500,900,2,FIGHTER,Heavy Interceptor,15,11000,,,,,,,,,,,,,4

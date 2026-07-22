@@ -36,6 +36,9 @@ These are settled. Do not re-open them without asking the developer.
   elite, fast and agile. Strong against whatever is directly in front of them; **weak when
   overwhelmed by large numbers of smaller, more maneuverable ships.** Design ships and weapons to
   express this shape — reward positioning and focus, punish getting swarmed.
+- **Weapon mounts — energy + synergy only.** Covenant hulls carry only `ENERGY` and `SYNERGY`
+  weapon slots — no ballistic, missile-only, hybrid, composite, or universal mounts. Keeps every
+  ship on the plasma/energy identity.
 - **Custom shaders, not GraphicsLib.** The look and feel (energy shields, plasma glow, slipspace
   portals) uses the mod's own GLSL shaders. GraphicsLib is **not** a dependency.
 - **Kotlin.** Code is Kotlin, compiled to `jars/CovenantRemnants.jar` via Gradle.

@@ -1,0 +1,24 @@
+{
+  "variantId": "covenant_remnants_wing1_fighter",
+  "hullId": "covenant_remnants_wing1",
+  "displayName": "Heavy Fighter",
+  "goalVariant": true,
+  "fluxCapacitors": 0,
+  "fluxVents": 0,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "ionpulser",
+        "WS0002": "pulselaser",
+        "WS0003": "pulselaser"
+      }
+    }
+  ],
+  "modules": [],
+  "wings": []
+}

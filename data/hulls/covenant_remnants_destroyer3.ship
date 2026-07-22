@@ -1,0 +1,29 @@
+{
+  "hullName": "CRS-class Strike Destroyer",
+  "hullId": "covenant_remnants_destroyer3",
+  "hullSize": "DESTROYER",
+  "spriteName": "graphics/ships/covenant_remnants_destroyer3.png",
+  "style": "HIGH_TECH",
+  "height": 244,
+  "width": 94,
+  "center": [47, 122],
+  "collisionRadius": 121,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 121,
+  "viewOffset": 0,
+  "weaponSlots": [
+    { "id": "WS0001", "size": "MEDIUM", "type": "ENERGY", "mount": "HARDPOINT", "arc": 5, "angle": 0, "locations": [55, 12] },
+    { "id": "WS0002", "size": "MEDIUM", "type": "ENERGY", "mount": "HARDPOINT", "arc": 5, "angle": 0, "locations": [55, -12] },
+    { "id": "WS0003", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 300, "angle": 0, "locations": [5, 0] }
+  ],
+  "engineSlots": [
+    { "location": [-100, 10], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" },
+    { "location": [-102, 0], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" },
+    { "location": [-100, -10], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" }
+  ],
+  "bounds": [
+    -9.0, -43.0, -31.0, -45.0, -43.0, -43.0, -74.0, -31.0, -117.0, -24.0, -95.0, 1.0,
+    -117.0, 25.0, -74.0, 32.0, -43.0, 44.0, -31.0, 46.0, -9.0, 44.0, 10.0, 39.0,
+    27.0, 29.0, 30.0, 19.0, 121.0, 1.0, 30.0, -18.0, 27.0, -28.0, 10.0, -38.0
+  ]
+}

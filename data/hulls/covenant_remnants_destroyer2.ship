@@ -1,0 +1,31 @@
+{
+  "hullName": "CPV-class Escort Carrier",
+  "hullId": "covenant_remnants_destroyer2",
+  "hullSize": "DESTROYER",
+  "spriteName": "graphics/ships/covenant_remnants_destroyer2.png",
+  "style": "HIGH_TECH",
+  "height": 231,
+  "width": 68,
+  "center": [34, 115.5],
+  "collisionRadius": 114.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 114.5,
+  "viewOffset": 0,
+  "weaponSlots": [
+    { "id": "WS0001", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 45, "locations": [40, 14] },
+    { "id": "WS0002", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -45, "locations": [40, -14] },
+    { "id": "WS0003", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 135, "locations": [-30, 14] },
+    { "id": "WS0004", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -135, "locations": [-30, -14] }
+  ],
+  "engineSlots": [
+    { "location": [-95, 8], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" },
+    { "location": [-98, 0], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" },
+    { "location": [-95, -8], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" }
+  ],
+  "bounds": [
+    2.5, -30.0, -4.5, -32.0, -13.5, -33.0, -33.5, -28.0, -45.5, -22.0, -71.5, -16.0,
+    -49.5, 0.0, -71.5, 17.0, -45.5, 23.0, -33.5, 29.0, -13.5, 34.0, -4.5, 33.0,
+    2.5, 30.0, 9.5, 31.0, 33.5, 25.0, 47.5, 22.0, 114.5, 1.0, 47.5, -21.0,
+    33.5, -24.0, 9.5, -30.0
+  ]
+}

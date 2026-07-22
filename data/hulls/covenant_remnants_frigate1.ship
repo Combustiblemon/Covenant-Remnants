@@ -1,0 +1,50 @@
+{
+  "hullName": "Rasho-pattern Escort Corvette",
+  "hullId": "covenant_remnants_frigate1",
+  "hullSize": "FRIGATE",
+  "spriteName": "graphics/ships/covenant_remnants_frigate1.png",
+  "style": "HIGH_TECH",
+  "height": 109,
+  "width": 44,
+  "center": [22, 54.5],
+  "collisionRadius": 53.5,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 53.5,
+  "viewOffset": 0,
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "MEDIUM",
+      "type": "SYNERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": 0,
+      "locations": [12, 0]
+    }
+  ],
+  "engineSlots": [
+    {
+      "location": [-45, 6],
+      "length": 14,
+      "width": 4,
+      "angle": 180,
+      "contrailSize": 3,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-45, -6],
+      "length": 14,
+      "width": 4,
+      "angle": 180,
+      "contrailSize": 3,
+      "style": "HIGH_TECH"
+    }
+  ],
+  "bounds": [
+    12.5, -14.0, 9.5, -12.0, 6.5, -12.0, 1.5, -13.0, -4.5, -13.0, -9.5, -10.0,
+    -26.5, -8.0, -53.5, 1.0, -26.5, 9.0, -9.5, 11.0, -4.5, 14.0, 1.5, 14.0,
+    6.5, 13.0, 9.5, 13.0, 12.5, 15.0, 16.5, 21.0, 20.5, 18.0, 27.5, 20.0,
+    37.5, 20.0, 44.5, 16.0, 51.5, 9.0, 51.5, -8.0, 44.5, -15.0, 37.5, -19.0,
+    27.5, -19.0
+  ]
+}

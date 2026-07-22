@@ -1,9 +1,17 @@
-hullId,shield hp,shield regen,cooldown,shield regen rate,shield regen delay,broken shield cooldown
-covenantremnants_capital1,12,34,45,56,67,2
-covenantremnants_capital1,12,34,45,56,67,2
-covenantremnants_capital1,12,34,45,56,67,3
-covenantremnants_capital1,12,34,45,56,67,4
-covenantremnants_capital1,12,34,45,56,67,5
-covenantremnants_capital1,12,34,45,56,67,6
-covenantremnants_capital1,12,34,45,56,67,7
-covenantremnants_capital1,12,34,45,56,67,8
+hullId,shield hp,shield regen,cooldown,shield regen delay,broken shield cooldown
+covenant_remnants_frigate1,2400,150,5,1.5,6
+covenant_remnants_frigate2,2500,150,5,1.5,6
+covenant_remnants_frigate3,2600,120,5,2,7
+covenant_remnants_destroyer1,4500,220,5,1.5,6
+covenant_remnants_destroyer2,4000,180,6,2,7
+covenant_remnants_destroyer3,3800,240,4,1.5,6
+covenant_remnants_destroyer4,4000,200,5,1.5,6
+covenant_remnants_cruiser1,9000,300,6,2,7
+covenant_remnants_cruiser2,6000,220,6,2,7
+covenant_remnants_cruiser3,6500,320,4,1.5,6
+covenant_remnants_cruiser4,11000,260,7,2.5,8
+covenant_remnants_capital2,12000,320,7,2.5,8
+covenant_remnants_capital3,8000,350,5,2,7
+covenant_remnants_capital1,15000,300,8,3,9
+covenant_remnants_supercap1,45000,1200,10,4,12
+covenant_remnants_supercap2,35000,1000,12,5,14

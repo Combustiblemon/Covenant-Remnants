@@ -1,0 +1,40 @@
+{
+  "hullName": "CAS-class Assault Carrier",
+  "hullId": "covenant_remnants_supercap1",
+  "hullSize": "CAPITAL_SHIP",
+  "spriteName": "graphics/ships/covenant_remnants_supercap1.png",
+  "style": "HIGH_TECH",
+  "height": 652,
+  "width": 280,
+  "center": [140, 326],
+  "collisionRadius": 326,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 326,
+  "viewOffset": 0,
+  "weaponSlots": [
+    { "id": "WS0001", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 8, "angle": 0, "locations": [200, 30] },
+    { "id": "WS0002", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 8, "angle": 0, "locations": [200, -30] },
+    { "id": "WS0003", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 8, "angle": 0, "locations": [140, 95] },
+    { "id": "WS0004", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 8, "angle": 0, "locations": [140, -95] },
+    { "id": "WS0005", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 180, "angle": 40, "locations": [60, 65] },
+    { "id": "WS0006", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 180, "angle": -40, "locations": [60, -65] },
+    { "id": "WS0007", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 200, "angle": 80, "locations": [0, 100] },
+    { "id": "WS0008", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 200, "angle": -80, "locations": [0, -100] },
+    { "id": "WS0009", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 30, "locations": [100, 45] },
+    { "id": "WS0010", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -30, "locations": [100, -45] },
+    { "id": "WS0011", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 150, "locations": [-110, 55] },
+    { "id": "WS0012", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -150, "locations": [-110, -55] }
+  ],
+  "engineSlots": [
+    { "location": [-300, 30], "length": 70, "width": 18, "angle": 180, "contrailSize": 18, "style": "HIGH_TECH" },
+    { "location": [-310, 12], "length": 80, "width": 22, "angle": 180, "contrailSize": 22, "style": "HIGH_TECH" },
+    { "location": [-310, -12], "length": 80, "width": 22, "angle": 180, "contrailSize": 22, "style": "HIGH_TECH" },
+    { "location": [-300, -30], "length": 70, "width": 18, "angle": 180, "contrailSize": 18, "style": "HIGH_TECH" }
+  ],
+  "bounds": [
+    -8.0, -100.0, -36.0, -123.0, -70.0, -128.0, -130.0, -97.0, -205.0, -44.0, -325.0, 0.0,
+    -205.0, 45.0, -130.0, 98.0, -70.0, 129.0, -36.0, 124.0, -8.0, 102.0, 9.0, 73.0,
+    29.0, 76.0, 97.0, 51.0, 175.0, 42.0, 326.0, 1.0, 175.0, -41.0, 97.0, -50.0,
+    29.0, -75.0, 9.0, -72.0
+  ]
+}

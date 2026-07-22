@@ -1,0 +1,30 @@
+{
+  "variantId": "covenant_remnants_destroyer4_std",
+  "hullId": "covenant_remnants_destroyer4",
+  "displayName": "Standard",
+  "goalVariant": true,
+  "fluxCapacitors": 14,
+  "fluxVents": 14,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "hil"
+      }
+    },
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0002": "lrpdlaser",
+        "WS0003": "lrpdlaser"
+      }
+    }
+  ],
+  "modules": [],
+  "wings": []
+}

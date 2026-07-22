@@ -1,0 +1,17 @@
+{
+  "variantId": "covenant_remnants_cruiser3_std",
+  "hullId": "covenant_remnants_cruiser3",
+  "displayName": "Standard",
+  "goalVariant": true,
+  "fluxCapacitors": 18,
+  "fluxVents": 18,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    { "autofire": false, "mode": "LINKED", "weapons": { "WS0001": "autopulse" } },
+    { "autofire": false, "mode": "LINKED", "weapons": { "WS0002": "heavyblaster", "WS0003": "heavyblaster" } }
+  ],
+  "modules": [],
+  "wings": []
+}

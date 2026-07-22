@@ -1,0 +1,30 @@
+{
+  "variantId": "covenant_remnants_destroyer3_std",
+  "hullId": "covenant_remnants_destroyer3",
+  "displayName": "Standard",
+  "goalVariant": true,
+  "fluxCapacitors": 12,
+  "fluxVents": 12,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "heavyblaster",
+        "WS0002": "heavyblaster"
+      }
+    },
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0003": "pulselaser"
+      }
+    }
+  ],
+  "modules": [],
+  "wings": []
+}

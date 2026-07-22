@@ -1,0 +1,23 @@
+{
+  "variantId": "covenant_remnants_wing2",
+  "hullId": "covenant_remnants_wing2",
+  "displayName": "Interceptor",
+  "goalVariant": true,
+  "fluxCapacitors": 0,
+  "fluxVents": 0,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "pulselaser",
+        "WS0002": "pulselaser"
+      }
+    }
+  ],
+  "modules": [],
+  "wings": []
+}

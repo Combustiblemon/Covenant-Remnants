@@ -1,0 +1,33 @@
+{
+  "hullName": "RCS-class Armored Cruiser",
+  "hullId": "covenant_remnants_cruiser4",
+  "hullSize": "CRUISER",
+  "spriteName": "graphics/ships/covenant_remnants_cruiser4.png",
+  "style": "HIGH_TECH",
+  "height": 318,
+  "width": 162,
+  "center": [81, 159],
+  "collisionRadius": 159,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 159,
+  "viewOffset": 0,
+  "weaponSlots": [
+    { "id": "WS0001", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 6, "angle": 0, "locations": [70, 0] },
+    { "id": "WS0002", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 200, "angle": 60, "locations": [25, 45] },
+    { "id": "WS0003", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 200, "angle": -60, "locations": [25, -45] },
+    { "id": "WS0004", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 130, "locations": [-25, 48] },
+    { "id": "WS0005", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -130, "locations": [-25, -48] }
+  ],
+  "engineSlots": [
+    { "location": [-148, 18], "length": 32, "width": 9, "angle": 180, "contrailSize": 8, "style": "HIGH_TECH" },
+    { "location": [-152, 0], "length": 36, "width": 11, "angle": 180, "contrailSize": 9, "style": "HIGH_TECH" },
+    { "location": [-148, -18], "length": 32, "width": 9, "angle": 180, "contrailSize": 8, "style": "HIGH_TECH" }
+  ],
+  "bounds": [
+    -10.0, -74.0, -29.0, -79.0, -47.0, -75.0, -63.0, -65.0, -75.0, -51.0, -105.0, -45.0,
+    -139.0, -29.0, -158.0, 0.0, -140.0, 30.0, -105.0, 46.0, -75.0, 52.0, -62.0, 65.0,
+    -47.0, 76.0, -29.0, 80.0, -10.0, 75.0, 4.0, 64.0, 31.0, 53.0, 45.0, 45.0,
+    67.0, 38.0, 118.0, 30.0, 159.0, 0.0, 118.0, -29.0, 67.0, -37.0, 45.0, -44.0,
+    31.0, -52.0, 4.0, -62.0
+  ]
+}

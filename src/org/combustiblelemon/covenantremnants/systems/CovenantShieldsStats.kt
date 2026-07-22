@@ -32,6 +32,11 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     private var shieldRegen: Float = 1250f
     private val shieldDamageRechargeCooldown: Float = 0.5f
+    // TODO(fortress): the Reverence-class battleship (covenant_remnants_capital1) carries the
+    //  vanilla "fortressshield" ship system as a trigger. When that system is active on the ship,
+    //  drop shieldDamageMult toward ~0.05 and halt shield decay / boost regen so the custom shield
+    //  becomes near-impenetrable. Check ship?.system?.id == "fortressshield" && it.isActive in the
+    //  per-frame ShipListener.advance()/apply() and modulate these fields off its effectLevel.
     var shieldDamageMult: Float = 0.3f
     var breakCooldownTime = 9f
 

@@ -1,0 +1,23 @@
+{
+  "variantId": "covenant_remnants_wing3",
+  "hullId": "covenant_remnants_wing3",
+  "displayName": "Heavy Interceptor",
+  "goalVariant": true,
+  "fluxCapacitors": 0,
+  "fluxVents": 0,
+  "quality": 1,
+  "permaMods": [],
+  "hullMods": [],
+  "weaponGroups": [
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "ionpulser",
+        "WS0002": "ionpulser"
+      }
+    }
+  ],
+  "modules": [],
+  "wings": []
+}
