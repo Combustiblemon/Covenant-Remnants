@@ -47,6 +47,13 @@ the hulls, and added two new hullmods. All choices confirmed with the developer 
      harder (reinforces "weak when overwhelmed"). All values placeholders (verified stats
      `combat.java:2800/3004/2987`).
 
+7. **Slipspace Drive** (`covenant_remnants_slipspace_drive`) — `hullmods/SlipspaceDriveHullmod.kt`.
+   Flavour/marker hullmod with **no mechanical effect**. Built into **all 16 combat hulls** (added to
+   the `builtInMods` array alongside Systems + Nanolaminate). Visible, `isApplicableToShip` returns
+   false so it can't be manually installed (built-in application bypasses that check). Exists for
+   campaign scripts to detect a slipspace-capable ship via `variant.hasHullMod(ID)`. Distinct from the
+   slipspace drive *ship system* (`covenant_remnants_slipspacedrive`).
+
 ## Key decisions
 - Penalty standalone + Huragok offset; CR magnitude fixed to fraction scale.
 - Systems + Nanolaminate built-in; penalty baseline accepted.

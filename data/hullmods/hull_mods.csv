@@ -25,3 +25,4 @@ Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"req_spaceport,
 Increases venting rate by %s.
 
 Downside: increases overload duration by %s.",,,
+Slipspace Drive,covenant_remnants_slipspace_drive,,,Covenant,"no_drop, no_drop_salvage",,,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.SlipspaceDriveHullmod,"A Covenant slipspace translation drive, integral to the hull. Folds space to carry the ship through slipspace faster than light.",,,

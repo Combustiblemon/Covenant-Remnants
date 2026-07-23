@@ -1,5 +1,5 @@
 {
-  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor", "covenant_remnants_slipspace_drive"],
   "hullName": "Ceudar-pattern Heavy Corvette",
   "hullId": "covenant_remnants_frigate2",
   "hullSize": "FRIGATE",

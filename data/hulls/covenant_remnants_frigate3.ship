@@ -1,5 +1,5 @@
 {
-  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor", "covenant_remnants_slipspace_drive"],
   "hullName": "Ardo'nikapoora-pattern Landing Corvette",
   "hullId": "covenant_remnants_frigate3",
   "hullSize": "FRIGATE",

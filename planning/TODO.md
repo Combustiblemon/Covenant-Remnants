@@ -28,8 +28,9 @@ Keep this file current — tick items off and add new ones as work lands.
 
 - [x] **Hullmod pass** — fixed Covenant Systems' inverted penalty (now standalone, Huragok offsets),
       fixed the maxCR units bug (was +2000% CR), added OP costs to optional mods, baked Covenant
-      Systems + Nanolaminate into all combat hulls as built-in, added **Slipspace Tuning** and
-      **Plasma Capacitors**. See [implementations/hullmod-pass.md](implementations/hullmod-pass.md).
+      Systems + Nanolaminate into all combat hulls as built-in, added **Slipspace Tuning**,
+      **Plasma Capacitors**, and the fluff/marker **Slipspace Drive** hullmod (no-op, built into all
+      combat hulls, for campaign scripts). See [implementations/hullmod-pass.md](implementations/hullmod-pass.md).
       Not yet verified in-game.
 - [ ] **Tune hullmod numbers** — OP costs and all new-mod values are vanilla-anchored placeholders.
 - [ ] **Weapon-buff hullmod** (from PLAN) — still unbuilt: buff plasma/energy weapons, nerf the weapons
