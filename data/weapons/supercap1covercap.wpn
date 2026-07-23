@@ -5,8 +5,8 @@
   "size": "LARGE",
   "collisionClass": "RAY",
   "collisionClassByFighter": "RAY_FIGHTER",
-  "turretSprite": "graphics/weapons/SuperCap1NoseCover.png",
-  "turretUnderSprite": "graphics/weapons/SuperCap1NoseCover.png",
+  "turretSprite": "graphics/covenant_remnants/weapons/SuperCap1NoseCover.png",
+  "turretUnderSprite": "graphics/covenant_remnants/weapons/SuperCap1NoseCover.png",
   "hardpointSprite": "",
   "glowColor": [
     255,

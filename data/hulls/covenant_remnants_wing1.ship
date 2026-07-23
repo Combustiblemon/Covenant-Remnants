@@ -2,7 +2,7 @@
   "hullName": "Seraph",
   "hullId": "covenant_remnants_wing1",
   "hullSize": "FIGHTER",
-  "spriteName": "graphics/ships/wings/covenant_remnants_wing1.png",
+  "spriteName": "graphics/covenant_remnants/ships/wings/covenant_remnants_wing1.png",
   "style": "HIGH_TECH",
   "height": 69,
   "width": 34,

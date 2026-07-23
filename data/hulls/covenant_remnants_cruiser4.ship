@@ -3,7 +3,7 @@
   "hullName": "RCS-class Armored Cruiser",
   "hullId": "covenant_remnants_cruiser4",
   "hullSize": "CRUISER",
-  "spriteName": "graphics/ships/covenant_remnants_cruiser4.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_cruiser4.png",
   "style": "HIGH_TECH",
   "height": 318,
   "width": 162,

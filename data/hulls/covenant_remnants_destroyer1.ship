@@ -3,7 +3,7 @@
   "hullName": "SDV-class Heavy Corvette",
   "hullId": "covenant_remnants_destroyer1",
   "hullSize": "DESTROYER",
-  "spriteName": "graphics/ships/covenant_remnants_destroyer1.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_destroyer1.png",
   "style": "HIGH_TECH",
   "height": 215,
   "width": 94,

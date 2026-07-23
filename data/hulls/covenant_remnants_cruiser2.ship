@@ -3,7 +3,7 @@
   "hullName": "DDS-class Escort Carrier",
   "hullId": "covenant_remnants_cruiser2",
   "hullSize": "CRUISER",
-  "spriteName": "graphics/ships/covenant_remnants_cruiser2.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_cruiser2.png",
   "style": "HIGH_TECH",
   "height": 323,
   "width": 119,

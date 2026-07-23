@@ -3,7 +3,7 @@
   "hullName": "Ket-pattern Assault Destroyer",
   "hullId": "covenant_remnants_destroyer4",
   "hullSize": "DESTROYER",
-  "spriteName": "graphics/ships/covenant_remnants_destroyer4.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_destroyer4.png",
   "style": "HIGH_TECH",
   "height": 217,
   "width": 122,

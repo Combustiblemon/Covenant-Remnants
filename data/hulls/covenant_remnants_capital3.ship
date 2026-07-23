@@ -3,7 +3,7 @@
   "hullName": "CPV-class Heavy Destroyer",
   "hullId": "covenant_remnants_capital3",
   "hullSize": "CAPITAL_SHIP",
-  "spriteName": "graphics/ships/covenant_remnants_capital3.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_capital3.png",
   "style": "HIGH_TECH",
   "height": 287,
   "width": 226,

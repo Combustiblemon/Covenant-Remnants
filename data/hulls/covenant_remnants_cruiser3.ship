@@ -3,7 +3,7 @@
   "hullName": "ORS-class Light Cruiser",
   "hullId": "covenant_remnants_cruiser3",
   "hullSize": "CRUISER",
-  "spriteName": "graphics/ships/covenant_remnants_cruiser3.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_cruiser3.png",
   "style": "HIGH_TECH",
   "height": 345,
   "width": 194,

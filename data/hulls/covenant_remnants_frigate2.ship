@@ -3,7 +3,7 @@
   "hullName": "Ceudar-pattern Heavy Corvette",
   "hullId": "covenant_remnants_frigate2",
   "hullSize": "FRIGATE",
-  "spriteName": "graphics/ships/covenant_remnants_frigate2.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_frigate2.png",
   "style": "HIGH_TECH",
   "height": 119,
   "width": 81,

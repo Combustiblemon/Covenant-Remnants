@@ -3,7 +3,7 @@
   "hullName": "CVS-class Supercarrier",
   "hullId": "covenant_remnants_supercap2",
   "hullSize": "CAPITAL_SHIP",
-  "spriteName": "graphics/ships/covenant_remnants_supercap2.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_supercap2.png",
   "style": "HIGH_TECH",
   "height": 668,
   "width": 200,

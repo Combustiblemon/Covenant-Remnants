@@ -3,7 +3,7 @@
   "hullName": "CCS-class Battlecruiser",
   "hullId": "covenant_remnants_cruiser1",
   "hullSize": "CRUISER",
-  "spriteName": "graphics/ships/covenant_remnants_cruiser1.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_cruiser1.png",
   "style": "HIGH_TECH",
   "height": 341,
   "width": 175,

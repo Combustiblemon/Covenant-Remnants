@@ -3,7 +3,7 @@
   "hullName": "Rasho-pattern Escort Corvette",
   "hullId": "covenant_remnants_frigate1",
   "hullSize": "FRIGATE",
-  "spriteName": "graphics/ships/covenant_remnants_frigate1.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_frigate1.png",
   "style": "HIGH_TECH",
   "height": 109,
   "width": 44,

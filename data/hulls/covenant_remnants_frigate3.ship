@@ -3,7 +3,7 @@
   "hullName": "Ardo'nikapoora-pattern Landing Corvette",
   "hullId": "covenant_remnants_frigate3",
   "hullSize": "FRIGATE",
-  "spriteName": "graphics/ships/covenant_remnants_frigate3.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_frigate3.png",
   "style": "HIGH_TECH",
   "height": 126,
   "width": 82,

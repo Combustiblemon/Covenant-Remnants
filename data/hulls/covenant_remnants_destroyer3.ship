@@ -3,7 +3,7 @@
   "hullName": "CRS-class Strike Destroyer",
   "hullId": "covenant_remnants_destroyer3",
   "hullSize": "DESTROYER",
-  "spriteName": "graphics/ships/covenant_remnants_destroyer3.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_destroyer3.png",
   "style": "HIGH_TECH",
   "height": 244,
   "width": 94,

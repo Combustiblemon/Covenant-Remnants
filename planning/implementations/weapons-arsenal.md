@@ -37,7 +37,7 @@ arsenal is usable in-game now.
   + Covenant wings. Verified: no vanilla ids, every weapon size-fits its slot.
 - **Suppressor Beam** = the migrated `covenant_remnants_frigate1_turret`; set as frigate1's `BUILT_IN`
   weapon (`builtInWeapons` in the hull) and registered as a normal medium-energy weapon. Its sprite
-  `graphics/weapons/covenant_remnants_frigate1_turret.png`.
+  `graphics/covenant_remnants/weapons/covenant_remnants_frigate1_turret.png`.
 
 ## Cleanup done
 

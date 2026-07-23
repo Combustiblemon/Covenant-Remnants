@@ -3,7 +3,7 @@
   "hullName": "CPV-class Escort Carrier",
   "hullId": "covenant_remnants_destroyer2",
   "hullSize": "DESTROYER",
-  "spriteName": "graphics/ships/covenant_remnants_destroyer2.png",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_destroyer2.png",
   "style": "HIGH_TECH",
   "height": 231,
   "width": 68,

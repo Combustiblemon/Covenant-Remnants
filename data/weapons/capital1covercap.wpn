@@ -5,8 +5,8 @@
   "size": "LARGE",
   "collisionClass": "RAY",
   "collisionClassByFighter": "RAY_FIGHTER",
-  "turretSprite": "graphics/weapons/BattleShipNoseCover.png",
-  "turretUnderSprite": "graphics/weapons/BattleShipNoseCover.png",
+  "turretSprite": "graphics/covenant_remnants/weapons/BattleShipNoseCover.png",
+  "turretUnderSprite": "graphics/covenant_remnants/weapons/BattleShipNoseCover.png",
   "hardpointSprite": "",
   "glowColor": [
     255,

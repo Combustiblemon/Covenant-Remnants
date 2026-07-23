@@ -2,9 +2,5 @@
   "designTypeColors": {
     "Covenant": [89, 55, 122, 255]
   },
-  "graphics": {
-    "covenant_remnants": {
-      "slipspace_bg": "graphics/covenant_remnants/backgrounds/slipspace_bg.png"
-    }
-  }
+  "graphics": {}
 }
