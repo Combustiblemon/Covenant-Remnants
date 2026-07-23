@@ -4,7 +4,7 @@
   "hullId": "covenant_remnants_cruiser2",
   "hullSize": "CRUISER",
   "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_cruiser2.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 323,
   "width": 119,
   "center": [59.5, 161.5],

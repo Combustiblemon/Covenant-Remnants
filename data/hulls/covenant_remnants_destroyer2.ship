@@ -4,7 +4,7 @@
   "hullId": "covenant_remnants_destroyer2",
   "hullSize": "DESTROYER",
   "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_destroyer2.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 231,
   "width": 68,
   "center": [34, 115.5],

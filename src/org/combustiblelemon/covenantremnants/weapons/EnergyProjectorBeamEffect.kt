@@ -6,8 +6,8 @@ import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
 import org.combustiblelemon.covenantremnants.plugins.EnergyProjectorPierceRenderPlugin
-import org.combustiblelemon.covenantremnants.utils.getPerpendicularIntersectionPoint
 import org.lazywizard.lazylib.MathUtils
+import org.lazywizard.lazylib.CollisionUtils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -20,8 +20,9 @@ import kotlin.math.sqrt
  * covering it AND its armor is depleted, two things happen:
  *   1. **Melt** — it applies rapidly-ramping bonus HULL damage the longer the burst holds on exposed
  *      hull (resets when the beam leaves, the point re-shields, or armor recovers).
- *   2. **Pierce-through** — the lance punches through the exposed hull and continues behind the
- *      target, dealing energy damage to anything caught on the line past the exit point.
+ *   2. **Pierce-through** — the lance punches through the exposed hull and re-emerges from the
+ *      target's far side, continuing as if a fresh beam were fired from that exit point: it hits the
+ *      FIRST thing it reaches (shield surface or hull), is blocked by shields, and stops there.
  *
  * Wired as the `beamEffect` of `data/weapons/covenant_remnants_energyprojector.wpn`. Turn-lock while
  * firing is handled separately by [EnergyProjectorEffect] (the weapon's `everyFrameEffect`).
@@ -68,8 +69,32 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
         rampTime = min(rampDuration, rampTime + amount)
         val ramp = 1f + (rampCap - 1f) * (rampTime / rampDuration)
 
+        // Pierce segment geometry: continue the lance line past the target. The visible segment starts
+        // at the FAR-side exit surface (not the near entry hit), so the part travelling through the ship
+        // body is never drawn — the hull sprite covers it — and the lance only reappears where it punches
+        // out the back.
+        val from = beam.from
+        var dx = point.x - from.x
+        var dy = point.y - from.y
+        val len = sqrt(dx * dx + dy * dy)
+        if (len < 0.0001f) return
+        dx /= len; dy /= len
+        val exit = farSideExit(target, point, dx, dy)
+
+        // The pierce continues as if a fresh beam were fired from the exit point along the same line:
+        // it strikes the FIRST thing it reaches (nearest shield surface or hull surface), is blocked by
+        // shields, and stops there — it does not tunnel through to a point behind the target. Recomputed
+        // every exposed frame so the visual is blocked live (e.g. an interposing shield stops it now).
+        val hit = firstPierceHit(engine, exit, dx, dy, beam.source, target)
+        val end = hit?.point ?: Vector2f(exit.x + dx * pierceLength, exit.y + dy * pierceLength)
+
+        // Visual: re-render the real beam along the pierce segment. Refreshed on EVERY exposed frame
+        // (before the damage-tick gate) so the pierce tracks the lance continuously — including between
+        // the beam's ~0.1s damage ticks and during its burst fade — instead of strobing per tick.
+        refreshPierceVisual(engine, beam, exit, end)
+
         // Beams batch damage into ~0.1s ticks; between ticks (and during the burst's fade-out) they
-        // deal no weapon damage. Only apply melt / pierce on the frames the beam actually hits.
+        // deal no weapon damage. Only apply melt / pierce damage on the frames the beam actually hits.
         if (!beam.didDamageThisFrame()) return
 
         // The beam's damage this tick. For beams computeDamageDealt uses the beam's own batch duration
@@ -86,48 +111,98 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
             )
         }
 
-        // 2) pierce-through: keep going past the exit point and hit whatever is behind
-        pierceThrough(engine, beam, target, point, frameBase)
+        // 2) pierce-through damage: energy damage at the exact point the pierce beam first makes
+        // contact. bypassShields = false, so a raised shield eats it just like the real beam would.
+        if (hit != null) {
+            val dmg = frameBase * pierceDamageFraction
+            if (dmg > 0f) {
+                engine.applyDamage(
+                    hit.ship, hit.point, dmg, DamageType.ENERGY, 0f,
+                    false /*bypassShields*/, false /*dealsSoftFlux*/, beam.source, false /*playSound*/
+                )
+            }
+        }
     }
 
-    private fun pierceThrough(
-        engine: CombatEngineAPI, beam: BeamAPI,
-        target: ShipAPI, point: Vector2f, frameBase: Float
-    ) {
-        val from = beam.from
-        var dx = point.x - from.x
-        var dy = point.y - from.y
-        val len = sqrt(dx * dx + dy * dy)
-        if (len < 0.0001f) return
-        dx /= len; dy /= len
-        val end = Vector2f(point.x + dx * pierceLength, point.y + dy * pierceLength)
-        val segment = arrayOf(point, end)
+    /**
+     * The point where the lance leaves the target's far side. Cast from a point beyond the ship back
+     * toward the entry hit; the first bounds intersection is the exit surface. Falls back to [entry]
+     * for entities without usable bounds (e.g. some fighters).
+     */
+    private fun farSideExit(target: ShipAPI, entry: Vector2f, dx: Float, dy: Float): Vector2f {
+        val reach = target.collisionRadius * 3f
+        val beyond = Vector2f(entry.x + dx * reach, entry.y + dy * reach)
+        return CollisionUtils.getCollisionPoint(beyond, entry, target) ?: entry
+    }
 
-        // visual: draw the lance continuing past the exit point (self-fades when we stop refreshing)
+    /** Keep one live render plugin per burst; (re)create it when the previous one has expired. */
+    private fun refreshPierceVisual(engine: CombatEngineAPI, beam: BeamAPI, point: Vector2f, end: Vector2f) {
         val rp = pierceRender
         if (rp == null || rp.isExpired) {
             val fresh = EnergyProjectorPierceRenderPlugin()
             engine.addLayeredRenderingPlugin(fresh)
             pierceRender = fresh
-            fresh.refresh(point, end, beam.width, beam.coreColor, beam.fringeColor)
+            fresh.refresh(beam, point, end)
         } else {
-            rp.refresh(point, end, beam.width, beam.coreColor, beam.fringeColor)
+            rp.refresh(beam, point, end)
         }
+    }
 
-        val dmg = frameBase * pierceDamageFraction
-        if (dmg <= 0f) return
+    private class PierceHit(val ship: ShipAPI, val point: Vector2f, val dist: Float)
+
+    /**
+     * First entity the pierce beam reaches on the ray from [exit] along ([dx],[dy]), within
+     * [pierceLength]. Considers each ship's raised shield (ray vs shield circle, clamped to its arc)
+     * and its hull bounds, whichever the ray touches first, and returns the nearest such contact
+     * across all ships. Excludes the pierced [target] and the firing [source]. Null if nothing is hit.
+     */
+    private fun firstPierceHit(
+        engine: CombatEngineAPI, exit: Vector2f, dx: Float, dy: Float,
+        source: ShipAPI?, target: ShipAPI
+    ): PierceHit? {
+        var best: PierceHit? = null
+        val end = Vector2f(exit.x + dx * pierceLength, exit.y + dy * pierceLength)
 
         for (other in engine.ships) {
-            if (other === target || other === beam.source) continue
-            if (!other.isAlive || other.isHulk) continue
-            val hit = getPerpendicularIntersectionPoint(segment, other.location) ?: continue
-            if (MathUtils.getDistance(hit, other.location) <= other.collisionRadius) {
-                engine.applyDamage(
-                    other, hit, dmg, DamageType.ENERGY, 0f,
-                    false /*bypassShields*/, false /*dealsSoftFlux*/, beam.source, false /*playSound*/
-                )
+            if (other === target || other === source) continue
+            if (!other.isAlive || other.isHulk || other.isPhased) continue
+
+            var hitPoint: Vector2f? = null
+
+            // Raised shield first — it sits outside the hull, so the beam meets it before the bounds.
+            val shield = other.shield
+            if (shield != null && shield.isOn) {
+                val sp = rayCircleEntry(exit, dx, dy, pierceLength, shield.location, shield.radius)
+                if (sp != null && shield.isWithinArc(sp)) hitPoint = sp
             }
+            // Otherwise (no shield there / out of arc) the hull bounds.
+            if (hitPoint == null) hitPoint = CollisionUtils.getCollisionPoint(exit, end, other)
+            if (hitPoint == null) continue
+
+            val d = MathUtils.getDistance(exit, hitPoint)
+            if (best == null || d < best.dist) best = PierceHit(other, hitPoint, d)
         }
+        return best
+    }
+
+    /**
+     * Nearest intersection of the ray (unit [dx],[dy] from [origin], length ≤ [maxLen]) with the circle
+     * at [center] radius [r], or null if it misses / is out of range. Used for shield hit points.
+     */
+    private fun rayCircleEntry(
+        origin: Vector2f, dx: Float, dy: Float, maxLen: Float, center: Vector2f, r: Float
+    ): Vector2f? {
+        val ox = origin.x - center.x
+        val oy = origin.y - center.y
+        val b = ox * dx + oy * dy
+        val c = ox * ox + oy * oy - r * r
+        val disc = b * b - c
+        if (disc < 0f) return null
+        val sq = sqrt(disc)
+        var t = -b - sq
+        if (t < 0f) t = -b + sq   // origin inside the circle: take the exit intersection
+        if (t < 0f || t > maxLen) return null
+        return Vector2f(origin.x + dx * t, origin.y + dy * t)
     }
 
     /** True when [point] on [target] has no shield covering it and depleted armor. */

@@ -4,7 +4,7 @@
   "hullId": "covenant_remnants_capital3",
   "hullSize": "CAPITAL_SHIP",
   "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_capital3.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 287,
   "width": 226,
   "center": [113, 143.5],

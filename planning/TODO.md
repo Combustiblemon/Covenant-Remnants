@@ -12,7 +12,9 @@ Keep this file current — tick items off and add new ones as work lands.
       Covenant turret/hardpoint sprites. See [implementations/weapons-arsenal.md](implementations/weapons-arsenal.md).
 - [ ] **Projectile / missile recolor** — bolts and torpedoes reference vanilla `projectileSpecId`,
       so they render in vanilla colours; author Covenant `.proj` (purple) when art is ready.
-- [ ] **Energy Projector art** — bespoke turret + beam (currently vanilla Tachyon Lance sprites).
+- [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance). The beam
+      itself, including the pierce segment, now renders from the `.wpn` beam spec, so it inherits
+      whatever beam colours/texture that spec defines.
 
 ## Code stubs to finish
 

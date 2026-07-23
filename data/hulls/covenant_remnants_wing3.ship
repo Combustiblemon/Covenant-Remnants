@@ -3,7 +3,7 @@
   "hullId": "covenant_remnants_wing3",
   "hullSize": "FIGHTER",
   "spriteName": "graphics/covenant_remnants/ships/wings/covenant_remnants_wing3.png",
-  "style": "HIGH_TECH",
+  "style": "COVENANT",
   "height": 57,
   "width": 46,
   "center": [23, 28.5],
