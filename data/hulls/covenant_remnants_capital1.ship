@@ -1,4 +1,5 @@
 {
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
   "hullName": "Reverence-class Battleship",
   "hullId": "covenant_remnants_capital1",
   "hullSize": "CAPITAL_SHIP",

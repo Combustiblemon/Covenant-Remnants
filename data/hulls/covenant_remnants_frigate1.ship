@@ -1,4 +1,5 @@
 {
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
   "hullName": "Rasho-pattern Escort Corvette",
   "hullId": "covenant_remnants_frigate1",
   "hullSize": "FRIGATE",

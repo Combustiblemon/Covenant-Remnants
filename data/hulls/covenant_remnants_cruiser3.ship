@@ -1,4 +1,5 @@
 {
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
   "hullName": "ORS-class Light Cruiser",
   "hullId": "covenant_remnants_cruiser3",
   "hullSize": "CRUISER",

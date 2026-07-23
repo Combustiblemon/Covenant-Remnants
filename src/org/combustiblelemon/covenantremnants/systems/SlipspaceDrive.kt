@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
+import org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning
 import org.combustiblelemon.covenantremnants.plugins.SlipspaceDriveRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
 import org.combustiblelemon.covenantremnants.utils.getVelocityVectorInFacing
@@ -35,16 +36,23 @@ class SlipspaceDrive : BaseShipSystemScript() {
 
     //    OUT
     private var isOut: Boolean = false
+    private val defaultFluxGate: Float = 0.7f
+
     override fun isUsable(system: ShipSystemAPI, ship: ShipAPI): Boolean {
         // Distance to exit is larger than SYSTEM_USE_DISTANCE
         // No ships within the exit radius
+        // Slipspace Tuning loosens the flux ceiling for jumping.
+        val fluxGate: Float =
+            if (ship.variant != null && ship.variant.hasHullMod(SlipspaceTuning.ID)) SlipspaceTuning.FLUX_GATE
+            else defaultFluxGate
+
         return !system.isActive &&
                 MathUtils.getDistance(
                     ship,
                     ship.mouseTarget
                 ) > systemUseDistance &&
 
-                ship.fluxTracker.currFlux / ship.fluxTracker.maxFlux < 0.7 &&
+                ship.fluxTracker.currFlux / ship.fluxTracker.maxFlux < fluxGate &&
                 CombatUtils.getShipsWithinRange(
                     ship.mouseTarget,
                     ship.shieldRadiusEvenIfNoShield

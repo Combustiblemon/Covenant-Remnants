@@ -24,11 +24,28 @@ Keep this file current — tick items off and add new ones as work lands.
       radius mass-jump (grab ships/fighters/projectiles/missiles in a radius, jump them together).
       Full spec is in the plan-file git history; model on `SlipspaceDrive.kt` + `SlipspaceDriveRenderPlugin`.
 
+## Hullmods
+
+- [x] **Hullmod pass** — fixed Covenant Systems' inverted penalty (now standalone, Huragok offsets),
+      fixed the maxCR units bug (was +2000% CR), added OP costs to optional mods, baked Covenant
+      Systems + Nanolaminate into all combat hulls as built-in, added **Slipspace Tuning** and
+      **Plasma Capacitors**. See [implementations/hullmod-pass.md](implementations/hullmod-pass.md).
+      Not yet verified in-game.
+- [ ] **Tune hullmod numbers** — OP costs and all new-mod values are vanilla-anchored placeholders.
+- [ ] **Weapon-buff hullmod** (from PLAN) — still unbuilt: buff plasma/energy weapons, nerf the weapons
+      themselves to compensate. Deferred from this pass.
+
 ## Balance
 
 - [ ] **Tune all numbers** — every ship, weapon, shield, and system value is a vanilla-anchored
       placeholder. Pass over stats once content is playable in-sim.
 - [ ] Decide Suppressor Beam damage type — ENERGY (current) vs KINETIC (harder anti-shield).
+
+## Dev tooling
+
+- [x] **`CovenantGiveAll` console command** — grants all Covenant ships/weapons/fighters/hullmods
+      (dynamic prefix scan). See [implementations/console-give-all-command.md](implementations/console-give-all-command.md).
+      Not yet verified in-game.
 
 ## From PLAN.md (still open)
 

@@ -1,4 +1,5 @@
 {
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
   "hullName": "SDV-class Heavy Corvette",
   "hullId": "covenant_remnants_destroyer1",
   "hullSize": "DESTROYER",

@@ -1,4 +1,5 @@
 {
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
   "hullName": "CAS-class Assault Carrier",
   "hullId": "covenant_remnants_supercap1",
   "hullSize": "CAPITAL_SHIP",

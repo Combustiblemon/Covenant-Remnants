@@ -1,3 +1,4 @@
 command,class,tags,syntax,help
 RegenerateSlipspace,org.combustiblelemon.covenantremnants.commands.RegenerateSlipspace,core,RegenerateSlipspace,Regenerates the slipspace system
 DebugHook,org.combustiblelemon.covenantremnants.commands.DebugHook,core,DebugHook,Hook for the debugger
+CovenantGiveAll,org.combustiblelemon.covenantremnants.commands.CovenantGiveAll,"core,cheat,campaign",CovenantGiveAll,Grants all Covenant ships/weapons/fighters/hullmods (dev cheat)

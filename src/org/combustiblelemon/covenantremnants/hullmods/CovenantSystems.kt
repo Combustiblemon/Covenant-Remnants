@@ -17,7 +17,9 @@ class CovenantSystems : BaseHullMod() {
     }
 
     private val ENERGY_WEAPON_FLUX_MULT = 0.8f
-    private val MAX_COMBAT_READINESS_MULT = 20f
+
+    // maxCombatReadiness is a 0-1 fraction, so 0.20f == -20 percentage points of max CR.
+    private val MAX_CR_PENALTY = 0.20f
     private val REPAIR_PER_DAY_MULT = 0.75f
 
     companion object {
@@ -61,15 +63,14 @@ class CovenantSystems : BaseHullMod() {
         stats.energyWeaponRangeBonus.modifyMult(ID, rangeMult)
         stats.energyWeaponFluxCostMod.modifyMult(ID, ENERGY_WEAPON_FLUX_MULT)
 
-        if (stats.variant != null && stats.variant.hullMods.contains(HuragokCrew.ID)) {
-            stats.maxCombatReadiness.modifyFlat(ID, MAX_COMBAT_READINESS_MULT)
-            stats.repairRatePercentPerDay.modifyMult(ID, REPAIR_PER_DAY_MULT)
-        }
+        // Standalone penalty: always applied. Huragok Crew offsets it when installed.
+        stats.maxCombatReadiness.modifyFlat(ID, -MAX_CR_PENALTY)
+        stats.repairRatePercentPerDay.modifyMult(ID, REPAIR_PER_DAY_MULT)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: HullSize): String {
         return when (index) {
-            0 -> "${MAX_COMBAT_READINESS_MULT.toInt()}%"
+            0 -> "${(MAX_CR_PENALTY * 100).toInt()}%"
             1 -> "${getPercentage(REPAIR_PER_DAY_MULT)}%"
             2 -> "${getPercentage(ENERGY_WEAPON_RANGE_MULT.FRIGATE.value)}%"
             3 -> "${getPercentage(ENERGY_WEAPON_RANGE_MULT.DESTROYER.value)}%"

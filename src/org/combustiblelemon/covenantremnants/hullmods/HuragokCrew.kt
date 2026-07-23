@@ -17,7 +17,9 @@ class HuragokCrew : BaseHullMod() {
 //        }
 
         const val ID = "covenant_remnants_huragok_crew"
-        const val MAX_COMBAT_READINESS_MULT = 20f
+
+        // maxCombatReadiness is a 0-1 fraction, so 0.20f == +20 percentage points of max CR.
+        const val MAX_CR_BONUS = 0.20f
         const val REPAIR_PER_DAY_MULT = 1.25f
     }
 
@@ -47,7 +49,7 @@ class HuragokCrew : BaseHullMod() {
             return
         }
 
-        stats.maxCombatReadiness.modifyFlat(id, MAX_COMBAT_READINESS_MULT)
+        stats.maxCombatReadiness.modifyFlat(id, MAX_CR_BONUS)
         stats.repairRatePercentPerDay.modifyMult(id, REPAIR_PER_DAY_MULT)
     }
 
@@ -69,7 +71,7 @@ class HuragokCrew : BaseHullMod() {
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {
         return when (index) {
-            0 -> "${MAX_COMBAT_READINESS_MULT.toInt()}%"
+            0 -> "${(MAX_CR_BONUS * 100).toInt()}%"
             1 -> "${getPercentage(REPAIR_PER_DAY_MULT)}%"
             2 -> "Covenant Systems"
             else -> {

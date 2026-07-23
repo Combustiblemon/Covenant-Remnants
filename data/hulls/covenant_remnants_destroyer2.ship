@@ -1,4 +1,5 @@
 {
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor"],
   "hullName": "CPV-class Escort Carrier",
   "hullId": "covenant_remnants_destroyer2",
   "hullSize": "DESTROYER",
