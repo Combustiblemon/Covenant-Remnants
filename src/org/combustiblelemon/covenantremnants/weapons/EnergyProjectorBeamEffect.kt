@@ -61,12 +61,24 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
             return
         }
 
+        // Ramp = real seconds of continuous burn on exposed hull. Accumulate on EVERY exposed frame
+        // (in seconds), so ramp speed is identical at 60 / 120 / any fps. Must happen before the
+        // damage-tick gate below — beams only report didDamageThisFrame() on their ~0.1s batch ticks,
+        // so gating the ramp on it would make it advance per-tick and scale with framerate.
         rampTime = min(rampDuration, rampTime + amount)
         val ramp = 1f + (rampCap - 1f) * (rampTime / rampDuration)
-        val baseDps = beam.damage.damage
 
-        // 1) melt: bonus hull damage this frame = base beam damage/sec * (ramp - 1), scaled by frame time
-        val bonus = baseDps * (ramp - 1f) * amount
+        // Beams batch damage into ~0.1s ticks; between ticks (and during the burst's fade-out) they
+        // deal no weapon damage. Only apply melt / pierce on the frames the beam actually hits.
+        if (!beam.didDamageThisFrame()) return
+
+        // The beam's damage this tick. For beams computeDamageDealt uses the beam's own batch duration
+        // (dpsDuration), NOT the passed arg, so this is the true per-tick damage — already
+        // framerate-independent (fewer, bigger ticks vs more, smaller ticks integrate to the same DPS).
+        val frameBase = beam.damage.computeDamageDealt(amount)
+
+        // 1) melt: bonus hull damage this tick = this tick's base beam damage * (ramp - 1)
+        val bonus = frameBase * (ramp - 1f)
         if (bonus > 0f) {
             engine.applyDamage(
                 target, point, bonus, DamageType.HIGH_EXPLOSIVE, 0f,
@@ -75,12 +87,12 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
         }
 
         // 2) pierce-through: keep going past the exit point and hit whatever is behind
-        pierceThrough(amount, engine, beam, target, point, baseDps)
+        pierceThrough(engine, beam, target, point, frameBase)
     }
 
     private fun pierceThrough(
-        amount: Float, engine: CombatEngineAPI, beam: BeamAPI,
-        target: ShipAPI, point: Vector2f, baseDps: Float
+        engine: CombatEngineAPI, beam: BeamAPI,
+        target: ShipAPI, point: Vector2f, frameBase: Float
     ) {
         val from = beam.from
         var dx = point.x - from.x
@@ -102,7 +114,7 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
             rp.refresh(point, end, beam.width, beam.coreColor, beam.fringeColor)
         }
 
-        val dmg = baseDps * pierceDamageFraction * amount
+        val dmg = frameBase * pierceDamageFraction
         if (dmg <= 0f) return
 
         for (other in engine.ships) {
