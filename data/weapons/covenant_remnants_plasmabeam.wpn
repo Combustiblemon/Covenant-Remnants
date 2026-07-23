@@ -1,58 +1,27 @@
 {
   "id": "covenant_remnants_plasmabeam",
   "specClass": "beam",
+  "beamEffect": "com.fs.starfarer.api.impl.combat.GravitonBeamEffect",
   "type": "ENERGY",
-  "size": "LARGE",
-  "beamEffect": "com.fs.starfarer.api.impl.combat.TachyonLanceEffect",
+  "size": "MEDIUM",
+  "displayArcRadius": 550,
   "collisionClass": "RAY",
   "collisionClassByFighter": "RAY_FIGHTER",
-  "hardpointSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmabeam_hardpoint_base.png",
-  "hardpointGlowSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmabeam_hardpoint_glow.png",
-  "turretSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmabeam_turret_base.png",
-  "turretGlowSprite": "graphics/covenant_remnants/weapons/covenant_remnants_plasmabeam_turret_glow.png",
-  "glowColor": [
-    165,
-    100,
-    255,
-    235
-  ],
-  "hitGlowRadius": 0,
-  "turretOffsets": [
-    -3,
-    0
-  ],
-  "turretAngleOffsets": [
-    0
-  ],
-  "hardpointOffsets": [
-    -2,
-    0.5
-  ],
-  "hardpointAngleOffsets": [
-    0
-  ],
-  "fringeColor": [
-    85,
-    25,
-    215,
-    255
-  ],
-  "coreColor": [
-    255,
-    255,
-    255,
-    255
-  ],
-  "width": 14,
-  "textureType": ROUGH,
-  "textureScrollSpeed": 292,
-  "pixelsPerTexel": 5,
-  "pierceSet": [
-    PROJECTILE_FF,
-    PROJECTILE_NO_FF,
-    PROJECTILE_FIGHTER,
-    MISSILE_FF,
-    MISSILE_NO_FF
-  ],
-  "fireSoundTwo": "tachyon_lance_fire"
+  "turretSprite": "graphics/weapons/graviton_beam_turret_base.png",
+  "turretGlowSprite": "graphics/weapons/graviton_beam_turret_glow.png",
+  "hardpointSprite": "graphics/weapons/graviton_beam_hardpoint_base.png",
+  "hardpointGlowSprite": "graphics/weapons/graviton_beam_hardpoint_glow.png",
+  "turretOffsets": [15, 0],
+  "turretAngleOffsets": [0],
+  "hardpointOffsets": [23, 0],
+  "hardpointAngleOffsets": [0],
+  "glowColor": [165, 100, 255, 235],
+  "fringeColor": [139, 130, 251, 255],
+  "coreColor": [255, 255, 255, 255],
+  "width": 20.0,
+  "textureType": "ROUGH",
+  "textureScrollSpeed": 260.0,
+  "pixelsPerTexel": 5.0,
+  "pierceSet": ["PROJECTILE_FF", "PROJECTILE_NO_FF", "PROJECTILE_FIGHTER", "MISSILE_FF", "MISSILE_NO_FF"],
+  "fireSoundTwo": "graviton_beam_loop"
 }

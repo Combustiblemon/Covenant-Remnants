@@ -13,8 +13,8 @@
       "autofire": true,
       "mode": "LINKED",
       "weapons": {
-        "WS0001": "ionpulser",
-        "WS0002": "ionpulser"
+        "WS0001": "covenant_remnants_plasmarepeater",
+        "WS0002": "covenant_remnants_plasmarepeater"
       }
     }
   ],

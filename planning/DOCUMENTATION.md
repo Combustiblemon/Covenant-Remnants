@@ -20,6 +20,19 @@ lives in `planning/`. New plan for a feature? Put it in `planning/` and link it 
 **Rule: no dead cross-links.** If a doc links another doc or file, that target must exist. When you
 add a new doc, wire it into this table. Links from inside `planning/` to root files use `../`.
 
+## Change docs (required)
+
+Beyond the four docs above, every substantive change is recorded:
+
+| Path | Holds |
+| --- | --- |
+| `planning/implementations/<feature>.md` | **One file per implementation.** What was built, files touched, key decisions, open items. Add one whenever you build a feature. |
+| `planning/TODO.md` | Actionable checklist of what is left to do. Tick items off and add new ones as work lands. |
+
+`PLAN.md` stays the high-level roadmap/status/open-questions; `TODO.md` is the granular, checkable
+task list. This documentation duty is a fixed AI-assistant rule — see
+[../CLAUDE.md](../CLAUDE.md) ("Document every change").
+
 ## ID naming
 
 - **Canonical prefix: `covenant_remnants_`** (underscore-separated). All new ship / weapon / variant

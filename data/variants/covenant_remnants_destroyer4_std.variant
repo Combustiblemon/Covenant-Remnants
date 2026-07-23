@@ -13,15 +13,15 @@
       "autofire": false,
       "mode": "LINKED",
       "weapons": {
-        "WS0001": "hil"
+        "WS0001": "covenant_remnants_plasmalance"
       }
     },
     {
       "autofire": true,
       "mode": "LINKED",
       "weapons": {
-        "WS0002": "lrpdlaser",
-        "WS0003": "lrpdlaser"
+        "WS0002": "covenant_remnants_pulselaserturret",
+        "WS0003": "covenant_remnants_pulselaserturret"
       }
     }
   ],

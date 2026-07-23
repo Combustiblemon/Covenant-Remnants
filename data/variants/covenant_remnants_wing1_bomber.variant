@@ -13,9 +13,9 @@
       "autofire": true,
       "mode": "LINKED",
       "weapons": {
-        "WS0001": "pulselaser",
-        "WS0002": "atropos",
-        "WS0003": "atropos"
+        "WS0001": "covenant_remnants_plasmatorpedo_light",
+        "WS0002": "covenant_remnants_plasmatorpedo_light",
+        "WS0003": "covenant_remnants_plasmatorpedo_light"
       }
     }
   ],

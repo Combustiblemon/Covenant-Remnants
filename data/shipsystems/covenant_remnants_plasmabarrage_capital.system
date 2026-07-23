@@ -1,8 +1,0 @@
-{
-  "id": "covenant_remnants_plasmabarrage_capital",
-  "type": "WEAPON",
-  "aiType": "NONE",
-
-  "weaponDataId": "covenant_remnants_plasmabarrage_capital",
-  "outOfUsesSound": "gun_out_of_ammo"
-}

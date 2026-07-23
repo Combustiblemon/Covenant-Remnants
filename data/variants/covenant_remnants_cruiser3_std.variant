@@ -9,8 +9,21 @@
   "permaMods": [],
   "hullMods": [],
   "weaponGroups": [
-    { "autofire": false, "mode": "LINKED", "weapons": { "WS0001": "autopulse" } },
-    { "autofire": false, "mode": "LINKED", "weapons": { "WS0002": "heavyblaster", "WS0003": "heavyblaster" } }
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "covenant_remnants_plasmalance"
+      }
+    },
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0002": "covenant_remnants_plasmacannon",
+        "WS0003": "covenant_remnants_plasmacannon"
+      }
+    }
   ],
   "modules": [],
   "wings": []

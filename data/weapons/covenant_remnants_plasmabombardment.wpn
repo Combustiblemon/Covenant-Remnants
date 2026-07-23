@@ -1,0 +1,21 @@
+{
+  "id": "covenant_remnants_plasmabombardment",
+  "specClass": "projectile",
+  "type": "ENERGY",
+  "size": "LARGE",
+  "displayArcRadius": 450,
+  "turretSprite": "graphics/weapons/hephaestus_turret_base.png",
+  "turretGunSprite": "graphics/weapons/hephaestus_turret_recoil.png",
+  "hardpointSprite": "graphics/weapons/hephaestus_hardpoint_base.png",
+  "hardpointGunSprite": "graphics/weapons/hephaestus_hardpoint_recoil.png",
+  "visualRecoil": 10.0,
+  "renderHints": ["RENDER_BARREL_BELOW"],
+  "turretOffsets": [25, -3, 25, 3],
+  "turretAngleOffsets": [0, 0],
+  "hardpointOffsets": [40, -3, 40, 3],
+  "hardpointAngleOffsets": [0, 0],
+  "barrelMode": "ALTERNATING",
+  "animationType": "MUZZLE_FLASH",
+  "projectileSpecId": "hephag_shot",
+  "fireSoundTwo": "hephaestus_fire"
+}

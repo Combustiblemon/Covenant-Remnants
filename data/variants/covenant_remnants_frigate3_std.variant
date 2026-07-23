@@ -13,7 +13,7 @@
       "autofire": true,
       "mode": "LINKED",
       "weapons": {
-        "WS0001": "taclaser"
+        "WS0001": "covenant_remnants_pulselaserturret"
       }
     }
   ],

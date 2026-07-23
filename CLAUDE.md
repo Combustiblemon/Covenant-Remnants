@@ -79,3 +79,8 @@ The assistant does not hold design authority. It **asks, it does not guess.**
 - **Branches are the developer's, manually (ruling 2026-07-20).** The assistant never creates,
   switches, or merges git branches. Commits, when asked for, go on whatever branch is currently
   checked out.
+- **Document every change.** Each implementation gets its own file in
+  [planning/implementations/](planning/implementations/) — what was built, files touched, key
+  decisions, and open items. Keep [planning/TODO.md](planning/TODO.md) current with what is left to
+  do (tick items off, add new ones). Do this as part of the work, not after being asked. Conventions:
+  [planning/DOCUMENTATION.md](planning/DOCUMENTATION.md).

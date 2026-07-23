@@ -9,20 +9,47 @@
   "permaMods": [],
   "hullMods": [],
   "weaponGroups": [
-    { "autofire": false, "mode": "LINKED", "weapons": { "WS0001": "hurricane", "WS0002": "hurricane" } },
-    { "autofire": true, "mode": "LINKED", "weapons": { "WS0003": "gravitonbeam", "WS0004": "gravitonbeam", "WS0005": "gravitonbeam", "WS0006": "gravitonbeam" } },
-    { "autofire": true, "mode": "LINKED", "weapons": { "WS0007": "lrpdlaser", "WS0008": "lrpdlaser", "WS0009": "lrpdlaser", "WS0010": "lrpdlaser", "WS0011": "lrpdlaser", "WS0012": "lrpdlaser" } }
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "covenant_remnants_plasmatorpedo_heavy",
+        "WS0002": "covenant_remnants_plasmatorpedo_heavy"
+      }
+    },
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0003": "covenant_remnants_plasmabeam",
+        "WS0004": "covenant_remnants_plasmabeam",
+        "WS0005": "covenant_remnants_plasmabeam",
+        "WS0006": "covenant_remnants_plasmabeam"
+      }
+    },
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0007": "covenant_remnants_pulselaserturret",
+        "WS0008": "covenant_remnants_pulselaserturret",
+        "WS0009": "covenant_remnants_pulselaserturret",
+        "WS0010": "covenant_remnants_pulselaserturret",
+        "WS0011": "covenant_remnants_pulselaserturret",
+        "WS0012": "covenant_remnants_pulselaserturret"
+      }
+    }
   ],
   "modules": [],
   "wings": [
-    "broadsword_wing",
-    "broadsword_wing",
-    "broadsword_wing",
-    "thunder_wing",
-    "thunder_wing",
-    "thunder_wing",
-    "xyphos_wing",
-    "xyphos_wing",
-    "xyphos_wing"
+    "covenant_remnants_wing1_fighter",
+    "covenant_remnants_wing1_fighter",
+    "covenant_remnants_wing1_fighter",
+    "covenant_remnants_wing3",
+    "covenant_remnants_wing3",
+    "covenant_remnants_wing3",
+    "covenant_remnants_wing2",
+    "covenant_remnants_wing2",
+    "covenant_remnants_wing2"
   ]
 }

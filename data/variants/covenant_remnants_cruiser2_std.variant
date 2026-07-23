@@ -9,13 +9,27 @@
   "permaMods": [],
   "hullMods": [],
   "weaponGroups": [
-    { "autofire": false, "mode": "LINKED", "weapons": { "WS0001": "gravitonbeam" } },
-    { "autofire": true, "mode": "LINKED", "weapons": { "WS0002": "lrpdlaser", "WS0003": "lrpdlaser", "WS0004": "lrpdlaser" } }
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "covenant_remnants_plasmabeam"
+      }
+    },
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0002": "covenant_remnants_pulselaserturret",
+        "WS0003": "covenant_remnants_pulselaserturret",
+        "WS0004": "covenant_remnants_pulselaserturret"
+      }
+    }
   ],
   "modules": [],
   "wings": [
-    "xyphos_wing",
-    "xyphos_wing",
-    "xyphos_wing"
+    "covenant_remnants_wing2",
+    "covenant_remnants_wing2",
+    "covenant_remnants_wing2"
   ]
 }
