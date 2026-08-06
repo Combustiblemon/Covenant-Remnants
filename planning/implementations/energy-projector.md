@@ -66,11 +66,18 @@ Goal: the pass-through segment must look exactly like the real lance, not a hand
 - Visual refresh moved **before** the `didDamageThisFrame()` gate in `EnergyProjectorBeamEffect`, so
   the pierce tracks the lance every exposed frame (between damage ticks and during burst fade) instead
   of strobing per ~0.1s tick. Pierce **damage** stays gated on the damage tick.
-- **Origin = far-side exit, not the entry hit.** The visible pierce segment starts where the lance
-  *leaves* the target's back, so the through-hull portion is never drawn (the ship sprite covers it).
+- **Origin = far-side exit, not the entry hit.** The visible pierce-out segment starts where the lance
+  *leaves* the target's back, so the through-hull portion is not drawn over the ship.
   `farSideExit()` casts `CollisionUtils.getCollisionPoint` from a point beyond the ship back toward the
   entry hit; the first bounds intersection is the exit surface. Fallback to the entry hit for entities
   without usable bounds.
+- **Through-ship segment on `UNDER_SHIPS_LAYER` (2026-08-06).** Ships whose sprite has holes/gaps
+  (e.g. ring hulls) exposed the missing through-hull segment — the lance visibly vanished over the
+  gap. Fix: the render plugin now draws **two** segments and is active on two layers:
+  entry→exit on `CombatEngineLayers.UNDER_SHIPS_LAYER` (below all ship sprites, so it only shows
+  through transparent sprite pixels — the holes) and exit→end on `ABOVE_SHIPS_LAYER` (unchanged
+  pierce-out). Both reuse the same endpoint-swap re-render helper; visual-only, shown only while
+  piercing, no damage/geometry change. `refresh()` takes `(beam, entry, exit, end)`.
 - **Pierce behaves as a real beam re-fired from the exit.** `firstPierceHit()` raycasts from the exit
   point along the lance line (≤ `pierceLength`) and returns the **nearest** contact across all ships:
   a raised shield (ray-vs-shield-circle via `rayCircleEntry()`, clamped to the shield's arc with

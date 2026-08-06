@@ -69,10 +69,10 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
         rampTime = min(rampDuration, rampTime + amount)
         val ramp = 1f + (rampCap - 1f) * (rampTime / rampDuration)
 
-        // Pierce segment geometry: continue the lance line past the target. The visible segment starts
-        // at the FAR-side exit surface (not the near entry hit), so the part travelling through the ship
-        // body is never drawn — the hull sprite covers it — and the lance only reappears where it punches
-        // out the back.
+        // Pierce segment geometry: continue the lance line past the target. The pierce-out segment
+        // starts at the FAR-side exit surface; the part travelling through the ship body (entry → exit)
+        // is drawn separately UNDER the ship sprites, so it only shows through holes/gaps in the hull
+        // sprite and the lance visibly reappears where it punches out the back.
         val from = beam.from
         var dx = point.x - from.x
         var dy = point.y - from.y
@@ -91,7 +91,7 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
         // Visual: re-render the real beam along the pierce segment. Refreshed on EVERY exposed frame
         // (before the damage-tick gate) so the pierce tracks the lance continuously — including between
         // the beam's ~0.1s damage ticks and during its burst fade — instead of strobing per tick.
-        refreshPierceVisual(engine, beam, exit, end)
+        refreshPierceVisual(engine, beam, point, exit, end)
 
         // Beams batch damage into ~0.1s ticks; between ticks (and during the burst's fade-out) they
         // deal no weapon damage. Only apply melt / pierce damage on the frames the beam actually hits.
@@ -136,15 +136,17 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
     }
 
     /** Keep one live render plugin per burst; (re)create it when the previous one has expired. */
-    private fun refreshPierceVisual(engine: CombatEngineAPI, beam: BeamAPI, point: Vector2f, end: Vector2f) {
+    private fun refreshPierceVisual(
+        engine: CombatEngineAPI, beam: BeamAPI, entry: Vector2f, exit: Vector2f, end: Vector2f
+    ) {
         val rp = pierceRender
         if (rp == null || rp.isExpired) {
             val fresh = EnergyProjectorPierceRenderPlugin()
             engine.addLayeredRenderingPlugin(fresh)
             pierceRender = fresh
-            fresh.refresh(beam, point, end)
+            fresh.refresh(beam, entry, exit, end)
         } else {
-            rp.refresh(beam, point, end)
+            rp.refresh(beam, entry, exit, end)
         }
     }
 
