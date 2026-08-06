@@ -1,32 +1,180 @@
 {
-  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor", "covenant_remnants_slipspace_drive"],
-  "hullName": "CPV-class Escort Carrier",
-  "hullId": "covenant_remnants_destroyer2",
-  "hullSize": "DESTROYER",
-  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_destroyer2.png",
-  "style": "COVENANT",
-  "height": 231,
-  "width": 68,
-  "center": [34, 115.5],
-  "collisionRadius": 114.5,
-  "shieldCenter": [0, 0],
-  "shieldRadius": 114.5,
-  "viewOffset": 0,
-  "weaponSlots": [
-    { "id": "WS0001", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 45, "locations": [40, 14] },
-    { "id": "WS0002", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -45, "locations": [40, -14] },
-    { "id": "WS0003", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 135, "locations": [-30, 14] },
-    { "id": "WS0004", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -135, "locations": [-30, -14] }
-  ],
-  "engineSlots": [
-    { "location": [-95, 8], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" },
-    { "location": [-98, 0], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" },
-    { "location": [-95, -8], "length": 24, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" }
-  ],
-  "bounds": [
-    2.5, -30.0, -4.5, -32.0, -13.5, -33.0, -33.5, -28.0, -45.5, -22.0, -71.5, -16.0,
-    -49.5, 0.0, -71.5, 17.0, -45.5, 23.0, -33.5, 29.0, -13.5, 34.0, -4.5, 33.0,
-    2.5, 30.0, 9.5, 31.0, 33.5, 25.0, 47.5, 22.0, 114.5, 1.0, 47.5, -21.0,
-    33.5, -24.0, 9.5, -30.0
-  ]
+    "hullName":"CPV-class Escort Carrier",
+    "hullId":"covenant_remnants_destroyer2",
+    "hullSize":"DESTROYER",
+    "style":"COVENANT",
+    "spriteName":"graphics/covenant_remnants/ships/covenant_remnants_destroyer2.png",
+    "height":231,
+    "width":68,
+    "center":[
+        34, 115.5
+    ],
+    "collisionRadius":125,
+    "coversColor":"",
+    "shieldCenter":[
+        0, 0
+    ],
+    "shieldRadius":118.5,
+    "viewOffset":0,
+    "builtInMods":[
+        "covenant_remnants_covenantsystems",
+        "covenant_remnants_nanolaminate_armor",
+        "covenant_remnants_slipspace_drive"
+    ],
+    "builtInWings":[],
+    "builtInModules":null,
+    "weaponSlots":[
+        {
+            "id":"WS0001",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":270,
+            "angle":92.5,
+            "locations":[
+                      43,     18.5
+            ]
+        },
+        {
+            "id":"WS0002",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":270,
+            "angle":267.5,
+            "locations":[
+                      43,    -18.5
+            ]
+        },
+        {
+            "id":"WS0003",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":270,
+            "angle":135,
+            "locations":[
+                   -30.5,       26
+            ]
+        },
+        {
+            "id":"WS0004",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":270,
+            "angle":-135,
+            "locations":[
+                   -30.5,      -26
+            ]
+        },
+        {
+            "id":"WS 000",
+            "size":"MEDIUM",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":308,
+            "angle":359,
+            "locations":[
+                      75,        0
+            ]
+        },
+        {
+            "id":"LB 000",
+            "size":"SMALL",
+            "type":"LAUNCH_BAY",
+            "mount":"HIDDEN",
+            "arc":0,
+            "angle":0,
+            "locations":[
+                    -7.5,      -12
+            ]
+        },
+        {
+            "id":"LB 001",
+            "size":"SMALL",
+            "type":"LAUNCH_BAY",
+            "mount":"HIDDEN",
+            "arc":0,
+            "angle":0,
+            "locations":[
+                    -7.5,       12
+            ]
+        }
+    ],
+    "engineSlots":[
+        {
+            "location":[
+                -95, 8
+            ],
+            "length":24,
+            "width":6,
+            "angle":180,
+            "contrailSize":5,
+            "style":"HIGH_TECH"
+        },
+        {
+            "location":[
+                -98, 0
+            ],
+            "length":24,
+            "width":6,
+            "angle":180,
+            "contrailSize":5,
+            "style":"HIGH_TECH"
+        },
+        {
+            "location":[
+                -95, -8
+            ],
+            "length":24,
+            "width":6,
+            "angle":180,
+            "contrailSize":5,
+            "style":"HIGH_TECH"
+        }
+    ],
+    "bounds":[
+              -1,      -30,
+            -4.5,      -32,
+           -13.5,      -33,
+           -33.5,      -28,
+           -45.5,      -22,
+        
+           -77.5,      -15,
+          -108.5,      -13,
+          -114.5,       -6,
+             -48,     -5.5,
+             -48,      5.5,
+        
+          -114.5,        6,
+          -108.5,       13,
+           -77.5,       15,
+           -45.5,       23,
+           -33.5,       29,
+        
+           -13.5,       34,
+            -4.5,       33,
+              -1,       30,
+               9,     30.5,
+              26,       27,
+        
+            38.5,       23,
+            47.5,       22,
+              52,       18,
+            49.5,     14.5,
+              91,     12.5,
+        
+           110.5,        6,
+           114.5,        0,
+           110.5,       -6,
+              91,    -12.5,
+            49.5,    -14.5,
+        
+            47.5,      -21,
+            38.5,      -23,
+              26,      -27,
+               9,    -30.5
+    # 34 points total.
+    ]
 }
