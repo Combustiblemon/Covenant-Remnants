@@ -23,6 +23,8 @@ import kotlin.math.sqrt
  *   2. **Pierce-through** — the lance punches through the exposed hull and re-emerges from the
  *      target's far side, continuing as if a fresh beam were fired from that exit point: it hits the
  *      FIRST thing it reaches (shield surface or hull), is blocked by shields, and stops there.
+ *      Where it exits, [EnergyProjectorExitBurn] stamps a real vanilla scorch decal
+ *      (damage-then-restore, cosmetic only).
  *
  * Wired as the `beamEffect` of `data/weapons/covenant_remnants_energyprojector.wpn`. Turn-lock while
  * firing is handled separately by [EnergyProjectorEffect] (the weapon's `everyFrameEffect`).
@@ -93,14 +95,15 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
         // the beam's ~0.1s damage ticks and during its burst fade — instead of strobing per tick.
         refreshPierceVisual(engine, beam, point, exit, end)
 
-        // Beams batch damage into ~0.1s ticks; between ticks (and during the burst's fade-out) they
-        // deal no weapon damage. Only apply melt / pierce damage on the frames the beam actually hits.
-        if (!beam.didDamageThisFrame()) return
+        // The beam's damage this tick. Beams batch damage into ~0.1s ticks; between ticks (and during
+        // the burst's fade-out) they deal no weapon damage. For beams computeDamageDealt uses the
+        // beam's own batch duration (dpsDuration), NOT the passed arg, so this is the true per-tick
+        // damage — already framerate-independent (fewer, bigger ticks vs more, smaller ticks integrate
+        // to the same DPS).
+        val frameBase = if (beam.didDamageThisFrame()) beam.damage.computeDamageDealt(amount) else 0f
 
-        // The beam's damage this tick. For beams computeDamageDealt uses the beam's own batch duration
-        // (dpsDuration), NOT the passed arg, so this is the true per-tick damage — already
-        // framerate-independent (fewer, bigger ticks vs more, smaller ticks integrate to the same DPS).
-        val frameBase = beam.damage.computeDamageDealt(amount)
+        // Only apply melt / pierce damage on the frames the beam actually hits.
+        if (frameBase <= 0f) return
 
         // 1) melt: bonus hull damage this tick = this tick's base beam damage * (ramp - 1)
         val bonus = frameBase * (ramp - 1f)
@@ -122,6 +125,9 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
                 )
             }
         }
+
+        // 3) real vanilla scorch decal at the exit point — damage-then-restore, cosmetic only.
+        EnergyProjectorExitBurn.burnAt(engine, target, exit)
     }
 
     /**

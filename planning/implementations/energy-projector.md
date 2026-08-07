@@ -25,6 +25,11 @@ are down and its armor is stripped, then punches out the far side.
 - `src/.../plugins/EnergyProjectorPierceRenderPlugin.kt` — `CombatLayeredRenderingPlugin`; **re-renders
   the real beam** along the pierce segment so it is pixel-identical to the lance (same texture/scroll/
   width/core/fringe/charge-fade). See "Pierce visuals" below.
+- `src/.../weapons/EnergyProjectorExitBurn.kt` — damage-then-restore: stamps a REAL vanilla scorch
+  decal at the pierce exit point. See "Exit-point scorch" below.
+- `src/.../plugins/EnergyProjectorScorchCleanupPlugin.kt` — `BaseEveryFrameCombatPlugin` singleton
+  (via `engine.customData`); fades out and removes the synthetic decals ~3s after the last burn per
+  ship.
 - `data/weapons/covenant_remnants_energyprojector.wpn` — `specClass beam`, `beamEffect` → the pierce
   class, `everyFrameEffect` → the turn-lock. **Placeholder art:** vanilla Tachyon Lance sprites.
 - `data/weapons/weapon_data.csv` — `Energy Projector` row.
@@ -87,7 +92,65 @@ Goal: the pass-through segment must look exactly like the real lance, not a hand
   clamped to the same hit, recomputed every exposed frame so an interposing shield blocks it live.
   Excludes the pierced target, the firing source, and phased ships.
 
+## Exit-point scorch (2026-08-07)
+
+Goal: where the lance punches out of the hull, the armor should look damaged **exactly** the way it
+does when armor takes real damage — the developer rejected a custom-rendered imitation and asked for
+the actual vanilla visual. Settled: real vanilla decals via **damage-then-restore**, removed on a
+timer.
+
+- **Rejected — custom imitation** (first attempt, `EnergyProjectorScorchDecalPlugin`, deleted):
+  redrew the vanilla decal sheets in a mod render plugin. Looked wrong; scrapped.
+- **Rejected — invoking the vanilla decal renderer directly.** `com.fs.starfarer.renderers.damage.*`
+  is fully obfuscated (reflection there is barred by the update-independence rule) and decal opacity
+  is hard-derived from real armor state.
+- **Chosen — damage-then-restore (`EnergyProjectorExitBurn`).** Once per beam damage tick at the
+  exit point: snapshot the 21-cell armor pattern + hull + all weapon/engine health, run a synthetic
+  hit through the real `engine.applyDamage`, let the game's own renderer create the decal (exact
+  vanilla scorch + ember + stencil clipping), restore everything in the same call stack. Works
+  because `setArmorValue` is a raw write with **no listener notify** (vanilla precedent:
+  `DisintegratorEffect`), and the decal rebuild path skips cells above 90% armor — so restored-full
+  cells keep their decal untouched.
+- **Death/disable safety** (both guards required, pure API):
+  - `setNextHitHullDamageThresholdMult(0f, 0f)` → hull damage computes to 0 before the death check
+    (auto-reset by the engine per hit) — but a `DamageTakenModifier` (e.g. vanilla elite Damage
+    Control) can overwrite it mid-hit, hence:
+  - a `HullDamageAboutToBeTakenListener` returning `true` (added before, removed after) — applied
+    after all listeners, cannot be overridden.
+  - Weapon/engine disables are **deferred** to the components' interval-gated advance, never fired
+    synchronously inside `applyDamage` — same-stack health restore means a disable can never
+    trigger; `repair()`-then-set-health restore kept as insurance.
+- **Floaty suppression:** damage numbers gate on obf `Ship.setSuppressFloaties(boolean)` — public,
+  **stable name**, vanilla's own switch around synthetic damage in `Ship.disable()`. Called via
+  `ReflectionUtils.invoke`; if it ever throws, the feature sets `broken` and turns itself off
+  (phantom numbers are worse than no decal).
+- **Sizing:** desired = armor rating (≈ half-depth scorch on pristine armor after the ~0.5 armor
+  reduction), capped `0.9·15·min(inner 3x3)` / `0.9·30·min(outer ring)` so no in-bounds cell
+  overflows into hull, floored at `0.2·rating` so embers keep flaring on stripped cells (the floor's
+  overflow is neutralized by the hull guards + restore). `applyDamage` args: ENERGY, emp 0,
+  bypassShields (skips shields entirely — no flux/ripple), source **null** (API-blessed; every use
+  in the damage path is `instanceof Ship`-guarded — no attribution, no NPE), playSound false.
+- **Timed fade-out (`EnergyProjectorScorchCleanupPlugin`):** vanilla decals normally persist all
+  combat; opacity is re-derived from the armor grid by `syncWithArmorGridState()` (only for cells
+  below 90% armor), which makes a fade drivable through public API. The burn records each cell's
+  **post-hit** armor value (the stamped darkness); 3s after the last burn the fade runs 2.5s, each
+  frame writing `lerp(postHit → real value, t)` into the burned cells, syncing (renderer lightens
+  the decal), then writing the real values back. Cells with genuine damage converge exactly to
+  their true look (no pop); pristine cells stop updating at the 90% gate (~10% alpha) and a final
+  `clearDamageDecals()` + sync purges the leftover. Ember wrinkle: sync freezes ember decay, so the
+  fade *starts* with one clear+sync — every decal reborn from grid state, ours at current darkness
+  with ember zeroed. A fresh burn mid-fade restarts the timer (decal re-darkened by the burn
+  anyway). Singleton via `engine.customData` (key `covenant_remnants_ep_scorch_cleanup`) so two
+  projectors share one fade per ship; customData + plugin list reset per combat.
+- **Accepted side effects (documented, invisible or negligible):** at fade start, the ship's *other*
+  decals re-roll frame/rotation and lose active embers; mods' damage listeners see the synthetic
+  damage; can consume the target's elite Damage Control proc; target's received-damage stats
+  accumulate it; `sinceLastDamageTaken` resets; component auto-repair delay resets; god-mode player
+  ships show no decal; live fighters never render decal glow (vanilla behaviour).
+
 ## Open / TODO
 
 - Bespoke turret + beam art (currently vanilla Tachyon sprites). See [TODO.md](../TODO.md).
 - Damage/ramp/pierce numbers are placeholder and tunable.
+- Exit scorch not yet verified in-game; constants tunable in `EnergyProjectorExitBurn`
+  (damage sizing) and `EnergyProjectorScorchCleanupPlugin` (`FADE_DELAY`, `FADE_TIME`).

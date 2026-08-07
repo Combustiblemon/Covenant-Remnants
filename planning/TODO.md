@@ -15,6 +15,11 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance). The beam
       itself, including the pierce segment, now renders from the `.wpn` beam spec, so it inherits
       whatever beam colours/texture that spec defines.
+- [ ] **Verify exit scorch in-game** — REAL vanilla scorch decals at the pierce exit point via
+      damage-then-restore (zero net gameplay change; fades out over ~2.5s starting ~3s after the
+      last burn) are built but not yet verified in the simulator. Check: no hull/flux/armor change,
+      no floaty numbers, no weapon/engine disable flicker, smooth fade (no pop), ember dies at fade
+      start. See [implementations/energy-projector.md](implementations/energy-projector.md).
 
 ## Code stubs to finish
 
