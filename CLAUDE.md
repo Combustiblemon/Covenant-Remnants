@@ -84,3 +84,17 @@ The assistant does not hold design authority. It **asks, it does not guess.**
   decisions, and open items. Keep [planning/TODO.md](planning/TODO.md) current with what is left to
   do (tick items off, add new ones). Do this as part of the work, not after being asked. Conventions:
   [planning/DOCUMENTATION.md](planning/DOCUMENTATION.md).
+
+### Agent model assignment
+
+When spawning subagents (Agent tool), always pass an explicit `model` override matched to
+task type, regardless of any model already set in the target agent's own frontmatter:
+
+- **Search / read / investigate** (locating code, reading files, grepping references,
+  codebase mapping — no edits) → `sonnet`
+- **Write / implement** (edits, new files, refactors) → `opus`
+- **Plan / design** (architecture, implementation strategy, no edits) → `fable`; if Fable is
+  unavailable, fall back to `opus`
+
+A single agent invocation that mixes phases (e.g. explore then write) takes the model of its
+primary/heavier phase.
