@@ -1,6 +1,7 @@
 package org.combustiblelemon.covenantremnants.utils.render.shield
 
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glUniform1f
 import org.lwjgl.opengl.GL20.glUniform4f
@@ -9,7 +10,7 @@ import org.lwjgl.opengl.GL20.glUniform4f
  * Border drawn along the shield polygon edges.
  * The sweep layer also reads borderColor for its edge glow.
  */
-class BorderLayer : ShieldLayer {
+class BorderLayer : ShaderLayer {
     override val layerName = "border"
     override val moduleFile = "data/shaders/shield/border.glsl"
 

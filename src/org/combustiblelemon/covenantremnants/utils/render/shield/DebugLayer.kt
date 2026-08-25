@@ -1,6 +1,7 @@
 package org.combustiblelemon.covenantremnants.utils.render.shield
 
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glUniform1i
 import org.lwjgl.opengl.GL20.glUniform2f
@@ -9,7 +10,7 @@ import org.lwjgl.opengl.GL20.glUniform2f
  * Debug visualization: bounding-box outline (red), polygon points (green),
  * polygon edges (magenta). The bounding box is pushed by the orchestrator.
  */
-class DebugLayer : ShieldLayer {
+class DebugLayer : ShaderLayer {
     override val layerName = "debug"
     override val moduleFile = "data/shaders/shield/debug.glsl"
     override val stubSource = """

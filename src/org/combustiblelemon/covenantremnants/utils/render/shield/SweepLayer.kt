@@ -1,6 +1,7 @@
 package org.combustiblelemon.covenantremnants.utils.render.shield
 
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glUniform1f
 
@@ -12,7 +13,7 @@ import org.lwjgl.opengl.GL20.glUniform1f
  * sweepPosition is computed on the CPU by the orchestrator during updatePolygon
  * (it depends on the smoothed polygon bounds and phase cloak effect level).
  */
-class SweepLayer : ShieldLayer {
+class SweepLayer : ShaderLayer {
     override val layerName = "sweep"
     override val moduleFile = "data/shaders/shield/sweep.glsl"
 

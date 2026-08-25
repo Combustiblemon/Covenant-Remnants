@@ -73,10 +73,18 @@ Keep this file current — tick items off and add new ones as work lands.
       Verified in-game 2026-08-25.
 - [x] **Delete old `shieldShader.frag`/`.vert`** — done after in-game sign-off.
 - [x] **Shield shader debug tooling** — solo/subset layer rendering (neutral GLSL stubs +
-      `CovenantShieldLayers` console command) and module-tagged GLSL compile errors (driver log
-      line numbers mapped back to module file + local line, assembled source dumped to log).
+      console command) and module-tagged GLSL compile errors (driver log line numbers mapped back
+      to module file + local line, assembled source dumped to log).
       See [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md).
       Not yet verified in-game.
+- [x] **Generic shader composition system** — extracted the composition engine into
+      `utils/render/composition/` (`ShaderLayer`, `ComposedShaderProgram`, `CompositionDebug`);
+      shield is first consumer; console command generalized to `ShaderLayers <system> [...]`;
+      usage docs in [../docs/shader-composition/](../docs/shader-composition/README.md). See
+      [implementations/shader-composition-generic.md](implementations/shader-composition-generic.md).
+      Not yet verified in-game.
+- [ ] **Decide fate of remaining monolith shaders** — MinimalShader / PolygonShader /
+      SlipspacePortalEntityShader: migrate to the composition system or discard, per shader.
 - [ ] **Ripple zoom consistency** (pre-existing TODO) — ripple speed/radius/width inconsistent
       across zoom levels.
 

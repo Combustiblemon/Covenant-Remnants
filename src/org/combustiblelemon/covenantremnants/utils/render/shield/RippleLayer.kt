@@ -1,6 +1,7 @@
 package org.combustiblelemon.covenantremnants.utils.render.shield
 
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glUniform1f
 import org.lwjgl.opengl.GL20.glUniform1i
@@ -11,7 +12,7 @@ import org.lwjgl.opengl.GL20.glUniform4f
  * Impact ripple rings expanding across the shield. Up to 10 concurrent ripples
  * (shader uniform array size).
  */
-class RippleLayer : ShieldLayer {
+class RippleLayer : ShaderLayer {
     override val layerName = "ripple"
     override val moduleFile = "data/shaders/shield/ripple.glsl"
     override val stubSource = """

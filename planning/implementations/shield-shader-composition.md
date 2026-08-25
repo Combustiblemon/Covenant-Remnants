@@ -73,11 +73,10 @@ Answers "concatenated source can't be debugged per layer":
   rebuild lazily at the next `render()` (GL thread). Prerequisite refactor:
   the sweep cull in `base.frag` now goes through `sweep_isCulled()` so no
   layer uniform is read directly by the base template.
-- **Console command `CovenantShieldLayers`** (`commands/CovenantShieldLayers.kt`,
-  registered in `data/console/commands.csv`):
-  no args = list layers + current set; `border` or `fill,ripple` = render only
-  those; `all` = reset. Sets the global override (reset uses `emptySet()`,
-  which the shader coerces to all-enabled).
+- **Console command** — originally `CovenantShieldLayers`; superseded by the
+  generic `ShaderLayers <system> [...]` when the composition engine was
+  extracted (see
+  [shader-composition-generic.md](shader-composition-generic.md)).
 - **Module-tagged shader errors.** Assembly records a line map
   (`SourceSegment(name, startLine)` per piece: base header, each module or
   stub, base footer). On fragment compile failure the driver log's line

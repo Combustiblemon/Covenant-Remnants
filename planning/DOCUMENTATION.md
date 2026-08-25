@@ -17,6 +17,11 @@ Roadmap: [PLAN.md](PLAN.md).
 `DOCUMENTATION.md`, `ARCHITECTURE.md`, `PLAN.md`, **and all future planning/design/spec docs** —
 lives in `planning/`. New plan for a feature? Put it in `planning/` and link it from `PLAN.md`.
 
+**`docs/` folder.** Developer-facing **usage documentation for reusable systems** (how-to guides,
+API contracts, worked examples) lives in `docs/<system>/` — e.g.
+[../docs/shader-composition/](../docs/shader-composition/README.md). Planning/design history for
+the same system stays in `planning/` (the two link to each other).
+
 **Rule: no dead cross-links.** If a doc links another doc or file, that target must exist. When you
 add a new doc, wire it into this table. Links from inside `planning/` to root files use `../`.
 

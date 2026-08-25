@@ -3,14 +3,14 @@ package org.combustiblelemon.covenantremnants.utils.render
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
-import org.combustiblelemon.covenantremnants.utils.getShaderCode
+import org.combustiblelemon.covenantremnants.utils.render.composition.ComposedShaderProgram
+import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.BorderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.DebugLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.FillLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.HoneycombLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.PolygonSmoothing
 import org.combustiblelemon.covenantremnants.utils.render.shield.RippleLayer
-import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.SmoothingMethod
 import org.combustiblelemon.covenantremnants.utils.render.shield.SweepLayer
 import org.combustiblelemon.covenantremnants.utils.rotatePointByDegrees
@@ -24,34 +24,23 @@ import org.lwjgl.util.vector.Vector2f
 // TODO: Fix ripple effects to be consistent across zoom levels. Fix ripple radius and width to be consistent across zoom levels. Ripple is much faster zoomed out than zoomed in.
 
 /**
- * Composed shield shader. Each visual layer (fill, border, sweep, ripples,
- * honeycomb, debug) is a [ShieldLayer] owning its GLSL module + uniforms; the
- * fragment shader is assembled from the module snippets at init time and drawn
- * in a single pass. This class owns the cross-cutting pieces: polygon points +
- * smoothing, sweep position calculation, bounding-box quad, GL state handling,
- * and the shared uniforms.
+ * Covenant shield renderer, built on the generic shader composition system
+ * (see docs/shader-composition/). Each visual layer (fill, border, sweep,
+ * ripples, honeycomb, debug) is a [ShaderLayer] owning its GLSL module +
+ * uniforms; [ComposedShaderProgram] assembles them into a single program.
+ *
+ * This class owns the cross-cutting pieces: polygon points + smoothing, sweep
+ * position calculation, bounding-box quad, GL state handling, and the shared
+ * uniforms.
  */
 class ShieldShader(
     private val ship: ShipAPI,
     private val boundsCount: Int,
     private val smoothingMethod: SmoothingMethod = SmoothingMethod.NONE
 ) : Shader {
-    companion object {
-        /**
-         * Debug override shared by all shield shader instances, set by the
-         * CovenantShieldLayers console command. null or empty = all layers
-         * enabled. Instances pick up changes lazily at the start of render()
-         * (the only point guaranteed to be on the GL thread) and rebuild
-         * their program.
-         */
-        @Volatile
-        var globalEnabledLayers: Set<String>? = null
-    }
-
     private var polygonPoints: List<Float> = listOf()
     private var vbo: Int = 0
     private var vao: Int = 0
-    private var shaderProgram: Int = 0
 
     private var scaleX: Float = 1.0f
     private var scaleY: Float = 1.0f
@@ -87,28 +76,24 @@ class ShieldShader(
     private val honeycombLayer = HoneycombLayer()
     private val debugLayer = DebugLayer()
 
-    private val layers: List<ShieldLayer> =
+    private val layers: List<ShaderLayer> =
         listOf(fillLayer, borderLayer, sweepLayer, rippleLayer, honeycombLayer, debugLayer)
 
-    // Which layers render. Disabled layers compile as neutral stubs and skip
-    // uniform uploads. Changing the set marks the program for a lazy rebuild.
-    private var enabledLayers: Set<String> = layers.map { it.layerName }.toSet()
-
-    // Maps assembled-fragment-source line numbers back to module files for
-    // driver error translation.
-    private data class SourceSegment(val name: String, val startLine: Int)
-
-    private var fragmentSegments: List<SourceSegment> = listOf()
-    private var lastAssembledFragment: String = ""
-
-    private val vertexShaderSource = getShaderCode("data/shaders/shield/shield.vert")
+    private val program = ComposedShaderProgram(
+        systemName = "shield",
+        vertexShaderFile = "data/shaders/shield/shield.vert",
+        baseFragmentFile = "data/shaders/shield/base.frag",
+        layers = layers,
+        placeholders = mapOf(
+            "POINT_COUNT_PLACEHOLDER" to calculateMaxPointsAfterSmoothing(boundsCount).toString()
+        )
+    )
 
     init {
-        init()
-        initShaders()
+        initQuad()
     }
 
-    private fun init() {
+    private fun initQuad() {
         // Create VAO
         vao = glGenVertexArrays()
         glBindVertexArray(vao)
@@ -207,13 +192,13 @@ class ShieldShader(
         for (i in 0 until safePointCount) {
             val x = polygonPoints[i * 2]
             val y = polygonPoints[i * 2 + 1]
-            val uniformLocation = glGetUniformLocation(shaderProgram, "points[$i]")
+            val uniformLocation = glGetUniformLocation(program.programId, "points[$i]")
             glUniform2f(uniformLocation, x, y)
         }
 
         // Set remaining array elements to zero
         for (i in safePointCount until pointCount) {
-            val uniformLocation = glGetUniformLocation(shaderProgram, "points[$i]")
+            val uniformLocation = glGetUniformLocation(program.programId, "points[$i]")
             glUniform2f(uniformLocation, 0.0f, 0.0f)
         }
 
@@ -222,121 +207,6 @@ class ShieldShader(
         if (error != GL_NO_ERROR) {
             Global.getLogger(this.javaClass).error("OpenGL error after setting uniforms: $error")
         }
-    }
-
-    /**
-     * Assemble the fragment shader source: base template + layer modules
-     * concatenated in layer-list order at the insertion marker. Disabled
-     * layers contribute their neutral stub instead of the module file.
-     * POINT_COUNT_PLACEHOLDER is replaced after concatenation so occurrences
-     * inside modules resolve too (the replacement never changes line counts,
-     * so the segment map built here stays valid).
-     */
-    private fun assembleFragmentSource(pointCount: Int): String {
-        val base = getShaderCode("data/shaders/shield/base.frag")
-        val marker = "// {{LAYER_MODULES}}"
-        val markerIndex = base.indexOf(marker)
-        if (markerIndex < 0) {
-            throw RuntimeException("base.frag is missing the $marker insertion marker")
-        }
-
-        // Named source pieces, in final order
-        val pieces = mutableListOf<Pair<String, String>>()
-        pieces.add(Pair("base.frag (header)", base.substring(0, markerIndex)))
-        for (layer in layers) {
-            if (layer.layerName in enabledLayers) {
-                pieces.add(Pair(layer.moduleFile.substringAfterLast('/'), getShaderCode(layer.moduleFile) + "\n"))
-            } else {
-                pieces.add(Pair("${layer.layerName} (stub)", layer.stubSource + "\n"))
-            }
-        }
-        pieces.add(Pair("base.frag (footer)", base.substring(markerIndex + marker.length)))
-
-        // Build source and the line map in one pass
-        val segments = mutableListOf<SourceSegment>()
-        val assembled = StringBuilder()
-        var currentLine = 1
-        for ((name, text) in pieces) {
-            segments.add(SourceSegment(name, currentLine))
-            assembled.append(text)
-            currentLine += text.count { it == '\n' }
-        }
-
-        fragmentSegments = segments
-        val source = assembled.toString().replace("POINT_COUNT_PLACEHOLDER", pointCount.toString())
-        lastAssembledFragment = source
-        return source
-    }
-
-    /**
-     * Translate driver info-log line numbers (which point into the assembled
-     * source) back to module file + local line. Handles the two dominant log
-     * formats: NVIDIA `0(123) : error ...` and AMD/Intel/Mesa `ERROR: 0:123: ...`.
-     */
-    private fun translateShaderErrors(infoLog: String): String {
-        val lineRef = Regex("""0[:(](\d+)\)?""")
-        val translated = infoLog.lines().mapNotNull { logLine ->
-            val match = lineRef.find(logLine) ?: return@mapNotNull null
-            val globalLine = match.groupValues[1].toIntOrNull() ?: return@mapNotNull null
-            val segment = fragmentSegments.lastOrNull { it.startLine <= globalLine }
-                ?: return@mapNotNull null
-            "${segment.name}:${globalLine - segment.startLine + 1}  [$logLine]"
-        }
-        if (translated.isEmpty()) return infoLog
-        return "Translated to module files:\n" + translated.joinToString("\n") +
-                "\n\nOriginal driver log:\n" + infoLog
-    }
-
-    private fun logAssembledSource() {
-        val numbered = lastAssembledFragment.lines()
-            .mapIndexed { i, l -> "${i + 1}\t$l" }
-            .joinToString("\n")
-        Global.getLogger(this.javaClass).error("Assembled shield fragment shader source:\n$numbered")
-    }
-
-    private fun initShaders() {
-        // Create and compile vertex shader
-        val vertexShader = glCreateShader(GL_VERTEX_SHADER)
-        glShaderSource(vertexShader, vertexShaderSource)
-        glCompileShader(vertexShader)
-
-        // Check for vertex shader compilation errors
-        if (glGetShaderi(vertexShader, GL_COMPILE_STATUS) == GL_FALSE) {
-            val error = glGetShaderInfoLog(vertexShader, 1024)
-            throw RuntimeException("Vertex shader compilation failed: $error")
-        }
-
-        // Calculate the maximum number of points after smoothing
-        val maxPointsAfterSmoothing = calculateMaxPointsAfterSmoothing(boundsCount)
-
-        // Create and compile the assembled fragment shader
-        val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-        glShaderSource(fragmentShader, assembleFragmentSource(maxPointsAfterSmoothing))
-        glCompileShader(fragmentShader)
-
-        // Check for fragment shader compilation errors; translate driver line
-        // numbers back to module files and dump the assembled source to the log
-        if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == GL_FALSE) {
-            val error = glGetShaderInfoLog(fragmentShader, 4096)
-            logAssembledSource()
-            throw RuntimeException("Fragment shader compilation failed:\n${translateShaderErrors(error)}")
-        }
-
-        // Create shader program
-        shaderProgram = glCreateProgram()
-        glAttachShader(shaderProgram, vertexShader)
-        glAttachShader(shaderProgram, fragmentShader)
-        glLinkProgram(shaderProgram)
-
-        // Check for linking errors
-        if (glGetProgrami(shaderProgram, GL_LINK_STATUS) == GL_FALSE) {
-            val error = glGetProgramInfoLog(shaderProgram, 1024)
-            throw RuntimeException("Shader program linking failed: $error")
-        }
-
-        // Clean up shaders
-        glDeleteShader(vertexShader)
-        glDeleteShader(fragmentShader)
     }
 
     private fun calculateBoundingBox() {
@@ -506,32 +376,6 @@ class ShieldShader(
         return smoothingMethod
     }
 
-    fun getLayerNames(): List<String> {
-        return layers.map { it.layerName }
-    }
-
-    /**
-     * Debug: render only the given layers; the rest compile as neutral stubs.
-     * Empty or unknown-only set coerces to all layers. The program rebuild
-     * happens lazily at the next render() call (GL thread).
-     */
-    fun setEnabledLayers(names: Set<String>) {
-        val valid = names.intersect(layers.map { it.layerName }.toSet())
-        enabledLayers = if (valid.isEmpty()) layers.map { it.layerName }.toSet() else valid
-    }
-
-    /** Rebuild the program to match [enabledLayers]. Must run on the GL thread. */
-    private fun rebuildProgram() {
-        if (shaderProgram != 0) {
-            glDeleteProgram(shaderProgram)
-            shaderProgram = 0
-        }
-        initShaders()
-    }
-
-    // Set of layers the current program was compiled with
-    private var compiledLayers: Set<String> = enabledLayers
-
     fun updateBorder(r: Int, g: Int, b: Int, a: Int, width: Float, blend: Float) {
         borderLayer.setBorder(r, g, b, a, width)
     }
@@ -559,14 +403,9 @@ class ShieldShader(
     override fun render(viewport: ViewportAPI) {
         if (polygonPoints.isEmpty()) return
 
-        // Pick up debug layer-set changes (console command sets the global
-        // override; setEnabledLayers sets the instance one) and rebuild the
-        // program lazily — render() is guaranteed to be on the GL thread
-        globalEnabledLayers?.let { setEnabledLayers(it) }
-        if (enabledLayers != compiledLayers) {
-            rebuildProgram()
-            compiledLayers = enabledLayers
-        }
+        // Pick up debug layer-set changes (ShaderLayers console command) and
+        // rebuild the program lazily — render() is on the GL thread
+        program.ensureUpToDate()
 
         // Update viewport scale for ripple calculations
         viewportScaleX = viewport.viewMult
@@ -608,35 +447,30 @@ class ShieldShader(
 
         try {
             // Use our shader program
-            glUseProgram(shaderProgram)
+            glUseProgram(program.programId)
 
             // Bind VAO
             glBindVertexArray(vao)
 
             // Shared uniforms (used by multiple layer modules)
-            glUniform2f(glGetUniformLocation(shaderProgram, "resolution"), screenWidth, screenHeight)
+            glUniform2f(glGetUniformLocation(program.programId, "resolution"), screenWidth, screenHeight)
             val shipScreenX = viewport.convertWorldXtoScreenX(ship.location.x)
             val shipScreenY = viewport.convertWorldYtoScreenY(ship.location.y)
-            glUniform2f(glGetUniformLocation(shaderProgram, "center"), shipScreenX, shipScreenY)
+            glUniform2f(glGetUniformLocation(program.programId, "center"), shipScreenX, shipScreenY)
             glUniform4f(
-                glGetUniformLocation(shaderProgram, "shipRotationMatrix"),
+                glGetUniformLocation(program.programId, "shipRotationMatrix"),
                 shipRotationMatrix[0], shipRotationMatrix[1], shipRotationMatrix[2], shipRotationMatrix[3]
             )
-            glUniform2f(glGetUniformLocation(shaderProgram, "viewportScale"), viewportScaleX, viewportScaleY)
-            glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
-            glUniform1f(glGetUniformLocation(shaderProgram, "time"), time)
+            glUniform2f(glGetUniformLocation(program.programId, "viewportScale"), viewportScaleX, viewportScaleY)
+            glUniform1f(glGetUniformLocation(program.programId, "shipFacing"), ship.facing)
+            glUniform1f(glGetUniformLocation(program.programId, "time"), time)
 
             // Polygon points as uniforms (zero-fill unused slots — the polygon
             // test iterates the full array)
             setPolygonPointUniforms(calculateMaxPointsAfterSmoothing(boundsCount))
 
-            // Layer uniforms, in layer order. Disabled layers are stubs with
-            // no uniforms — skip them so no writes go to location -1.
-            for (layer in layers) {
-                if (layer.layerName in enabledLayers) {
-                    layer.uploadUniforms(shaderProgram, viewport)
-                }
-            }
+            // Layer uniforms, in layer order (disabled layers skipped)
+            program.uploadLayerUniforms(viewport)
 
             // Enable blending for transparency
             glEnable(GL_BLEND)
@@ -682,10 +516,7 @@ class ShieldShader(
                 glDeleteVertexArrays(vao)
                 vao = 0
             }
-            if (shaderProgram != 0) {
-                glDeleteProgram(shaderProgram)
-                shaderProgram = 0
-            }
+            program.dispose()
         } catch (e: Exception) {
             Global.getLogger(this.javaClass).error("Error during cleanup: ${e.message}")
         }

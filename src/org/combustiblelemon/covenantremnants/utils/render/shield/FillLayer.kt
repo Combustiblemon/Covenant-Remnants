@@ -1,6 +1,7 @@
 package org.combustiblelemon.covenantremnants.utils.render.shield
 
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glUniform1f
 import org.lwjgl.opengl.GL20.glUniform4f
@@ -8,7 +9,7 @@ import org.lwjgl.opengl.GL20.glUniform4f
 /**
  * Solid shield fill color, brightened and made more opaque as shield HP drops.
  */
-class FillLayer : ShieldLayer {
+class FillLayer : ShaderLayer {
     override val layerName = "fill"
     override val moduleFile = "data/shaders/shield/fill.glsl"
     override val stubSource = """
