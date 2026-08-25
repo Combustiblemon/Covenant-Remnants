@@ -43,6 +43,13 @@ Keep this file current — tick items off and add new ones as work lands.
       **Plasma Capacitors**, and the fluff/marker **Slipspace Drive** hullmod (no-op, built into all
       combat hulls, for campaign scripts). See [implementations/hullmod-pass.md](implementations/hullmod-pass.md).
       Not yet verified in-game.
+- [x] **Vanilla-style incompatibility for Covenant Systems** — replaced MagicLib's post-install
+      removal with vanilla refit UX: ITU/DTC greyed out with "Incompatible with Covenant Systems"
+      via runtime effect wrap (name-agnostic reflection). DFC deliberately not blocked (dead code).
+      See [implementations/vanilla-hullmod-incompatibility.md](implementations/vanilla-hullmod-incompatibility.md).
+      Not yet verified in-game.
+- [ ] **Migrate NanolaminateArmor + HuragokCrew off MagicIncompatibleHullmods** — same vanilla-style
+      treatment as Covenant Systems (they still silently remove conflicting mods).
 - [ ] **Tune hullmod numbers** — OP costs and all new-mod values are vanilla-anchored placeholders.
 - [ ] **Weapon-buff hullmod** (from PLAN) — still unbuilt: buff plasma/energy weapons, nerf the weapons
       themselves to compensate. Deferred from this pass.

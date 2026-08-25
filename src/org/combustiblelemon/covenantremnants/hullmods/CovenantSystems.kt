@@ -1,11 +1,11 @@
 ﻿package org.combustiblelemon.covenantremnants.hullmods
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
 import org.combustiblelemon.lemonlib.geometry.getPercentage
-import org.magiclib.util.MagicIncompatibleHullmods
 
 class CovenantSystems : BaseHullMod() {
     private enum class ENERGY_WEAPON_RANGE_MULT(val value: Float) {
@@ -23,30 +23,27 @@ class CovenantSystems : BaseHullMod() {
     private val REPAIR_PER_DAY_MULT = 0.75f
 
     companion object {
-        private val BLOCKED_HULLMODS: MutableSet<String> = HashSet(2)
-
-        init {
-            BLOCKED_HULLMODS.add("dedicated_targeting_core")
-            BLOCKED_HULLMODS.add("targetingunit")
-        }
-
         const val ID = "covenant_remnants_covenantsystems"
+        const val INCOMPATIBLE_REASON = "Incompatible with Covenant Systems"
+
+        // Hullmod id -> fallback display name, used when the spec is missing at runtime.
+        val INCOMPATIBLE_HULLMODS: Map<String, String> = mapOf(
+            "targetingunit" to "Integrated Targeting Unit",
+            "dedicated_targeting_core" to "Dedicated Targeting Core",
+        )
     }
 
     override fun isApplicableToShip(ship: ShipAPI): Boolean {
-        return true
+        return INCOMPATIBLE_HULLMODS.keys.none { ship.variant?.hasHullMod(it) == true }
     }
 
-    override fun applyEffectsAfterShipCreation(ship: ShipAPI, id: String) {
-        for (tmp in BLOCKED_HULLMODS) {
-            if (ship.variant.hullMods.contains(tmp)) {
-                MagicIncompatibleHullmods.removeHullmodWithWarning(
-                    ship.variant,
-                    tmp,
-                    ID
-                )
-            }
-        }
+    override fun getUnapplicableReason(ship: ShipAPI): String? {
+        val (id, fallbackName) = INCOMPATIBLE_HULLMODS.entries
+            .firstOrNull { ship.variant?.hasHullMod(it.key) == true }
+            ?.let { it.key to it.value } ?: return null
+        val name = runCatching { Global.getSettings().getHullModSpec(id)?.displayName }
+            .getOrNull() ?: fallbackName
+        return "Incompatible with $name"
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: HullSize, stats: MutableShipStatsAPI, id: String) {

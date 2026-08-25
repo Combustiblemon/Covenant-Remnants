@@ -93,8 +93,12 @@ task type, regardless of any model already set in the target agent's own frontma
 - **Search / read / investigate** (locating code, reading files, grepping references,
   codebase mapping — no edits) → `sonnet`
 - **Write / implement** (edits, new files, refactors) → `opus`
-- **Plan / design** (architecture, implementation strategy, no edits) → `fable`; if Fable is
-  unavailable, fall back to `opus`
+- **Plan / design** (architecture, implementation strategy, no edits) → `opus`,
+  unless the task is mostly reading and thinking, in which case → `sonnet`
+- **Test / verify** (unit tests, integration tests, QA) → `sonnet`
+- The model of the target agent is **not** inherited by subagents. Each subagent gets its own
+  model based on the task type, even if the parent agent is already using a different model.
+- The main agent must always check the plans and outputs of subagents for correctness and completeness.
 
 A single agent invocation that mixes phases (e.g. explore then write) takes the model of its
 primary/heavier phase.

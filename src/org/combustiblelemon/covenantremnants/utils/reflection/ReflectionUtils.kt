@@ -143,6 +143,57 @@ internal object ReflectionUtils {
             }.map { (fieldObj, _) -> ReflectedField(fieldObj) }
     }
 
+    /**
+     * Fields (own class + full superclass chain) whose current value is the given instance
+     * (reference identity). Name- and declared-type-agnostic, so it survives obfuscation renames
+     * and fields declared as Object. Inaccessible and static fields are skipped.
+     */
+    fun findFieldsByValue(instance: Any, value: Any): List<ReflectedField> {
+        val result = mutableListOf<ReflectedField>()
+        var clazz: Class<*>? = instance.javaClass
+        while (clazz != null && clazz != Any::class.java) {
+            // Typed as Array<out Any>: naming java.lang.reflect.Field in bytecode trips the
+            // game's script classloader ("reflection not allowed to scripts").
+            val declaredFields: Array<out Any> = clazz.getDeclaredFields()
+            for (fieldObj in declaredFields) {
+                try {
+                    setFieldAccessibleHandle.invoke(fieldObj, true)
+                    if (getFieldHandle.invoke(fieldObj, instance) === value) {
+                        result.add(ReflectedField(fieldObj))
+                    }
+                } catch (_: Throwable) {
+                    // inaccessible or static field - skip
+                }
+            }
+            clazz = clazz.superclass
+        }
+        return result
+    }
+
+    /**
+     * Fields (own class + full superclass chain) whose declared type is assignable to [clazz].
+     * Matches by type signature only - no names - so it survives obfuscation renames.
+     */
+    fun findFieldsAssignableTo(instance: Any, clazz: Class<*>): List<ReflectedField> {
+        val result = mutableListOf<ReflectedField>()
+        var current: Class<*>? = instance.javaClass
+        while (current != null && current != Any::class.java) {
+            // Array<out Any> for the same script-classloader reason as findFieldsByValue.
+            val declaredFields: Array<out Any> = current.getDeclaredFields()
+            for (fieldObj in declaredFields) {
+                try {
+                    if (clazz.isAssignableFrom(getFieldTypeHandle.invoke(fieldObj) as Class<*>)) {
+                        result.add(ReflectedField(fieldObj))
+                    }
+                } catch (_: Throwable) {
+                    // skip
+                }
+            }
+            current = current.superclass
+        }
+        return result
+    }
+
     fun getFieldsOfType(instance: Any, clazz: Class<*>): List<String> {
         val instancesOfMethods: Array<out Any> = instance.javaClass.getDeclaredFields()
 
@@ -289,6 +340,7 @@ internal object ReflectionUtils {
         }
 
         fun set(instance: Any?, value: Any?) {
+            setFieldAccessibleHandle.invoke(field, true)
             setFieldHandle.invoke(field, instance, value)
         }
     }

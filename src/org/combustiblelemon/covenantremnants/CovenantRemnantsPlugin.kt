@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 import org.combustiblelemon.covenantremnants.campaign.systems.generateSlipspaceSystem
+import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilityInstaller
 import org.combustiblelemon.covenantremnants.utils.initShieldData
 
 class CovenantRemnantsPlugin : BaseModPlugin() {
@@ -31,6 +32,7 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         initShieldData(shieldData)
         logger.info(shieldData.toString())
 
+        CovenantIncompatibilityInstaller.install()
     }
 
     override fun onNewGame() {
