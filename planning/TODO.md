@@ -30,6 +30,10 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Mass slipspace jump (supercap1)** — currently the placeholder `slipspacedrive`; build the
       radius mass-jump (grab ships/fighters/projectiles/missiles in a radius, jump them together).
       Full spec is in the plan-file git history; model on `SlipspaceDrive.kt` + `SlipspaceDriveRenderPlugin`.
+- [ ] **Verify shield stats-script sharing** — deploy 2+ Covenant ships in one battle and check
+      whether they share one shield pool (`CovenantShieldsStats` keeps per-ship state in instance
+      fields; Starsector may share one script instance per system spec). If confirmed, refactor
+      to per-ship state. See [implementations/shield-dhull-lookup-fix.md](implementations/shield-dhull-lookup-fix.md).
 
 ## Hullmods
 
@@ -47,6 +51,17 @@ Keep this file current — tick items off and add new ones as work lands.
 
 - [ ] **Tune all numbers** — every ship, weapon, shield, and system value is a vanilla-anchored
       placeholder. Pass over stats once content is playable in-sim.
+- [x] **Supercap mobility** — CAS + CVS base speed 15→30, accel 10→15, decel 8→12 (effective 36
+      at-flux with Nanolaminate, just above Invictus). See
+      [implementations/supercap-speed-tune.md](implementations/supercap-speed-tune.md). Not yet
+      verified in-game.
+- [x] **Flux + shield-regen tune** — max flux ×0.8 on all 16 Covenant hulls (shield makes no
+      flux); supercap1 shield 45000→20000; regen halved while >1% max-shield damage taken in a
+      trailing 3s window (replaced dead/buggy `shouldRegen()`). See
+      [implementations/shield-flux-tune.md](implementations/shield-flux-tune.md). Not yet
+      verified in-game.
+- [ ] **UI indicator for slowed shield regen** — optional follow-up; mechanic currently invisible
+      to the player.
 - [ ] Decide Suppressor Beam damage type — ENERGY (current) vs KINETIC (harder anti-shield).
 
 ## Dev tooling

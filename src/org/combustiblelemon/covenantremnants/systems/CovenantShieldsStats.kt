@@ -31,7 +31,12 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     var shieldStats: ShieldData = generateDefaultShieldData()
 
     private var shieldRegen: Float = 1250f
-    private val shieldDamageRechargeCooldown: Float = 0.5f
+
+    // Regen is halved while cumulative shield damage within the trailing window exceeds
+    // regenSlowThreshold (fraction of max shield HP); each hit inside the window keeps it active.
+    private val regenSlowMult: Float = 0.5f
+    private val regenSlowWindow: Float = 3f
+    private val regenSlowThreshold: Float = 0.01f
     // TODO(fortress): the Reverence-class battleship (covenant_remnants_capital1) carries the
     //  vanilla "fortressshield" ship system as a trigger. When that system is active on the ship,
     //  drop shieldDamageMult toward ~0.05 and halt shield decay / boost regen so the custom shield
@@ -52,6 +57,10 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     var breakCooldownStartTime = 0f
 
     var shieldInit: Boolean = false
+
+    // The stats script instance may outlive a single battle; used to detect a new combat and
+    // drop per-battle state (plugins, listeners, shield state) so everything re-initializes.
+    private var combatEngine: CombatEngineAPI? = null
 
     // first value is damage number and second is time it happened
     private var damageInstances: MutableList<List<Float>> = mutableListOf()
@@ -128,7 +137,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 }
             } else {
                 if ((parent.shieldHealth < parent.maxShieldHealth)) {
-                    parent.shieldHealth += parent.shieldRegen * amount
+                    parent.shieldHealth += parent.shieldRegen * parent.regenMult() * amount
                 }
             }
 
@@ -150,12 +159,26 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             ship = _ship
             shipDimensions = getShipDimensions(_ship)
 
+            val engine = Global.getCombatEngine()
+            if (combatEngine !== engine) {
+                combatEngine = engine
+                renderPlugin = null
+                UIRenderPlugin = null
+                damageListener = null
+                damageConverter = null
+                shipListenerInstance = null
+                damageInstances.clear()
+                breakCooldownActive = false
+                shieldInit = false
+            }
+
             if (!shieldInit) {
-                shieldStats = shieldData.getOrElse(ship?.hullSpec?.hullId ?: "", { generateDefaultShieldData() })
+                shieldInit = true
+                shieldStats = shieldData.getOrElse(ship?.hullSpec?.baseHullId ?: "", { generateDefaultShieldData() })
                 shieldRegen = shieldStats.shieldRegenRate
                 breakCooldownTime = shieldStats.brokenShieldCooldown
-                shieldHealth = shieldStats.shieldHealth
                 maxShieldHealth = shieldStats.shieldHealth
+                shieldHealth = shieldStats.shieldHealth
                 shieldCooldown = shieldStats.shieldRegenDelay
             }
         } else {
@@ -347,30 +370,19 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         this.lastDamageToShield = abs(amount)
     }
 
-    fun shouldRegen(): Boolean {
-        if (breakCooldownActive) {
-            return false
-        }
-
+    fun regenMult(): Float {
         if (damageInstances.isEmpty()) {
-            return true
+            return 1f
         }
 
-        val checkTime = Global.getCombatEngine().getTotalElapsedTime(false) + shieldDamageRechargeCooldown
+        val cutoffTime = Global.getCombatEngine().getTotalElapsedTime(false) - regenSlowWindow
 
-        damageInstances = damageInstances.mapNotNull {
-            if (it[1] <= checkTime) null else it
-        }.toMutableList()
-
-        if (damageInstances.isEmpty()) {
-            return true
-        }
+        damageInstances = damageInstances.filter { it[1] > cutoffTime }.toMutableList()
 
         var sum = 0f
-
         damageInstances.forEach { sum += it[0] }
 
-        return sum <= maxShieldHealth * 0.05f
+        return if (sum > maxShieldHealth * regenSlowThreshold) regenSlowMult else 1f
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {

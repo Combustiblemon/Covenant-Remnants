@@ -46,6 +46,7 @@ class CovenantGiveAll : BaseCommand {
         for (spec in settings.allShipHullSpecs) {
             if (!spec.hullId.startsWith(PREFIX)) continue
             if (spec.hullSize == ShipAPI.HullSize.FIGHTER) continue
+            if (spec.isDefaultDHull) continue
 
             val variant = settings.createEmptyVariant(spec.hullId + "_giveall", spec)
             val member = Global.getFactory().createFleetMember(FleetMemberType.SHIP, variant)

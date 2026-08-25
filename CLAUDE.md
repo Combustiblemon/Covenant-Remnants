@@ -56,9 +56,9 @@ These are settled. Do not re-open them without asking the developer.
 
 Design and balance thinking lives in these files — consult them, do not duplicate them here:
 
-- [design document.txt](design%20document.txt) — the fun-check questions and the rule to use vanilla
+- [design_document.md](design_document.md) — the fun-check questions and the rule to use vanilla
   weapons/wings as the reference for stats and ship fits.
-- [balance.txt](balance.txt) — per-feature balance notes and TODOs.
+- [balance.md](balance.md) — per-feature balance notes and TODOs.
 
 ## Working with an AI assistant
 
