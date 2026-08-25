@@ -3,8 +3,9 @@ package org.combustiblelemon.covenantremnants
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
 import org.combustiblelemon.covenantremnants.campaign.systems.generateSlipspaceSystem
-import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilityInstaller
+import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilities
 import org.combustiblelemon.covenantremnants.utils.initShieldData
+import org.combustiblelemon.lemonlib.hullmods.HullmodIncompatibilityInstaller
 
 class CovenantRemnantsPlugin : BaseModPlugin() {
     val logger = Global.getLogger(this.javaClass)
@@ -32,7 +33,12 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         initShieldData(shieldData)
         logger.info(shieldData.toString())
 
-        CovenantIncompatibilityInstaller.install()
+        HullmodIncompatibilityInstaller.install(CovenantIncompatibilities.registry())
+    }
+
+    override fun onGameLoad(newGame: Boolean) {
+        super.onGameLoad(newGame)
+        HullmodIncompatibilityInstaller.verifyAndReinstall(CovenantIncompatibilities.registry())
     }
 
     override fun onNewGame() {

@@ -1,11 +1,13 @@
 ﻿package org.combustiblelemon.covenantremnants.hullmods
 
-import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
 import org.combustiblelemon.lemonlib.geometry.getPercentage
+import org.combustiblelemon.lemonlib.hullmods.HullmodBlocker
+import org.combustiblelemon.lemonlib.hullmods.isApplicableGiven
+import org.combustiblelemon.lemonlib.hullmods.unapplicableReasonFor
 
 class CovenantSystems : BaseHullMod() {
     private enum class ENERGY_WEAPON_RANGE_MULT(val value: Float) {
@@ -24,26 +26,23 @@ class CovenantSystems : BaseHullMod() {
 
     companion object {
         const val ID = "covenant_remnants_covenantsystems"
-        const val INCOMPATIBLE_REASON = "Incompatible with Covenant Systems"
+        const val DISPLAY_NAME = "Covenant Systems"
 
         // Hullmod id -> fallback display name, used when the spec is missing at runtime.
         val INCOMPATIBLE_HULLMODS: Map<String, String> = mapOf(
             "targetingunit" to "Integrated Targeting Unit",
             "dedicated_targeting_core" to "Dedicated Targeting Core",
         )
+
+        val BLOCKER = HullmodBlocker(ID, DISPLAY_NAME)
     }
 
-    override fun isApplicableToShip(ship: ShipAPI): Boolean {
-        return INCOMPATIBLE_HULLMODS.keys.none { ship.variant?.hasHullMod(it) == true }
+    override fun isApplicableToShip(ship: ShipAPI?): Boolean {
+        return isApplicableGiven(ship, ID, INCOMPATIBLE_HULLMODS)
     }
 
-    override fun getUnapplicableReason(ship: ShipAPI): String? {
-        val (id, fallbackName) = INCOMPATIBLE_HULLMODS.entries
-            .firstOrNull { ship.variant?.hasHullMod(it.key) == true }
-            ?.let { it.key to it.value } ?: return null
-        val name = runCatching { Global.getSettings().getHullModSpec(id)?.displayName }
-            .getOrNull() ?: fallbackName
-        return "Incompatible with $name"
+    override fun getUnapplicableReason(ship: ShipAPI?): String? {
+        return unapplicableReasonFor(ship, INCOMPATIBLE_HULLMODS)
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: HullSize, stats: MutableShipStatsAPI, id: String) {

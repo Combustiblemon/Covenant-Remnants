@@ -74,14 +74,24 @@ Covenant ships use `shield type NONE` and get defense from a custom shield inste
 
 ### Hullmods
 
-`hullmods/NanolaminateArmor.kt`, `hullmods/HuragokCrew.kt`, `hullmods/CovenantSystems.kt`,
-`hullmods/HullmodManager.kt`.
+`hullmods/CovenantSystems.kt`, `hullmods/NanolaminateArmor.kt`, `hullmods/CovenantShield.kt`,
+`hullmods/HullmodManager.kt` (hidden helper: swaps hull spec for the Covenant shield),
+`hullmods/HuragokCrew.kt`, `hullmods/PlasmaCapacitors.kt`, `hullmods/SlipspaceTuning.kt`,
+`hullmods/SlipspaceDriveHullmod.kt` (flavor marker).
+
+Incompatibility system: generic mechanism lives in **LemonLib**
+(`org.combustiblelemon.lemonlib.hullmods` — `HullmodBlocker`, `HullmodIncompatibilityWrapper`,
+stateless `HullmodIncompatibilityInstaller`; docs at `LemonLib/docs/hullmod-incompatibility/`).
+This mod keeps only the registry, `hullmods/CovenantIncompatibilities.kt`, fed to the installer
+from the mod plugin (`onApplicationLoad` install, `onGameLoad` re-verify). See
+[implementations/vanilla-hullmod-incompatibility.md](implementations/vanilla-hullmod-incompatibility.md).
 
 ### Shader framework
 
 `utils/render/Shader.kt` (base), `MinimalShader.kt` (simple example), `PolygonShader.kt`; plus the
-subsystem shaders above. Reflection helper: `utils/reflection/ReflectionUtils.kt`. Misc:
-`utils/Utils.kt`, `utils/Data.kt`, `utils/CubicCurve2D.kt`, `utils/extensions/CampaignFleetAPI.kt`.
+subsystem shaders above. Reflection helper: `org.combustiblelemon.lemonlib.reflection.ReflectionUtils`
+(in LemonLib). Misc: `utils/Utils.kt`, `utils/Data.kt`, `utils/CubicCurve2D.kt`,
+`utils/extensions/CampaignFleetAPI.kt`.
 
 ## Build & data flow
 

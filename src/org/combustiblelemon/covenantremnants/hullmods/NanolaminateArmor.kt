@@ -4,17 +4,22 @@ import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import org.combustiblelemon.lemonlib.geometry.getPercentage
-import org.combustiblelemon.covenantremnants.utils.getUnapplicableReasonForHullmod
-import org.magiclib.util.MagicIncompatibleHullmods
+import org.combustiblelemon.lemonlib.hullmods.HullmodBlocker
+import org.combustiblelemon.lemonlib.hullmods.isApplicableGiven
+import org.combustiblelemon.lemonlib.hullmods.unapplicableReasonFor
 
 class NanolaminateArmor : BaseHullMod() {
     companion object {
-        private val BLOCKED_HULLMODS: MutableSet<String> = HashSet(2)
+        const val ID = "covenant_remnants_nanolaminate_armor"
+        const val DISPLAY_NAME = "Nanolaminate Armor"
 
-        init {
-            BLOCKED_HULLMODS.add("heavyarmor")
-            BLOCKED_HULLMODS.add("solar_shielding")
-        }
+        // Vanilla hullmod id -> fallback display name, used when the spec is missing at runtime.
+        val INCOMPATIBLE_HULLMODS: Map<String, String> = mapOf(
+            "heavyarmor" to "Heavy Armor",
+            "solar_shielding" to "Solar Shielding",
+        )
+
+        val BLOCKER = HullmodBlocker(ID, DISPLAY_NAME)
 
         const val ENERGY_DAMAGE_MULT = 0.8f
         const val FRAGMENTATION_DAMAGE_MULT = 1.6f
@@ -26,24 +31,11 @@ class NanolaminateArmor : BaseHullMod() {
     }
 
     override fun getUnapplicableReason(ship: ShipAPI?): String? {
-        if (ship == null) {
-            return "This hullmod is only applicable to ships."
-        }
-
-        val hullmodId = ship.variant.hullMods.find { BLOCKED_HULLMODS.contains(it) }
-        if (hullmodId != null) {
-            return getUnapplicableReasonForHullmod(hullmodId)
-        }
-
-        return null
+        return unapplicableReasonFor(ship, INCOMPATIBLE_HULLMODS)
     }
 
     override fun isApplicableToShip(ship: ShipAPI?): Boolean {
-        if (ship == null) {
-            return false
-        }
-
-        return !ship.variant.hullMods.any { hullmod -> BLOCKED_HULLMODS.contains(hullmod) }
+        return isApplicableGiven(ship, ID, INCOMPATIBLE_HULLMODS)
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: ShipAPI.HullSize?, stats: MutableShipStatsAPI?, id: String?) {
@@ -58,22 +50,6 @@ class NanolaminateArmor : BaseHullMod() {
         stats.armorBonus.modifyMult(id, ARMOR_BONUS_MULT)
         stats.maxSpeed.modifyMult(id, MAX_SPEED_MULT)
         stats.acceleration.modifyMult(id, ACCELERATION_MULT)
-    }
-
-    override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
-        if (ship == null) {
-            return
-        }
-
-        for (tmp in BLOCKED_HULLMODS) {
-            if (ship.variant.hullMods.contains(tmp)) {
-                MagicIncompatibleHullmods.removeHullmodWithWarning(
-                    ship.variant,
-                    tmp,
-                    this.spec.id
-                )
-            }
-        }
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {

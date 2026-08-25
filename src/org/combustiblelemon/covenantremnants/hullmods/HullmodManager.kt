@@ -4,7 +4,7 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.fleet.FleetMemberAPI
 import org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin
-import org.combustiblelemon.covenantremnants.utils.reflection.ReflectionUtils
+import org.combustiblelemon.lemonlib.reflection.ReflectionUtils
 
 const val TEMP_SHIP_PREFIX = "covenant_remnants_covenant_shield_temp"
 
@@ -23,7 +23,7 @@ class HullmodManager : BaseHullMod() {
         }
 
         val variant = stats.variant
-        val hullmodId = variant.hullMods.find { it == "covenant_remnants_covenantshieldhullmod" }
+        val hullmodId = variant.hullMods.find { it == CovenantShield.ID }
 
         if (hullmodId == null) {
             if (variant.hullSpec.hasTag(TEMP_SHIP_PREFIX)) {
@@ -46,6 +46,8 @@ class HullmodManager : BaseHullMod() {
     }
 
     companion object {
+        const val ID = "covenant_remnants_hullmodmanager"
+
         fun createNewSpec(hullSpec: ShipHullSpecAPI): ShipHullSpecAPI? {
             if (hullSpec.hasTag(TEMP_SHIP_PREFIX)) {
                 return null
@@ -57,7 +59,7 @@ class HullmodManager : BaseHullMod() {
                 newSpec = ReflectionUtils.invoke("clone", hullSpec) as ShipHullSpecAPI
 
                 newSpec.addTag(TEMP_SHIP_PREFIX)
-                newSpec.shipDefenseId = "covenant_remnants_covenantshield"
+                newSpec.shipDefenseId = CovenantShield.DEFENSE_ID
 
                 if (hullSpec.defenseType != ShieldAPI.ShieldType.PHASE) {
                     val shieldSpecField = ReflectionUtils.getFieldsOfType(newSpec, hullSpec.shieldSpec.javaClass)

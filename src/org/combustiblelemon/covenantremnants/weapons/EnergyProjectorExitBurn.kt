@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.listeners.HullDamageAboutToBeTakenListener
 import org.combustiblelemon.covenantremnants.plugins.EnergyProjectorScorchCleanupPlugin
-import org.combustiblelemon.covenantremnants.utils.reflection.ReflectionUtils
+import org.combustiblelemon.lemonlib.reflection.ReflectionUtils
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min

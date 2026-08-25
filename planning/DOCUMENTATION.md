@@ -53,8 +53,9 @@ task list. This documentation duty is a fixed AI-assistant rule — see
 ## Content conventions
 
 - **Ships** (`data/hulls/*.ship` + rows in `data/hulls/ship_data.csv`) declare
-  `shield type = NONE` — Covenant defense is the mod's **custom shield system** (hullmod +
-  shader + render plugins), not a vanilla shield. See [ARCHITECTURE.md](ARCHITECTURE.md).
+  `shield type = PHASE` with `defense id = covenant_remnants_covenantshield` — Covenant defense is
+  the mod's **custom shield system** (hullmod + shader + render plugins), not a vanilla shield.
+  See [ARCHITECTURE.md](ARCHITECTURE.md).
 - **Fighters** are defined as `wing*` **ship hulls** + a `.variant` + a row in
   `data/hulls/wing_data.csv`. There are **no** `.wing` files — do not add them.
 - **Weapons** (`data/weapons/*.wpn` + `weapon_data.csv`, projectiles in `data/weapons/proj/*.proj`)

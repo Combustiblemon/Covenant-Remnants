@@ -1,5 +1,5 @@
 {
-  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor", "covenant_remnants_slipspace_drive"],
+  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor", "covenant_remnants_slipspace_drive", "covenant_remnants_covenantshieldhullmod"],
   "hullName": "ORS-class Light Cruiser",
   "hullId": "covenant_remnants_cruiser3",
   "hullSize": "CRUISER",

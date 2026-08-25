@@ -5,7 +5,7 @@ import com.fs.starfarer.api.combat.CombatEngineLayers
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.CombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
-import org.combustiblelemon.covenantremnants.utils.reflection.ReflectionUtils
+import org.combustiblelemon.lemonlib.reflection.ReflectionUtils
 import org.lwjgl.util.vector.Vector2f
 import java.util.EnumSet
 

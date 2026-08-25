@@ -43,13 +43,16 @@ Keep this file current — tick items off and add new ones as work lands.
       **Plasma Capacitors**, and the fluff/marker **Slipspace Drive** hullmod (no-op, built into all
       combat hulls, for campaign scripts). See [implementations/hullmod-pass.md](implementations/hullmod-pass.md).
       Not yet verified in-game.
-- [x] **Vanilla-style incompatibility for Covenant Systems** — replaced MagicLib's post-install
-      removal with vanilla refit UX: ITU/DTC greyed out with "Incompatible with Covenant Systems"
-      via runtime effect wrap (name-agnostic reflection). DFC deliberately not blocked (dead code).
+- [x] **Vanilla-style incompatibility registry (full)** — replaced MagicLib's post-install removal
+      with vanilla refit UX for the whole mod: 14 vanilla hullmods (ITU/DTC, Heavy Armor, Solar
+      Shielding, 8 shield mods, 2 phase mods) grey out on Covenant ships via runtime effect wrap
+      (name-agnostic reflection, reinstall-on-WARN each game load). NanolaminateArmor + HuragokCrew
+      migrated off MagicIncompatibleHullmods. Covenant Shield hullmod now built-in on all hulls;
+      its desc rewritten with per-ship shield numbers.
       See [implementations/vanilla-hullmod-incompatibility.md](implementations/vanilla-hullmod-incompatibility.md).
       Not yet verified in-game.
-- [ ] **Migrate NanolaminateArmor + HuragokCrew off MagicIncompatibleHullmods** — same vanilla-style
-      treatment as Covenant Systems (they still silently remove conflicting mods).
+- [ ] **frigate3 builtInMods** — `covenant_remnants_frigate3.ship` lacks
+      `covenant_remnants_slipspace_drive` unlike every other combat hull; probable oversight, ask.
 - [ ] **Tune hullmod numbers** — OP costs and all new-mod values are vanilla-anchored placeholders.
 - [ ] **Weapon-buff hullmod** (from PLAN) — still unbuilt: buff plasma/energy weapons, nerf the weapons
       themselves to compensate. Deferred from this pass.
@@ -96,8 +99,14 @@ Keep this file current — tick items off and add new ones as work lands.
       Not yet verified in-game. Developer: `git init` the LemonLib repo when ready.
 - [ ] **Decide fate of remaining monolith shaders** — MinimalShader / PolygonShader /
       SlipspacePortalEntityShader: migrate to the composition system or discard, per shader.
-- [ ] **Evaluate more LemonLib candidates** — `CubicCurve2D.kt`, `reflection/ReflectionUtils.kt`,
-      `extensions/` (`Data.kt` likely stays — Covenant shield data).
+- [x] **ReflectionUtils → LemonLib** — moved whole file to
+      `org.combustiblelemon.lemonlib.reflection.ReflectionUtils` (public), together with the
+      generic hullmod-incompatibility system (`lemonlib.hullmods`: `HullmodBlocker`, wrapper,
+      stateless `HullmodIncompatibilityInstaller.install/verifyAndReinstall(registry)`); mod keeps
+      only `hullmods/CovenantIncompatibilities.kt` (registry). Docs:
+      `LemonLib/docs/hullmod-incompatibility/README.md`. Not yet verified in-game.
+- [ ] **Evaluate more LemonLib candidates** — `CubicCurve2D.kt`, `extensions/`
+      (`Data.kt` likely stays — Covenant shield data).
 - [ ] **Ripple zoom consistency** (pre-existing TODO) — ripple speed/radius/width inconsistent
       across zoom levels.
 

@@ -13,7 +13,14 @@ Nanolaminate Armor,covenant_remnants_nanolaminate_armor,,,Covenant,"req_spacepor
 Increases damage taken from other sources by %s.
 Increases speed and acceleration by %s.
 Reduces armor by %s.",,,
-Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, shields, defensive","Shields, Requires Dock",,FALSE,FALSE,,10,20,30,45,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,Replace defence with covenant shield,,,
+Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,"req_spaceport, no_drop, no_drop_salvage, shields, defensive","Shields, Requires Dock",,FALSE,FALSE,,10,20,30,45,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,"A shimmering envelope of coherent plasma projected by ring emitters woven into the hull, the signature defense of every ship the Covenant ever fielded.
+
+Replaces the ship's defenses with a regenerating Covenant energy shield:
+ Shield capacity: %s
+ Regenerates %s per second after %s seconds without taking damage
+ Collapses when depleted and comes back online after %s seconds
+
+Can not work in conjunction with hullmods that modify shields or phase systems.",,,
 covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,"hide_in_codex, no_drop, no_drop_salvage",,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,"Hullmod manager facilitating functionality for the rest of the hullmods, you should not be seeing this",,,
 Huragok Crew,covenant_remnants_huragok_crew,,,Covenant,"no_drop, no_drop_salvage, defensive",,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.HuragokCrew,"Increase max CR by %s
 Increase repair rate by %s 
