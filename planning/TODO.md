@@ -77,14 +77,20 @@ Keep this file current — tick items off and add new ones as work lands.
       to module file + local line, assembled source dumped to log).
       See [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md).
       Not yet verified in-game.
-- [x] **Generic shader composition system** — extracted the composition engine into
-      `utils/render/composition/` (`ShaderLayer`, `ComposedShaderProgram`, `CompositionDebug`);
-      shield is first consumer; console command generalized to `ShaderLayers <system> [...]`;
-      usage docs in [../docs/shader-composition/](../docs/shader-composition/README.md). See
+- [x] **Generic shader composition system** — extracted the composition engine
+      (`ShaderLayer`, `ComposedShaderProgram`, `CompositionDebug`); shield is first consumer;
+      console command generalized to `ShaderLayers <system> [...]`. See
       [implementations/shader-composition-generic.md](implementations/shader-composition-generic.md).
       Not yet verified in-game.
+- [x] **LemonLib library mod** — composition system + render core + generic geometry/ship utils
+      extracted to the standalone `LemonLib` utility mod (`../../LemonLib/`); Covenant now depends
+      on it (mod_info + gradle). Usage docs at `LemonLib/docs/shader-composition/`. See
+      [implementations/lemonlib-extraction.md](implementations/lemonlib-extraction.md).
+      Not yet verified in-game. Developer: `git init` the LemonLib repo when ready.
 - [ ] **Decide fate of remaining monolith shaders** — MinimalShader / PolygonShader /
       SlipspacePortalEntityShader: migrate to the composition system or discard, per shader.
+- [ ] **Evaluate more LemonLib candidates** — `CubicCurve2D.kt`, `reflection/ReflectionUtils.kt`,
+      `extensions/` (`Data.kt` likely stays — Covenant shield data).
 - [ ] **Ripple zoom consistency** (pre-existing TODO) — ripple speed/radius/width inconsistent
       across zoom levels.
 

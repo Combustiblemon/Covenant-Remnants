@@ -13,6 +13,10 @@ import com.fs.starfarer.combat.entities.Missile
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.*
+import org.combustiblelemon.lemonlib.geometry.getPointAlongSegmentFromEnd
+import org.combustiblelemon.lemonlib.geometry.hasPerpendicularIntersectionPoint
+import org.combustiblelemon.lemonlib.geometry.rotatePointByDegrees
+import org.combustiblelemon.lemonlib.ship.getShipDimensions
 import org.lwjgl.util.vector.Vector2f
 import org.magiclib.util.MagicUI
 import kotlin.math.abs

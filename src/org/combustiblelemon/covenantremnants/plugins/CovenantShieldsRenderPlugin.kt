@@ -1,12 +1,12 @@
-package org.combustiblelemon.covenantremnants.plugins
+﻿package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
-import org.combustiblelemon.covenantremnants.utils.getRandomPointsInPolygon
-import org.combustiblelemon.covenantremnants.utils.getShipPolygonInWorld
+import org.combustiblelemon.lemonlib.geometry.getRandomPointsInPolygon
+import org.combustiblelemon.lemonlib.ship.getShipPolygonInWorld
 import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
-import org.combustiblelemon.covenantremnants.utils.render.shield.SmoothingMethod
+import org.combustiblelemon.lemonlib.geometry.SmoothingMethod
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*

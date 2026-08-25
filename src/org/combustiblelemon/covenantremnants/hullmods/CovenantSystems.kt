@@ -1,10 +1,10 @@
-package org.combustiblelemon.covenantremnants.hullmods
+﻿package org.combustiblelemon.covenantremnants.hullmods
 
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
-import org.combustiblelemon.covenantremnants.utils.getPercentage
+import org.combustiblelemon.lemonlib.geometry.getPercentage
 import org.magiclib.util.MagicIncompatibleHullmods
 
 class CovenantSystems : BaseHullMod() {

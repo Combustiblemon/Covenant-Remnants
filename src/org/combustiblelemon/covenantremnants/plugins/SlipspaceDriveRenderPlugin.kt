@@ -1,11 +1,11 @@
-package org.combustiblelemon.covenantremnants.plugins
+﻿package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import com.fs.starfarer.api.impl.campaign.terrain.RingRenderer
 import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
-import org.combustiblelemon.covenantremnants.utils.getLocationInFrontOfShip
+import org.combustiblelemon.lemonlib.ship.getLocationInFrontOfShip
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.opengl.DrawUtils
 import org.lwjgl.opengl.GL11

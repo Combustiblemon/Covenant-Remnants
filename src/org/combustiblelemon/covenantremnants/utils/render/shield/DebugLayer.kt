@@ -1,7 +1,7 @@
-package org.combustiblelemon.covenantremnants.utils.render.shield
+﻿package org.combustiblelemon.covenantremnants.utils.render.shield
 
 import com.fs.starfarer.api.combat.ViewportAPI
-import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
+import org.combustiblelemon.lemonlib.render.composition.ShaderLayer
 import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glUniform1i
 import org.lwjgl.opengl.GL20.glUniform2f

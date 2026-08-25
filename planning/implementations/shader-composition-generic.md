@@ -5,8 +5,9 @@ program, solo-layer debug, module-tagged errors) out of `ShieldShader` into a re
 Shield is the first and only consumer for now (developer ruling: other shaders —
 MinimalShader/PolygonShader/SlipspacePortalEntityShader — get migrated or discarded later).
 
-Full usage documentation lives in [../../docs/shader-composition/](../../docs/shader-composition/README.md)
-(developer-facing docs folder; see DOCUMENTATION.md).
+Full usage documentation originally lived in this repo's `docs/shader-composition/`; it moved to
+`LemonLib/docs/shader-composition/` with the library extraction (see
+[lemonlib-extraction.md](lemonlib-extraction.md)).
 
 ## What was built
 

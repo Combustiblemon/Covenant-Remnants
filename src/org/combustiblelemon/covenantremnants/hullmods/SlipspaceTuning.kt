@@ -3,7 +3,7 @@ package org.combustiblelemon.covenantremnants.hullmods
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
-import org.combustiblelemon.covenantremnants.utils.getPercentage
+import org.combustiblelemon.lemonlib.geometry.getPercentage
 
 /**
  * Slipspace Tuning — tunes the Covenant slipspace drive.

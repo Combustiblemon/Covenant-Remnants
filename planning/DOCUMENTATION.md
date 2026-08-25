@@ -18,9 +18,11 @@ Roadmap: [PLAN.md](PLAN.md).
 lives in `planning/`. New plan for a feature? Put it in `planning/` and link it from `PLAN.md`.
 
 **`docs/` folder.** Developer-facing **usage documentation for reusable systems** (how-to guides,
-API contracts, worked examples) lives in `docs/<system>/` — e.g.
-[../docs/shader-composition/](../docs/shader-composition/README.md). Planning/design history for
-the same system stays in `planning/` (the two link to each other).
+API contracts, worked examples) lives in `docs/<system>/` of the repo that owns the code. Shared
+systems live in the **LemonLib** library mod (`../../LemonLib/`) and are documented there — e.g.
+the shader composition docs are at `LemonLib/docs/shader-composition/`. Planning/design history
+stays in this repo's `planning/` (see
+[implementations/lemonlib-extraction.md](implementations/lemonlib-extraction.md)).
 
 **Rule: no dead cross-links.** If a doc links another doc or file, that target must exist. When you
 add a new doc, wire it into this table. Links from inside `planning/` to root files use `../`.

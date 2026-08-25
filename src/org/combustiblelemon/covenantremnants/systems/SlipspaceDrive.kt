@@ -1,4 +1,4 @@
-package org.combustiblelemon.covenantremnants.systems
+﻿package org.combustiblelemon.covenantremnants.systems
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
@@ -9,8 +9,8 @@ import com.fs.starfarer.api.plugins.ShipSystemStatsScript
 import org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning
 import org.combustiblelemon.covenantremnants.plugins.SlipspaceDriveRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
-import org.combustiblelemon.covenantremnants.utils.getVelocityVectorInFacing
-import org.combustiblelemon.covenantremnants.utils.normalize
+import org.combustiblelemon.lemonlib.ship.getVelocityVectorInFacing
+import org.combustiblelemon.lemonlib.geometry.normalize
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.combat.CombatUtils
 import org.lwjgl.util.vector.Vector2f

@@ -3,17 +3,18 @@ package org.combustiblelemon.covenantremnants.utils.render
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
-import org.combustiblelemon.covenantremnants.utils.render.composition.ComposedShaderProgram
-import org.combustiblelemon.covenantremnants.utils.render.composition.ShaderLayer
+import org.combustiblelemon.lemonlib.render.Shader
+import org.combustiblelemon.lemonlib.render.composition.ComposedShaderProgram
+import org.combustiblelemon.lemonlib.render.composition.ShaderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.BorderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.DebugLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.FillLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.HoneycombLayer
-import org.combustiblelemon.covenantremnants.utils.render.shield.PolygonSmoothing
+import org.combustiblelemon.lemonlib.geometry.PolygonSmoothing
 import org.combustiblelemon.covenantremnants.utils.render.shield.RippleLayer
-import org.combustiblelemon.covenantremnants.utils.render.shield.SmoothingMethod
+import org.combustiblelemon.lemonlib.geometry.SmoothingMethod
 import org.combustiblelemon.covenantremnants.utils.render.shield.SweepLayer
-import org.combustiblelemon.covenantremnants.utils.rotatePointByDegrees
+import org.combustiblelemon.lemonlib.geometry.rotatePointByDegrees
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*
@@ -24,8 +25,8 @@ import org.lwjgl.util.vector.Vector2f
 // TODO: Fix ripple effects to be consistent across zoom levels. Fix ripple radius and width to be consistent across zoom levels. Ripple is much faster zoomed out than zoomed in.
 
 /**
- * Covenant shield renderer, built on the generic shader composition system
- * (see docs/shader-composition/). Each visual layer (fill, border, sweep,
+ * Covenant shield renderer, built on LemonLib's shader composition system
+ * (see LemonLib/docs/shader-composition/). Each visual layer (fill, border, sweep,
  * ripples, honeycomb, debug) is a [ShaderLayer] owning its GLSL module +
  * uniforms; [ComposedShaderProgram] assembles them into a single program.
  *

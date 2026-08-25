@@ -2,7 +2,8 @@ package org.combustiblelemon.covenantremnants.utils.render
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ViewportAPI
-import org.combustiblelemon.covenantremnants.utils.getShaderCode
+import org.combustiblelemon.lemonlib.render.Shader
+import org.combustiblelemon.lemonlib.render.getShaderCode
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.opengl.GL15.*

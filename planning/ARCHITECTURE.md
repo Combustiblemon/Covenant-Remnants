@@ -49,9 +49,12 @@ Covenant ships use `shield type NONE` and get defense from a custom shield inste
 - AI: `ai/CovenantShieldsAI.kt`.
 - Render: `plugins/CovenantShieldsRenderPlugin.kt`, `plugins/CovenantShieldsUIRenderPlugin.kt`,
   `plugins/CovenantShieldsUIRenderer.kt`, using `utils/render/ShieldShader.kt` — composed from
-  per-layer `ShieldLayer` classes in `utils/render/shield/` and GLSL modules in
-  `data/shaders/shield/` (see
-  [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)).
+  per-layer `ShaderLayer` classes in `utils/render/shield/` and GLSL modules in
+  `data/shaders/shield/`, on **LemonLib**'s composition engine
+  (`org.combustiblelemon.lemonlib.render.composition`; usage docs in
+  `LemonLib/docs/shader-composition/`). See
+  [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)
+  and [implementations/lemonlib-extraction.md](implementations/lemonlib-extraction.md).
 
 ### Slipspace (campaign travel)
 
