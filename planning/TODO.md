@@ -64,6 +64,22 @@ Keep this file current — tick items off and add new ones as work lands.
       to the player.
 - [ ] Decide Suppressor Beam damage type — ENERGY (current) vs KINETIC (harder anti-shield).
 
+## Rendering / shaders
+
+- [x] **Shield shader composition refactor** — split the monolithic shield shader into per-layer
+      GLSL modules + Kotlin `ShieldLayer` classes (fill/border/sweep/ripple/honeycomb/debug),
+      assembled into one program at init; dropped all dead uniforms incl. the no-op pop-wave
+      effect. See [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md).
+      Verified in-game 2026-08-25.
+- [x] **Delete old `shieldShader.frag`/`.vert`** — done after in-game sign-off.
+- [x] **Shield shader debug tooling** — solo/subset layer rendering (neutral GLSL stubs +
+      `CovenantShieldLayers` console command) and module-tagged GLSL compile errors (driver log
+      line numbers mapped back to module file + local line, assembled source dumped to log).
+      See [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md).
+      Not yet verified in-game.
+- [ ] **Ripple zoom consistency** (pre-existing TODO) — ripple speed/radius/width inconsistent
+      across zoom levels.
+
 ## Dev tooling
 
 - [x] **`CovenantGiveAll` console command** — grants all Covenant ships/weapons/fighters/hullmods

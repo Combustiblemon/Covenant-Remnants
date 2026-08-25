@@ -4,6 +4,15 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import org.combustiblelemon.covenantremnants.utils.getShaderCode
+import org.combustiblelemon.covenantremnants.utils.render.shield.BorderLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.DebugLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.FillLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.HoneycombLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.PolygonSmoothing
+import org.combustiblelemon.covenantremnants.utils.render.shield.RippleLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.SmoothingMethod
+import org.combustiblelemon.covenantremnants.utils.render.shield.SweepLayer
 import org.combustiblelemon.covenantremnants.utils.rotatePointByDegrees
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
@@ -12,39 +21,43 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.util.vector.Vector2f
 
-enum class SmoothingMethod {
-    SIMPLE,   // Uses edge smoothing by repositioning points
-    SPLINE,   // Uses Laplacian smoothing for natural shape smoothing
-    NONE      // Uses minimal smoothing for very subtle adjustments
-}
-
 // TODO: Fix ripple effects to be consistent across zoom levels. Fix ripple radius and width to be consistent across zoom levels. Ripple is much faster zoomed out than zoomed in.
 
+/**
+ * Composed shield shader. Each visual layer (fill, border, sweep, ripples,
+ * honeycomb, debug) is a [ShieldLayer] owning its GLSL module + uniforms; the
+ * fragment shader is assembled from the module snippets at init time and drawn
+ * in a single pass. This class owns the cross-cutting pieces: polygon points +
+ * smoothing, sweep position calculation, bounding-box quad, GL state handling,
+ * and the shared uniforms.
+ */
 class ShieldShader(
     private val ship: ShipAPI,
-    private var popEffectRadius: Float = 500f,  // Default pop effect radius
     private val boundsCount: Int,
     private val smoothingMethod: SmoothingMethod = SmoothingMethod.NONE
 ) : Shader {
+    companion object {
+        /**
+         * Debug override shared by all shield shader instances, set by the
+         * CovenantShieldLayers console command. null or empty = all layers
+         * enabled. Instances pick up changes lazily at the start of render()
+         * (the only point guaranteed to be on the GL thread) and rebuild
+         * their program.
+         */
+        @Volatile
+        var globalEnabledLayers: Set<String>? = null
+    }
+
     private var polygonPoints: List<Float> = listOf()
-    private var colorRGBA: FloatArray = floatArrayOf(0.2f, 0.4f, 1.0f, 1f)
-    private var borderColorRGBA: FloatArray = floatArrayOf(1f, 1f, 1f, 1f)
-    private var borderWidth: Float = 10f
-    private var glowIntensity: Float = 0f
-    private var glowWidth: Float = 20f
     private var vbo: Int = 0
     private var vao: Int = 0
     private var shaderProgram: Int = 0
 
-    // No UBO needed - using direct uniforms instead
     private var scaleX: Float = 1.0f
     private var scaleY: Float = 1.0f
     private var screenWidth: Float = 1920f
     private var screenHeight: Float = 1080f
-    private var zoomLevel: Float = 1f
     private var splineSubdivisions: Int = 8
-    private var debugMode: Boolean = false
-    private var enableSplineSmoothing: Boolean = true
     private var enableBoundingBoxOptimization: Boolean = true // Re-enabled, scissor test disabled
 
     // Pre-calculated rotation matrix for vertex shader optimization
@@ -54,16 +67,6 @@ class ShieldShader(
     private var viewportScaleX: Float = 1.0f
     private var viewportScaleY: Float = 1.0f
 
-    // Pre-calculated values for performance
-    private var shieldBoundsMinX: Float = 0f
-    private var shieldBoundsMaxX: Float = 0f
-    private var effectiveMinX: Float = 0f
-    private var effectiveMaxX: Float = 0f
-    private var effectiveWidth: Float = 0f
-
-    // Sweep position calculated on CPU
-    private var sweepPosition: Float = 0f
-
     // Bounding box for optimization
     private var boundingBoxMinX: Float = 0f
     private var boundingBoxMaxX: Float = 0f
@@ -72,113 +75,33 @@ class ShieldShader(
     private var boundingBoxWidth: Float = 0f
     private var boundingBoxHeight: Float = 0f
 
-    // Add animation properties
     private var time = 0f
-    private var shieldHPPercent = 1f
 
-    // Honeycomb parameters - hardcoded
-    private var honeycombEnabled = true
-    private var honeycombSize = 10.0f
-    private var edgeWidth = 3.0f
+    // Layers — list order is both the GLSL concatenation order and the
+    // uniform-upload order. Cross-module reads (sweep reads borderColor)
+    // may only point backwards in this list.
+    private val fillLayer = FillLayer()
+    private val borderLayer = BorderLayer()
+    private val sweepLayer = SweepLayer()
+    private val rippleLayer = RippleLayer()
+    private val honeycombLayer = HoneycombLayer()
+    private val debugLayer = DebugLayer()
 
-    private data class Ripple(
-        var center: Pair<Float, Float>,
-        var radius: Float,
-        var width: Float,
-        var color: FloatArray,
-        var time: Float,
-        var intensity: Float,
-        var maxDistance: Float
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
+    private val layers: List<ShieldLayer> =
+        listOf(fillLayer, borderLayer, sweepLayer, rippleLayer, honeycombLayer, debugLayer)
 
-            other as Ripple
+    // Which layers render. Disabled layers compile as neutral stubs and skip
+    // uniform uploads. Changing the set marks the program for a lazy rebuild.
+    private var enabledLayers: Set<String> = layers.map { it.layerName }.toSet()
 
-            if (radius != other.radius) return false
-            if (width != other.width) return false
-            if (time != other.time) return false
-            if (intensity != other.intensity) return false
-            if (maxDistance != other.maxDistance) return false
-            if (center != other.center) return false
-            if (!color.contentEquals(other.color)) return false
+    // Maps assembled-fragment-source line numbers back to module files for
+    // driver error translation.
+    private data class SourceSegment(val name: String, val startLine: Int)
 
-            return true
-        }
+    private var fragmentSegments: List<SourceSegment> = listOf()
+    private var lastAssembledFragment: String = ""
 
-        override fun hashCode(): Int {
-            var result = radius.hashCode()
-            result = 31 * result + width.hashCode()
-            result = 31 * result + time.hashCode()
-            result = 31 * result + intensity.hashCode()
-            result = 31 * result + maxDistance.hashCode()
-            result = 31 * result + center.hashCode()
-            result = 31 * result + color.contentHashCode()
-            return result
-        }
-    }
-
-    private val activeRipples = mutableListOf<Ripple>()
-
-    private data class PopWave(
-        var time: Float = 0f,
-        var maxTime: Float = 0.8f,
-        var color: FloatArray = floatArrayOf(0f, 0f, 0f, 0f),
-        var darkerColor: FloatArray = floatArrayOf(0f, 0f, 0f, 0f),
-        var thickness: Float = 20f,
-        var startScale: Float = 0.1f,
-        var endScale: Float = 3.0f,
-        var intensity: Float = 1.0f,
-        var radialLines: List<RadialLine> = listOf()
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-
-            other as PopWave
-
-            if (time != other.time) return false
-            if (maxTime != other.maxTime) return false
-            if (thickness != other.thickness) return false
-            if (startScale != other.startScale) return false
-            if (endScale != other.endScale) return false
-            if (intensity != other.intensity) return false
-            if (!color.contentEquals(other.color)) return false
-            if (!darkerColor.contentEquals(other.darkerColor)) return false
-            if (radialLines != other.radialLines) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = time.hashCode()
-            result = 31 * result + maxTime.hashCode()
-            result = 31 * result + thickness.hashCode()
-            result = 31 * result + startScale.hashCode()
-            result = 31 * result + endScale.hashCode()
-            result = 31 * result + intensity.hashCode()
-            result = 31 * result + color.contentHashCode()
-            result = 31 * result + darkerColor.contentHashCode()
-            result = 31 * result + radialLines.hashCode()
-            return result
-        }
-    }
-
-    private var activePopWave: PopWave? = null
-
-    private data class RadialLine(
-        val angle: Float,       // Angle in radians
-        val length: Float,      // Radius will multiply the length of the line (0-1)
-        val startOffset: Float, // Radius will multiply offset from center (0-1)
-        val thickness: Float,   // Thickness of the line
-        val alpha: Float,       // Base alpha/opacity
-        val speedMultiplier: Float  // How fast this line expands compared to others
-    )
-
-    // Shader source code
-    private val vertexShaderSource = getShaderCode("data/shaders/shieldShader.vert")
-    private val fragmentShaderSource = getShaderCode("data/shaders/shieldShader.frag")
+    private val vertexShaderSource = getShaderCode("data/shaders/shield/shield.vert")
 
     init {
         init()
@@ -191,13 +114,12 @@ class ShieldShader(
         glBindVertexArray(vao)
 
         // Create VBO - initially with full-screen quad, will be updated with bounding box
-        // Each vertex now has: NDC coords (2 floats) + world coords (2 floats) = 4 floats per vertex
+        // Each vertex is just NDC coords (2 floats)
         val vertices = floatArrayOf(
-            // NDC coords (location 0) + world coords (location 1)
-            -1.0f, -1.0f, 0.0f, 0.0f,  // Bottom-left
-            1.0f, -1.0f, 0.0f, 0.0f,   // Bottom-right
-            1.0f, 1.0f, 0.0f, 0.0f,    // Top-right
-            -1.0f, 1.0f, 0.0f, 0.0f    // Top-left
+            -1.0f, -1.0f,  // Bottom-left
+            1.0f, -1.0f,   // Bottom-right
+            1.0f, 1.0f,    // Top-right
+            -1.0f, 1.0f    // Top-left
         )
 
         vbo = glGenBuffers()
@@ -208,28 +130,23 @@ class ShieldShader(
         buffer.put(vertices)
         buffer.flip()
 
-        glBufferData(GL_ARRAY_BUFFER, buffer, GL_DYNAMIC_DRAW) // Changed to DYNAMIC_DRAW for updates
+        glBufferData(GL_ARRAY_BUFFER, buffer, GL_DYNAMIC_DRAW) // DYNAMIC_DRAW for updates
 
         // Set up vertex attributes
-        glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * 4, 0)        // NDC coordinates
-        glVertexAttribPointer(1, 2, GL_FLOAT, false, 4 * 4, 2 * 4)    // World coordinates
+        glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * 4, 0) // NDC coordinates
         glEnableVertexAttribArray(0)
-        glEnableVertexAttribArray(1)
 
         glBindVertexArray(0)
-
-        // No UBO needed - using direct uniforms instead
     }
 
     private fun updateQuadVertices() {
         if (boundingBoxWidth <= 0f || boundingBoxHeight <= 0f) {
             // Fallback to full-screen quad if bounding box is invalid
             val vertices = floatArrayOf(
-                // NDC coords (location 0) + world coords (location 1)
-                -1.0f, -1.0f, 0.0f, 0.0f,  // Bottom-left
-                1.0f, -1.0f, 0.0f, 0.0f,   // Bottom-right
-                1.0f, 1.0f, 0.0f, 0.0f,    // Top-right
-                -1.0f, 1.0f, 0.0f, 0.0f    // Top-left
+                -1.0f, -1.0f,  // Bottom-left
+                1.0f, -1.0f,   // Bottom-right
+                1.0f, 1.0f,    // Top-right
+                -1.0f, 1.0f    // Top-left
             )
             updateVBO(vertices)
             return
@@ -241,14 +158,11 @@ class ShieldShader(
         val bottom = (boundingBoxMinY / screenHeight) * 2.0f - 1.0f
         val top = (boundingBoxMaxY / screenHeight) * 2.0f - 1.0f
 
-        // Use dummy world coordinates (0,0) for all vertices
-        // The vertex shader will handle the transformation
         val vertices = floatArrayOf(
-            // NDC coords (location 0) + world coords (location 1)
-            left, bottom, 0.0f, 0.0f,   // Bottom-left
-            right, bottom, 0.0f, 0.0f,  // Bottom-right
-            right, top, 0.0f, 0.0f,     // Top-right
-            left, top, 0.0f, 0.0f       // Top-left
+            left, bottom,   // Bottom-left
+            right, bottom,  // Bottom-right
+            right, top,     // Top-right
+            left, top       // Top-left
         )
 
         updateVBO(vertices)
@@ -268,33 +182,13 @@ class ShieldShader(
         glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
-    // UBO initialization removed - using direct uniforms instead
-
     /**
-     * Calculate the maximum number of points that could be generated after smoothing
-     * This ensures the shader array is large enough to handle all possible smoothed points
+     * Calculate the maximum number of points that could be generated after smoothing.
+     * All current smoothing methods only reposition points, so this is the original
+     * count capped at the shader array limit.
      */
     private fun calculateMaxPointsAfterSmoothing(originalPointCount: Int): Int {
-        val maxPoints = when (smoothingMethod) {
-            SmoothingMethod.SPLINE -> {
-                // Spline smoothing: Laplacian smoothing - no new points, just repositioned
-                originalPointCount
-            }
-
-            SmoothingMethod.SIMPLE -> {
-                // Simple smoothing: edge smoothing - no new points, just repositioned
-                originalPointCount
-            }
-
-            SmoothingMethod.NONE -> {
-                // Minimal smoothing: very subtle smoothing - no new points, just repositioned
-                originalPointCount
-            }
-        }
-
-        // Ensure we don't exceed reasonable bounds (safety check)
-        val finalResult = minOf(maxPoints, 1000) // Maximum 1000 points for shader array
-        return finalResult
+        return minOf(originalPointCount, 1000) // Maximum 1000 points for shader array
     }
 
     private fun setPolygonPointUniforms(pointCount: Int) {
@@ -309,7 +203,7 @@ class ShieldShader(
         // Safety check: ensure we don't exceed the shader array size
         val safePointCount = minOf(actualPointCount, pointCount)
 
-        // Set actual polygon points as uniforms (now world coordinates)
+        // Set actual polygon points as uniforms (screen coordinates)
         for (i in 0 until safePointCount) {
             val x = polygonPoints[i * 2]
             val y = polygonPoints[i * 2 + 1]
@@ -330,6 +224,76 @@ class ShieldShader(
         }
     }
 
+    /**
+     * Assemble the fragment shader source: base template + layer modules
+     * concatenated in layer-list order at the insertion marker. Disabled
+     * layers contribute their neutral stub instead of the module file.
+     * POINT_COUNT_PLACEHOLDER is replaced after concatenation so occurrences
+     * inside modules resolve too (the replacement never changes line counts,
+     * so the segment map built here stays valid).
+     */
+    private fun assembleFragmentSource(pointCount: Int): String {
+        val base = getShaderCode("data/shaders/shield/base.frag")
+        val marker = "// {{LAYER_MODULES}}"
+        val markerIndex = base.indexOf(marker)
+        if (markerIndex < 0) {
+            throw RuntimeException("base.frag is missing the $marker insertion marker")
+        }
+
+        // Named source pieces, in final order
+        val pieces = mutableListOf<Pair<String, String>>()
+        pieces.add(Pair("base.frag (header)", base.substring(0, markerIndex)))
+        for (layer in layers) {
+            if (layer.layerName in enabledLayers) {
+                pieces.add(Pair(layer.moduleFile.substringAfterLast('/'), getShaderCode(layer.moduleFile) + "\n"))
+            } else {
+                pieces.add(Pair("${layer.layerName} (stub)", layer.stubSource + "\n"))
+            }
+        }
+        pieces.add(Pair("base.frag (footer)", base.substring(markerIndex + marker.length)))
+
+        // Build source and the line map in one pass
+        val segments = mutableListOf<SourceSegment>()
+        val assembled = StringBuilder()
+        var currentLine = 1
+        for ((name, text) in pieces) {
+            segments.add(SourceSegment(name, currentLine))
+            assembled.append(text)
+            currentLine += text.count { it == '\n' }
+        }
+
+        fragmentSegments = segments
+        val source = assembled.toString().replace("POINT_COUNT_PLACEHOLDER", pointCount.toString())
+        lastAssembledFragment = source
+        return source
+    }
+
+    /**
+     * Translate driver info-log line numbers (which point into the assembled
+     * source) back to module file + local line. Handles the two dominant log
+     * formats: NVIDIA `0(123) : error ...` and AMD/Intel/Mesa `ERROR: 0:123: ...`.
+     */
+    private fun translateShaderErrors(infoLog: String): String {
+        val lineRef = Regex("""0[:(](\d+)\)?""")
+        val translated = infoLog.lines().mapNotNull { logLine ->
+            val match = lineRef.find(logLine) ?: return@mapNotNull null
+            val globalLine = match.groupValues[1].toIntOrNull() ?: return@mapNotNull null
+            val segment = fragmentSegments.lastOrNull { it.startLine <= globalLine }
+                ?: return@mapNotNull null
+            "${segment.name}:${globalLine - segment.startLine + 1}  [$logLine]"
+        }
+        if (translated.isEmpty()) return infoLog
+        return "Translated to module files:\n" + translated.joinToString("\n") +
+                "\n\nOriginal driver log:\n" + infoLog
+    }
+
+    private fun logAssembledSource() {
+        val numbered = lastAssembledFragment.lines()
+            .mapIndexed { i, l -> "${i + 1}\t$l" }
+            .joinToString("\n")
+        Global.getLogger(this.javaClass).error("Assembled shield fragment shader source:\n$numbered")
+    }
+
     private fun initShaders() {
         // Create and compile vertex shader
         val vertexShader = glCreateShader(GL_VERTEX_SHADER)
@@ -345,18 +309,17 @@ class ShieldShader(
         // Calculate the maximum number of points after smoothing
         val maxPointsAfterSmoothing = calculateMaxPointsAfterSmoothing(boundsCount)
 
-        // Create and compile fragment shader
+        // Create and compile the assembled fragment shader
         val fragmentShader = glCreateShader(GL_FRAGMENT_SHADER)
-        glShaderSource(
-            fragmentShader,
-            fragmentShaderSource.replace("POINT_COUNT_PLACEHOLDER", maxPointsAfterSmoothing.toString())
-        )
+        glShaderSource(fragmentShader, assembleFragmentSource(maxPointsAfterSmoothing))
         glCompileShader(fragmentShader)
 
-        // Check for fragment shader compilation errors
+        // Check for fragment shader compilation errors; translate driver line
+        // numbers back to module files and dump the assembled source to the log
         if (glGetShaderi(fragmentShader, GL_COMPILE_STATUS) == GL_FALSE) {
-            val error = glGetShaderInfoLog(fragmentShader, 1024)
-            throw RuntimeException("Fragment shader compilation failed: $error")
+            val error = glGetShaderInfoLog(fragmentShader, 4096)
+            logAssembledSource()
+            throw RuntimeException("Fragment shader compilation failed:\n${translateShaderErrors(error)}")
         }
 
         // Create shader program
@@ -384,6 +347,7 @@ class ShieldShader(
             boundingBoxMaxY = 0f
             boundingBoxWidth = 0f
             boundingBoxHeight = 0f
+            debugLayer.setBoundingBox(0f, 0f, 0f, 0f)
             return
         }
 
@@ -393,7 +357,7 @@ class ShieldShader(
         var minY = Float.MAX_VALUE
         var maxY = Float.MIN_VALUE
 
-        // polygonPoints now contains screen coordinates
+        // polygonPoints contains screen coordinates
         for (i in polygonPoints.indices step 2) {
             val screenX = polygonPoints[i]
             val screenY = polygonPoints[i + 1]
@@ -404,14 +368,18 @@ class ShieldShader(
             maxY = maxOf(maxY, screenY)
         }
 
-        // Add margin for border effects and safety
-        val margin = maxOf(borderWidth, glowWidth) + 10f
+        // Add margin for border effects and safety. The 10f floor preserves the
+        // pre-refactor effective margin (was maxOf(borderWidth, glowWidth) with
+        // glowWidth = 10 at runtime, before the dead glow effect was removed).
+        val margin = maxOf(borderLayer.borderWidth, 10f) + 10f
         boundingBoxMinX = minX - margin
         boundingBoxMaxX = maxX + margin
         boundingBoxMinY = minY - margin
         boundingBoxMaxY = maxY + margin
         boundingBoxWidth = boundingBoxMaxX - boundingBoxMinX
         boundingBoxHeight = boundingBoxMaxY - boundingBoxMinY
+
+        debugLayer.setBoundingBox(boundingBoxMinX, boundingBoxMinY, boundingBoxMaxX, boundingBoxMaxY)
     }
 
     fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f)) {
@@ -429,7 +397,7 @@ class ShieldShader(
             return
         }
 
-        // Store world coordinates directly - transformations will be done in vertex shader
+        // Store world coordinates directly - transformations are applied below
         val worldPoints = mutableListOf<Float>()
         for (segment in newPoints) {
             worldPoints.add(segment.x)
@@ -437,21 +405,7 @@ class ShieldShader(
         }
 
         // Apply smoothing to world coordinates first
-        val smoothedWorldPoints = when (smoothingMethod) {
-            SmoothingMethod.SPLINE -> if (enableSplineSmoothing) {
-                subdividePointsWithSplines(worldPoints, splineSubdivisions)
-            } else {
-                worldPoints
-            }
-
-            SmoothingMethod.SIMPLE -> {
-                smoothEdgesSimple(worldPoints, splineSubdivisions)
-            }
-
-            SmoothingMethod.NONE -> {
-                smoothEdgesMinimal(worldPoints, 2) // Minimal curve smoothing
-            }
-        }
+        val smoothedWorldPoints = PolygonSmoothing.smooth(worldPoints, smoothingMethod, splineSubdivisions)
 
         // Convert world points to screen coordinates for the fragment shader
         val screenPoints = mutableListOf<Float>()
@@ -488,12 +442,10 @@ class ShieldShader(
 
         // Calculate sweep position using the bounds we just calculated
         val sweepWidth = sweepMaxX - sweepMinX
-        sweepPosition = sweepMaxX - (ship.phaseCloak?.effectLevel ?: 1f) * sweepWidth
+        sweepLayer.sweepPosition = sweepMaxX - (ship.phaseCloak?.effectLevel ?: 1f) * sweepWidth
 
         // Store the screen coordinates for the fragment shader
         polygonPoints = screenPoints
-
-        // Shield bounds are now calculated inline above
 
         // Calculate bounding box for rendering optimization
         calculateBoundingBox()
@@ -502,65 +454,8 @@ class ShieldShader(
         updateQuadVertices()
     }
 
-    private fun subdividePointsWithSplines(points: List<Float>, subdivisions: Int = 8): List<Float> {
-        val result = mutableListOf<Float>()
-        val numPoints = points.size / 2
-
-        if (numPoints < 3) return points.toList() // Need at least 3 points for a polygon
-
-        // Convert to pairs for easier handling
-        val pairs = points.chunked(2) { Pair(it[0], it[1]) }
-
-        // Apply Laplacian smoothing to existing points (no new points added)
-        val smoothedPoints = laplacianSmoothing(pairs, subdivisions)
-
-        // Return smoothed points as flat list
-        for (point in smoothedPoints) {
-            result.add(point.first)
-            result.add(point.second)
-        }
-
-        return result
-    }
-
-    private fun laplacianSmoothing(points: List<Pair<Float, Float>>, iterations: Int): List<Pair<Float, Float>> {
-        if (points.size < 3) return points
-
-        var currentPoints = points.toMutableList()
-
-        for (iteration in 0 until iterations) {
-            val smoothedPoints = mutableListOf<Pair<Float, Float>>()
-
-            for (i in currentPoints.indices) {
-                val prev = currentPoints[(i - 1 + currentPoints.size) % currentPoints.size]
-                val current = currentPoints[i]
-                val next = currentPoints[(i + 1) % currentPoints.size]
-
-                // Laplacian smoothing: move point towards the average of its neighbors
-                val smoothingFactor = 0.3f // Controls how much smoothing is applied
-                val smoothedX = current.first + smoothingFactor * ((prev.first + next.first) / 2f - current.first)
-                val smoothedY = current.second + smoothingFactor * ((prev.second + next.second) / 2f - current.second)
-
-                smoothedPoints.add(Pair(smoothedX, smoothedY))
-            }
-
-            currentPoints = smoothedPoints
-        }
-
-        return currentPoints
-    }
-
     fun updateColor(r: Int, g: Int, b: Int, a: Int) {
-        colorRGBA = floatArrayOf(
-            r / 255f,
-            g / 255f,
-            b / 255f,
-            a / 100f
-        )
-    }
-
-    fun updateZoomLevel(zoom: Float) {
-        zoomLevel = zoom
+        fillLayer.setColor(r, g, b, a)
     }
 
     fun updateScreenResolution(width: Float, height: Float) {
@@ -592,7 +487,7 @@ class ShieldShader(
     }
 
     fun setDebugMode(enabled: Boolean) {
-        debugMode = enabled
+        debugLayer.enabled = enabled
     }
 
     fun setBoundingBoxOptimization(enabled: Boolean) {
@@ -611,250 +506,67 @@ class ShieldShader(
         return smoothingMethod
     }
 
-    // Alternative smoothing method: simple-edge smoothing by repositioning points
-    private fun smoothEdgesSimple(points: List<Float>, subdivisions: Int = 2): List<Float> {
-        val result = mutableListOf<Float>()
-        val numPoints = points.size / 2
-
-        if (numPoints < 3) return points.toList()
-
-        // Convert to pairs for easier handling
-        val pairs = points.chunked(2) { Pair(it[0], it[1]) }
-
-        // Apply simple smoothing by moving points towards edge midpoints
-        val smoothedPoints = simpleEdgeSmoothing(pairs, subdivisions)
-
-        // Return smoothed points as a flat list
-        for (point in smoothedPoints) {
-            result.add(point.first)
-            result.add(point.second)
-        }
-
-        return result
+    fun getLayerNames(): List<String> {
+        return layers.map { it.layerName }
     }
 
-    private fun simpleEdgeSmoothing(points: List<Pair<Float, Float>>, iterations: Int): List<Pair<Float, Float>> {
-        if (points.size < 3) return points
-
-        var currentPoints = points.toMutableList()
-
-        for (iteration in 0 until iterations) {
-            val smoothedPoints = mutableListOf<Pair<Float, Float>>()
-
-            for (i in currentPoints.indices) {
-                val current = currentPoints[i]
-                val next = currentPoints[(i + 1) % currentPoints.size]
-
-                // Move point slightly towards the midpoint of the edge
-                val smoothingFactor = 0.2f // Gentle smoothing
-                val edgeMidX = (current.first + next.first) / 2f
-                val edgeMidY = (current.second + next.second) / 2f
-
-                val smoothedX = current.first + smoothingFactor * (edgeMidX - current.first)
-                val smoothedY = current.second + smoothingFactor * (edgeMidY - current.second)
-
-                smoothedPoints.add(Pair(smoothedX, smoothedY))
-            }
-
-            currentPoints = smoothedPoints
-        }
-
-        return currentPoints
+    /**
+     * Debug: render only the given layers; the rest compile as neutral stubs.
+     * Empty or unknown-only set coerces to all layers. The program rebuild
+     * happens lazily at the next render() call (GL thread).
+     */
+    fun setEnabledLayers(names: Set<String>) {
+        val valid = names.intersect(layers.map { it.layerName }.toSet())
+        enabledLayers = if (valid.isEmpty()) layers.map { it.layerName }.toSet() else valid
     }
 
-    // Minimal smoothing method that creates very subtle shape smoothing
-    private fun smoothEdgesMinimal(points: List<Float>, subdivisions: Int = 2): List<Float> {
-        val result = mutableListOf<Float>()
-        val numPoints = points.size / 2
-
-        if (numPoints < 3) return points.toList()
-
-        // Convert to pairs for easier handling
-        val pairs = points.chunked(2) { Pair(it[0], it[1]) }
-
-        // Apply very subtle smoothing by slightly adjusting point positions
-        val smoothedPoints = minimalSmoothing(pairs, subdivisions)
-
-        // Return smoothed points as a flat list
-        for (point in smoothedPoints) {
-            result.add(point.first)
-            result.add(point.second)
+    /** Rebuild the program to match [enabledLayers]. Must run on the GL thread. */
+    private fun rebuildProgram() {
+        if (shaderProgram != 0) {
+            glDeleteProgram(shaderProgram)
+            shaderProgram = 0
         }
-
-        return result
+        initShaders()
     }
 
-    private fun minimalSmoothing(points: List<Pair<Float, Float>>, iterations: Int): List<Pair<Float, Float>> {
-        if (points.size < 3) return points
-
-        var currentPoints = points.toMutableList()
-
-        for (iteration in 0 until iterations) {
-            val smoothedPoints = mutableListOf<Pair<Float, Float>>()
-
-            for (i in currentPoints.indices) {
-                val prev = currentPoints[(i - 1 + currentPoints.size) % currentPoints.size]
-                val current = currentPoints[i]
-                val next = currentPoints[(i + 1) % currentPoints.size]
-
-                // Very subtle smoothing: move point slightly towards the average of neighbors
-                val smoothingFactor = 0.1f // Very gentle smoothing
-                val avgX = (prev.first + next.first) / 2f
-                val avgY = (prev.second + next.second) / 2f
-
-                val smoothedX = current.first + smoothingFactor * (avgX - current.first)
-                val smoothedY = current.second + smoothingFactor * (avgY - current.second)
-
-                smoothedPoints.add(Pair(smoothedX, smoothedY))
-            }
-
-            currentPoints = smoothedPoints
-        }
-
-        return currentPoints
-    }
+    // Set of layers the current program was compiled with
+    private var compiledLayers: Set<String> = enabledLayers
 
     fun updateBorder(r: Int, g: Int, b: Int, a: Int, width: Float, blend: Float) {
-        borderColorRGBA = floatArrayOf(
-            r / 255f,
-            g / 255f,
-            b / 255f,
-            a / 100f
-        )
-        borderWidth = width
-    }
-
-    fun updateGlow(intensity: Float, width: Float) {
-        glowIntensity = intensity.coerceIn(0f, 1f)
-        glowWidth = width
+        borderLayer.setBorder(r, g, b, a, width)
     }
 
     fun startRipple(x: Float, y: Float, width: Float, r: Int, g: Int, b: Int, a: Int, intensity: Float = 1f) {
-        val ripple = Ripple(
-            center = Pair(x, y),
-            radius = 1f,
-            width = width,
-            color = floatArrayOf(r / 255f, g / 255f, b / 255f, a / 100f),
-            time = 0f,
-            intensity = intensity.coerceIn(0f, 1f),
-            maxDistance = 1000f * intensity.coerceIn(0.2f, 1f)
-        )
-        activeRipples.add(ripple)
+        rippleLayer.startRipple(x, y, width, r, g, b, a, intensity)
     }
 
     fun updateRipple(deltaTime: Float, speed: Float = 400f) {
-        activeRipples.removeAll { ripple ->
-            ripple.time += deltaTime
-            // Scale speed inversely with viewport scale to maintain consistent visual speed
-            val visualSpeed = speed / viewportScaleX
-            ripple.radius += visualSpeed * deltaTime
-            ripple.radius > ripple.maxDistance
-        }
+        rippleLayer.update(deltaTime, speed, viewportScaleX)
     }
 
     fun setHoneycombEnabled(enabled: Boolean) {
-        honeycombEnabled = enabled
-    }
-
-    fun triggerShieldPop(intensity: Float = 1.0f) {
-        // Create darker colors for the cloud effect
-        val darkColor = floatArrayOf(colorRGBA[0] * 0.4f, colorRGBA[1] * 0.4f, colorRGBA[2] * 0.4f, 1f)
-        val darkerColor =
-            floatArrayOf(colorRGBA[0] * 0.25f, colorRGBA[1] * 0.25f, colorRGBA[2] * 0.25f, 0.8f)
-
-        // Generate random radial lines
-        val lines = mutableListOf<RadialLine>()
-        var currentAngle = kotlin.random.Random.nextFloat() * 2f * Math.PI.toFloat() // Random start angle
-
-        // Parameters for the lines
-        val minLineLength = 0.2f * (0.7f + intensity * 0.3f)  // Reduced by half from previous value
-        val maxLineLength = 0.45f * (0.7f + intensity * 0.3f)  // Reduced by half from previous value
-        val minStartOffset = 0.5f  // Lines start 50% away from center
-        val maxStartOffset = 0.7f  // Lines start up to 70% away from center
-        val baseThickness = 2f + intensity * 2f // Base thickness in pixels
-        val minAngularSpacing = Math.toRadians(10.0).toFloat()
-        val maxAngularSpacing = Math.toRadians(40.0).toFloat()
-        val numLinesMultiplier = 1f + intensity * 0.5f
-
-        // Generate lines with random spacing until we go all the way around
-        val startAngle = currentAngle
-        while (currentAngle - startAngle < Math.PI * 2) {
-            // Random length for this line
-            val length = minLineLength + kotlin.random.Random.nextFloat() * (maxLineLength - minLineLength)
-
-            // Random start offset from center
-            val startOffset = minStartOffset + kotlin.random.Random.nextFloat() * (maxStartOffset - minStartOffset)
-
-            // Random thickness variation
-            val thickness = baseThickness * (0.7f + kotlin.random.Random.nextFloat() * 0.6f)
-
-            // Random alpha
-            val alpha = 0.7f + kotlin.random.Random.nextFloat() * 0.3f
-
-            // Random speed multiplier
-            val speedMultiplier = 0.85f + kotlin.random.Random.nextFloat() * 0.3f
-
-            lines.add(
-                RadialLine(
-                    angle = currentAngle,
-                    length = length,
-                    startOffset = startOffset,
-                    thickness = thickness,
-                    alpha = alpha,
-                    speedMultiplier = speedMultiplier
-                )
-            )
-
-            // Calculate next angle with random spacing
-            val spacing = minAngularSpacing + kotlin.random.Random.nextFloat() * (maxAngularSpacing - minAngularSpacing)
-            currentAngle += spacing / numLinesMultiplier
-        }
-
-        // Create the pop wave with the radial lines
-        activePopWave = PopWave(
-            time = 0f,
-            maxTime = 0.3f,
-            color = darkColor,
-            darkerColor = darkerColor,
-            thickness = 20f * (0.5f + intensity * 0.5f),
-            startScale = 0.1f,
-            endScale = 3.0f + intensity * 0.5f,
-            intensity = intensity.coerceIn(0.1f, 1.5f),
-            radialLines = lines
-        )
-    }
-
-    fun updateShieldPop(deltaTime: Float) {
-        activePopWave?.let { popWave ->
-            popWave.time += deltaTime
-
-            // Remove the pop wave if it's completed its animation
-            if (popWave.time >= popWave.maxTime) {
-                activePopWave = null
-            }
-        }
+        honeycombLayer.setEnabled(enabled)
     }
 
     fun updateTime(amount: Float) {
         this.time += amount
     }
 
-    fun isPopWaveActive(): Boolean {
-        return activePopWave !== null
-    }
-
-    fun drawShieldPop(): Boolean {
-        val isDrawing = activePopWave != null
-
-        return isDrawing
-    }
-
     fun updateShieldHPPercent(percent: Float) {
-        shieldHPPercent = percent
+        fillLayer.setShieldHPPercent(percent)
     }
 
     override fun render(viewport: ViewportAPI) {
         if (polygonPoints.isEmpty()) return
+
+        // Pick up debug layer-set changes (console command sets the global
+        // override; setEnabledLayers sets the instance one) and rebuild the
+        // program lazily — render() is guaranteed to be on the GL thread
+        globalEnabledLayers?.let { setEnabledLayers(it) }
+        if (enabledLayers != compiledLayers) {
+            rebuildProgram()
+            compiledLayers = enabledLayers
+        }
 
         // Update viewport scale for ripple calculations
         viewportScaleX = viewport.viewMult
@@ -895,135 +607,42 @@ class ShieldShader(
         val scissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST)
 
         try {
-            // Scissor test disabled for debugging - only using bounding box quad optimization
-            // The bounding box optimization is handled by the dynamic quad vertices
-
             // Use our shader program
             glUseProgram(shaderProgram)
 
             // Bind VAO
             glBindVertexArray(vao)
 
-            // Set uniforms
-            glUniform4f(
-                glGetUniformLocation(shaderProgram, "shieldColor"),
-                colorRGBA[0], colorRGBA[1], colorRGBA[2], colorRGBA[3]
-            )
-            glUniform4f(
-                glGetUniformLocation(shaderProgram, "borderColor"),
-                borderColorRGBA[0], borderColorRGBA[1], borderColorRGBA[2], borderColorRGBA[3]
-            )
-            glUniform1f(glGetUniformLocation(shaderProgram, "borderWidth"), borderWidth)
-            glUniform1f(glGetUniformLocation(shaderProgram, "glowIntensity"), glowIntensity)
-            glUniform1f(glGetUniformLocation(shaderProgram, "glowWidth"), glowWidth)
-            glUniform1f(glGetUniformLocation(shaderProgram, "chargeProgress"), ship.phaseCloak?.effectLevel ?: 1f)
-            glUniform1f(glGetUniformLocation(shaderProgram, "shieldSweepProgress"), ship.phaseCloak?.effectLevel ?: 1f)
-            glUniform1f(glGetUniformLocation(shaderProgram, "sweepEdgeWidth"), 10.0f)
-            glUniform1f(glGetUniformLocation(shaderProgram, "shieldHPPercent"), shieldHPPercent)
-            glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
-
-            // Set sweep position for fragment shader
-            glUniform1f(glGetUniformLocation(shaderProgram, "sweepPosition"), sweepPosition)
-            // Pass ship location in screen coordinates to match sweep bounds calculation
+            // Shared uniforms (used by multiple layer modules)
+            glUniform2f(glGetUniformLocation(shaderProgram, "resolution"), screenWidth, screenHeight)
             val shipScreenX = viewport.convertWorldXtoScreenX(ship.location.x)
             val shipScreenY = viewport.convertWorldYtoScreenY(ship.location.y)
             glUniform2f(glGetUniformLocation(shaderProgram, "center"), shipScreenX, shipScreenY)
-            glUniform1f(glGetUniformLocation(shaderProgram, "time"), time)
-
-            // Set vertex shader uniforms for optimization
-            glUniform2f(glGetUniformLocation(shaderProgram, "resolution"), screenWidth, screenHeight)
-            glUniform2f(glGetUniformLocation(shaderProgram, "scale"), scaleX, scaleY)
             glUniform4f(
                 glGetUniformLocation(shaderProgram, "shipRotationMatrix"),
                 shipRotationMatrix[0], shipRotationMatrix[1], shipRotationMatrix[2], shipRotationMatrix[3]
             )
             glUniform2f(glGetUniformLocation(shaderProgram, "viewportScale"), viewportScaleX, viewportScaleY)
+            glUniform1f(glGetUniformLocation(shaderProgram, "shipFacing"), ship.facing)
+            glUniform1f(glGetUniformLocation(shaderProgram, "time"), time)
 
-            // Set honeycomb uniforms
-            glUniform1f(glGetUniformLocation(shaderProgram, "honeycombSize"), honeycombSize)
-            glUniform1f(glGetUniformLocation(shaderProgram, "edgeWidth"), edgeWidth)
+            // Polygon points as uniforms (zero-fill unused slots — the polygon
+            // test iterates the full array)
+            setPolygonPointUniforms(calculateMaxPointsAfterSmoothing(boundsCount))
 
-            glUniform1i(glGetUniformLocation(shaderProgram, "honeycombEnabled"), if (honeycombEnabled) 1 else 0)
-            // Scale uniform is already set above for vertex shader
-            glUniform1f(
-                glGetUniformLocation(shaderProgram, "rotation"),
-                Math.toRadians(ship.facing.toDouble()).toFloat()
-            )
-
-            // Set ripple uniforms
-            glUniform1i(glGetUniformLocation(shaderProgram, "numRipples"), activeRipples.size)
-            for (i in activeRipples.indices.take(10)) {
-                val ripple = activeRipples[i]
-                glUniform4f(
-                    glGetUniformLocation(shaderProgram, "rippleColors[$i]"),
-                    ripple.color[0], ripple.color[1], ripple.color[2], ripple.color[3]
-                )
-                // Convert ripple center to screen coordinates
-                val rippleScreenX = viewport.convertWorldXtoScreenX(ripple.center.first)
-                val rippleScreenY = viewport.convertWorldYtoScreenY(ripple.center.second)
-                glUniform2f(
-                    glGetUniformLocation(shaderProgram, "rippleCenters[$i]"),
-                    rippleScreenX, rippleScreenY
-                )
-                // Convert ripple radius to screen coordinates
-                val rippleScreenRadius = ripple.radius / viewport.viewMult
-                glUniform1f(glGetUniformLocation(shaderProgram, "rippleRadii[$i]"), rippleScreenRadius)
-                glUniform1f(glGetUniformLocation(shaderProgram, "rippleIntensities[$i]"), ripple.intensity)
-                // Convert ripple width to screen coordinates
-                val rippleScreenWidth = ripple.width / viewport.viewMult
-                glUniform1f(glGetUniformLocation(shaderProgram, "rippleWidths[$i]"), rippleScreenWidth)
+            // Layer uniforms, in layer order. Disabled layers are stubs with
+            // no uniforms — skip them so no writes go to location -1.
+            for (layer in layers) {
+                if (layer.layerName in enabledLayers) {
+                    layer.uploadUniforms(shaderProgram, viewport)
+                }
             }
-
-            // Set pop wave uniforms
-            glUniform1i(
-                glGetUniformLocation(shaderProgram, "popWaveActive"),
-                if (activePopWave != null) 1 else 0
-            )
-            activePopWave?.let { popWave ->
-                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveTime"), popWave.time)
-                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveMaxTime"), popWave.maxTime)
-                glUniform4f(
-                    glGetUniformLocation(shaderProgram, "popWaveColor"),
-                    popWave.color[0], popWave.color[1], popWave.color[2], popWave.color[3]
-                )
-                glUniform4f(
-                    glGetUniformLocation(shaderProgram, "popWaveDarkerColor"),
-                    popWave.darkerColor[0], popWave.darkerColor[1], popWave.darkerColor[2], popWave.darkerColor[3]
-                )
-                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveThickness"), popWave.thickness)
-                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveStartScale"), popWave.startScale)
-                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveEndScale"), popWave.endScale)
-                glUniform1f(glGetUniformLocation(shaderProgram, "popWaveIntensity"), popWave.intensity)
-                glUniform1f(glGetUniformLocation(shaderProgram, "popEffectRadius"), popEffectRadius)
-            }
-
-            // Resolution uniform is already set above for vertex shader
-
-            // Set zoom level uniform
-            glUniform1f(glGetUniformLocation(shaderProgram, "zoomLevel"), zoomLevel)
-
-            // Set debug mode uniform
-            glUniform1i(glGetUniformLocation(shaderProgram, "debugMode"), if (debugMode) 1 else 0)
-
-            // Set bounding box uniforms for debug visualization
-            glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMin"), boundingBoxMinX, boundingBoxMinY)
-            glUniform2f(glGetUniformLocation(shaderProgram, "boundingBoxMax"), boundingBoxMaxX, boundingBoxMaxY)
-
-            // Convert polygon points to screen coordinates and pass to shader
-            // Calculate the maximum number of points the shader can handle after smoothing
-            val maxShaderPoints = calculateMaxPointsAfterSmoothing(boundsCount)
-
-            // Set polygon points directly as uniforms
-            setPolygonPointUniforms(maxShaderPoints)
-
-            // Set debug polygon uniform
-            glUniform1i(glGetUniformLocation(shaderProgram, "debugPolygon"), if (debugMode) 1 else 0)
 
             // Enable blending for transparency
             glEnable(GL_BLEND)
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-            // Draw full-screen quad to render the points
+            // Draw bounding-box quad to render the shield
             glDrawArrays(GL_TRIANGLE_FAN, 0, 4)
 
         } finally {

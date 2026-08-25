@@ -48,8 +48,10 @@ Covenant ships use `shield type NONE` and get defense from a custom shield inste
   from `shield_data.csv` (loaded at app start).
 - AI: `ai/CovenantShieldsAI.kt`.
 - Render: `plugins/CovenantShieldsRenderPlugin.kt`, `plugins/CovenantShieldsUIRenderPlugin.kt`,
-  `plugins/CovenantShieldsUIRenderer.kt`, using `utils/render/ShieldShader.kt`
-  (`data/shaders/shieldShader.frag`/`.vert`).
+  `plugins/CovenantShieldsUIRenderer.kt`, using `utils/render/ShieldShader.kt` — composed from
+  per-layer `ShieldLayer` classes in `utils/render/shield/` and GLSL modules in
+  `data/shaders/shield/` (see
+  [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)).
 
 ### Slipspace (campaign travel)
 

@@ -57,7 +57,10 @@ task list. This documentation duty is a fixed AI-assistant rule — see
   as a system per [balance.txt](../balance.txt)).
 - **Shaders** ship as a `.frag` + `.vert` pair in `data/shaders/`, loaded by a matching Kotlin class
   in `src/org/combustiblelemon/covenantremnants/utils/render/`. Keep the pair and its loader named
-  together (e.g. `shieldShader.frag`/`.vert` ↔ `ShieldShader.kt`).
+  together (e.g. `shieldShader.frag`/`.vert` ↔ `ShieldShader.kt`). Exception: the **shield shader**
+  is composed — per-layer `.glsl` modules under `data/shaders/shield/` assembled into one program by
+  `ShieldShader.kt` (see
+  [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)).
 
 ## Kotlin source layout
 

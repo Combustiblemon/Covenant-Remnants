@@ -6,7 +6,7 @@ import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
 import org.combustiblelemon.covenantremnants.utils.getRandomPointsInPolygon
 import org.combustiblelemon.covenantremnants.utils.getShipPolygonInWorld
 import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
-import org.combustiblelemon.covenantremnants.utils.render.SmoothingMethod
+import org.combustiblelemon.covenantremnants.utils.render.shield.SmoothingMethod
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -18,7 +18,7 @@ class CovenantShieldsRenderPlugin(
     CombatLayeredRenderingPlugin {
 
     private val shader =
-        ShieldShader(attachedTo, 200f, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
+        ShieldShader(attachedTo, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
 //    private val testShader = MVPShader()
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
@@ -39,7 +39,6 @@ class CovenantShieldsRenderPlugin(
     )
 
     private val activeRipples = mutableListOf<RippleData>()
-    private var popActive = false
     var breakCooldownActive = false
 
     private var wasPressed: Boolean = false
@@ -49,10 +48,6 @@ class CovenantShieldsRenderPlugin(
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
 
-        if (popActive) {
-            popActive = shader.drawShieldPop()
-        }
-
         // Use phaseCloak.effectLevel to check for activity
         if (attachedTo.phaseCloak.effectLevel > 0f) {
             renderShield(viewport)
@@ -60,9 +55,7 @@ class CovenantShieldsRenderPlugin(
     }
 
     fun triggerShieldPop() {
-        shader.triggerShieldPop(1f)
         attachedTo.phaseCloak.deactivate()
-        popActive = true
 
         spawnLightning()
     }
@@ -120,11 +113,9 @@ class CovenantShieldsRenderPlugin(
 
         shader.setDebugMode(false)
         shader.setHoneycombEnabled(true)
-        shader.updateZoomLevel(viewport.viewMult)
         shader.updatePolygon(vertexData, viewport, Vector2f(1.05f, 1.1f))
         shader.updateColor(133, 237, 255, 30)
         shader.updateBorder(255, 255, 255, 80, 5f, 5f)
-        shader.updateGlow(10f, 10f)
         shader.updateShieldHPPercent(stats.shieldHealth / stats.maxShieldHealth)
         shader.render(viewport)
     }
@@ -132,11 +123,6 @@ class CovenantShieldsRenderPlugin(
     override fun advance(amount: Float) {
         shader.updateTime(amount)
         shader.updateRipple(amount, 1000f)
-
-        if (popActive) {
-            shader.updateShieldPop(amount)
-            popActive = shader.isPopWaveActive()
-        }
 
         if (breakCooldownActive) {
             if (Global.getCombatEngine().getTotalElapsedTime(false) > lastEMPTriggerTime + EMPCooldown) {
