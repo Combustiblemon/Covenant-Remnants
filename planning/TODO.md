@@ -124,13 +124,33 @@ Keep this file current — tick items off and add new ones as work lands.
       in-game 2026-10-01. See
       [implementations/in-game-test-pass-2026-10-01.md](implementations/in-game-test-pass-2026-10-01.md).
 - [ ] **UI indicator for paused/slowed shield regen** — optional follow-up; the pause shows in the
-      HP bar, but nothing tells the player which phase (paused / 50% / full) is active.
+      HP bar, but nothing tells the player which phase (paused / 50% / full) is active. The
+      recharge wave (2026-10-02) now marks the moment regen resumes.
 - [x] Decide Suppressor Beam damage type — **ENERGY** (developer ruling 2026-10-01; no change).
 
 ## Rendering / shaders
 
+- [x] **Reach shield look — in-game test** (signed off 2026-10-02 after three rounds): hits flare blue at the
+      impact and fade in ~0.35 s, bigger when HP is low; low HP = faint always-on plasma + rim glow,
+      no tint; flares stay on the hull while moving/turning, same at every zoom; break = flash,
+      collapse flare fading in 0.3 s with a slight expansion, EMP arcs, ring + sparks, pop sound, no
+      2 s wipe afterwards; re-raise after the cooldown → wave once the sweep completes; hit → pause
+      end → one wave (none at full HP, none while rapid hits keep the pause alive); Fortress end →
+      wave; Fortress lattice visible with hits on top; `ShaderLayers shield plasma` isolates,
+      `ShaderLayers shield all` restores; nothing else mis-textured; no `OpenGL error` in the log.
+      2026-10-02 round 1 (supercap1): hit strip + break OK; rim ring textured on request. Round 2:
+      refraction rings OK (now warp the hexes too). Round 3: no hitch when shields first come up
+      (one shared program compiled at game start), `ShaderLayers` still isolates layers. Developer:
+      "both work great".
+      See [implementations/shield-reach-impact.md](implementations/shield-reach-impact.md).
+- [ ] **Reach shield look — tuning** — every default in `ShieldImpactEffect` (baseline 0.05/0.45,
+      hit floor 0.25, hit colour floor 0.3, tile 200 su, scroll 0.2, flash 0.8, recharge 1.2 s) and
+      the break particles in `CovenantShieldsRenderPlugin`; distortion ring constants in
+      `DistortionLayer` (travel, duration, amplitude, width). Profile on the supercaps (the ring adds a
+      bounding-box framebuffer copy per hit ship per frame).
 - [x] **Shield shader composition refactor** — split the monolithic shield shader into per-layer
-      GLSL modules + Kotlin `ShieldLayer` classes (fill/border/sweep/ripple/honeycomb/debug),
+      GLSL modules + Kotlin `ShieldLayer` classes (fill/border/sweep/ripple/honeycomb/debug;
+      ripple replaced by the plasma layer 2026-10-02),
       assembled into one program at init; dropped all dead uniforms incl. the no-op pop-wave
       effect. See [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md).
       Verified in-game 2026-08-25.

@@ -63,12 +63,22 @@ vanilla one:
 - Render: `plugins/CovenantShieldsRenderPlugin.kt`, `plugins/CovenantShieldsUIRenderPlugin.kt`,
   `plugins/CovenantShieldsUIRenderer.kt`, using `utils/render/ShieldShader.kt` — composed from
   per-layer `ShaderLayer` classes in `utils/render/shield/` and GLSL modules in
-  `data/shaders/shield/` (fill, border, sweep, ripple, honeycomb, fortress, debug), on **LemonLib**'s
+  `data/shaders/shield/` (fill, border, sweep, honeycomb, fortress, plasma, distortion, debug), on **LemonLib**'s
   composition engine
   (`org.combustiblelemon.lemonlib.render.composition`; usage docs in
   `LemonLib/docs/shader-composition/`). See
   [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)
   and [implementations/lemonlib-extraction.md](implementations/lemonlib-extraction.md).
+- Look: the Halo: Reach Elite energy shield. The `plasma` layer (`utils/render/shield/PlasmaLayer.kt`,
+  state in `ShieldImpactEffect.kt`, curves generated into `ShieldImpactCurves.kt` from the Reach
+  editing kit) draws rim glow + scrolling plasma filaments that flare on every hit and with low HP,
+  the collapse on a break (plus EMP arcs, particles, flash and the `covenant_remnants_shield_pop`
+  sound from the render plugin) and the recharge wave when regen resumes. The `distortion` layer
+  (`DistortionLayer.kt`, framebuffer copy via `ShieldScreenCopy.kt`) adds a refraction ring per hit,
+  scaled by damage. All ships share one GL program (`ShieldProgram.kt`, point capacity 128, count as
+  a uniform), compiled at game start from `CovenantRemnantsPlugin.onApplicationLoad`. Noise maps:
+  `graphics/fx/shield/`. See
+  [implementations/shield-reach-impact.md](implementations/shield-reach-impact.md).
 
 ### Slipspace (campaign travel)
 

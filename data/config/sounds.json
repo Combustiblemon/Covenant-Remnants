@@ -18,5 +18,13 @@
 		{"file":"sounds/fleet_slipspace_jump/arrival_1.ogg","pitch":1,"volume":1},
 		{"file":"sounds/fleet_slipspace_jump/arrival_2.ogg","pitch":1,"volume":1},
 		{"file":"sounds/fleet_slipspace_jump/arrival_3.ogg","pitch":1,"volume":1}
+	],
+
+	# Covenant shield break. The Halo: Reach Elite shield pop (sound\characters\elite\shield_pop_elite,
+	# FMOD bank samples 5741-5743). See planning/implementations/shield-reach-impact.md.
+	"covenant_remnants_shield_pop":[
+		{"file":"sounds/covenant_shield/pop_1.ogg","pitch":1,"volume":1},
+		{"file":"sounds/covenant_shield/pop_2.ogg","pitch":1,"volume":1},
+		{"file":"sounds/covenant_shield/pop_3.ogg","pitch":1,"volume":1}
 	]
 }

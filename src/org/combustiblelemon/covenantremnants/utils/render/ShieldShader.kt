@@ -5,33 +5,42 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import org.combustiblelemon.lemonlib.render.Shader
 import org.combustiblelemon.lemonlib.render.composition.ComposedShaderProgram
+import org.combustiblelemon.lemonlib.render.composition.CompositionDebug
 import org.combustiblelemon.lemonlib.render.composition.ShaderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.BorderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.DebugLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.DistortionLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.FillLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.FortressLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.HoneycombLayer
 import org.combustiblelemon.lemonlib.geometry.PolygonSmoothing
-import org.combustiblelemon.covenantremnants.utils.render.shield.RippleLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.PlasmaLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldProgram
 import org.combustiblelemon.lemonlib.geometry.SmoothingMethod
 import org.combustiblelemon.covenantremnants.utils.render.shield.SweepLayer
 import org.combustiblelemon.lemonlib.geometry.rotatePointByDegrees
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL13.GL_ACTIVE_TEXTURE
+import org.lwjgl.opengl.GL13.GL_TEXTURE0
+import org.lwjgl.opengl.GL13.GL_TEXTURE1
+import org.lwjgl.opengl.GL13.GL_TEXTURE2
+import org.lwjgl.opengl.GL13.glActiveTexture
 import org.lwjgl.opengl.GL15.*
 import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.util.vector.Vector2f
 
-// TODO: Fix ripple effects to be consistent across zoom levels. Fix ripple radius and width to be consistent across zoom levels. Ripple is much faster zoomed out than zoomed in.
-
 /**
  * Covenant shield renderer, built on LemonLib's shader composition system
  * (see LemonLib/docs/shader-composition/). Each visual layer (fill, border, sweep,
- * ripples, honeycomb, debug) is a [ShaderLayer] owning its GLSL module +
- * uniforms; [ComposedShaderProgram] assembles them into a single program.
+ * honeycomb, fortress, plasma, distortion, debug) is a [ShaderLayer] owning its GLSL module +
+ * uniforms. The GL program is the one shared [ShieldProgram] (compiled once at game start): this
+ * class keeps its own layer instances for per-ship state and uploads their uniforms itself.
  *
- * Layer order: fill, border, sweep, ripples, honeycomb, fortress (Fortress Shield overlay), debug.
+ * Layer order: fill, border, sweep, honeycomb, fortress (Fortress Shield overlay), plasma (the
+ * Halo: Reach hit / low-HP / collapse / recharge light), distortion (hit refraction rings, composes
+ * the final colour), debug.
  *
  * This class owns the cross-cutting pieces: polygon points + smoothing, sweep
  * position calculation, bounding-box quad, GL state handling, and the shared
@@ -76,25 +85,26 @@ class ShieldShader(
     private val fillLayer = FillLayer()
     private val borderLayer = BorderLayer()
     private val sweepLayer = SweepLayer()
-    private val rippleLayer = RippleLayer()
     private val honeycombLayer = HoneycombLayer()
     private val fortressLayer = FortressLayer()
+    private val plasmaLayer = PlasmaLayer(ship)
+    private val distortionLayer = DistortionLayer(ship)
     private val debugLayer = DebugLayer()
 
     private val layers: List<ShaderLayer> =
-        listOf(fillLayer, borderLayer, sweepLayer, rippleLayer, honeycombLayer, fortressLayer, debugLayer)
+        listOf(fillLayer, borderLayer, sweepLayer, honeycombLayer, fortressLayer, plasmaLayer, distortionLayer, debugLayer)
 
-    private val program = ComposedShaderProgram(
-        systemName = "shield",
-        vertexShaderFile = "data/shaders/shield/shield.vert",
-        baseFragmentFile = "data/shaders/shield/base.frag",
-        layers = layers,
-        placeholders = mapOf(
-            "POINT_COUNT_PLACEHOLDER" to calculateMaxPointsAfterSmoothing(boundsCount).toString()
-        )
-    )
+    // Shared across all ships; never disposed here. Its own (template) layers are only used for
+    // the GLSL source, so uploads go through this instance's layers below.
+    private val program: ComposedShaderProgram = ShieldProgram.get()
 
     init {
+        if (boundsCount > ShieldProgram.POINT_CAPACITY) {
+            Global.getLogger(this.javaClass).warn(
+                "${ship.hullSpec.hullId}: ${boundsCount} bound points exceed the shield shader's capacity " +
+                        "${ShieldProgram.POINT_CAPACITY}; outline truncated"
+            )
+        }
         initQuad()
     }
 
@@ -173,12 +183,11 @@ class ShieldShader(
     }
 
     /**
-     * Calculate the maximum number of points that could be generated after smoothing.
-     * All current smoothing methods only reposition points, so this is the original
-     * count capped at the shader array limit.
+     * Points the shader receives: all smoothing methods only reposition points, so this is the
+     * original count capped at the shared program's array capacity.
      */
     private fun calculateMaxPointsAfterSmoothing(originalPointCount: Int): Int {
-        return minOf(originalPointCount, 1000) // Maximum 1000 points for shader array
+        return minOf(originalPointCount, ShieldProgram.POINT_CAPACITY)
     }
 
     private fun setPolygonPointUniforms(pointCount: Int) {
@@ -193,19 +202,15 @@ class ShieldShader(
         // Safety check: ensure we don't exceed the shader array size
         val safePointCount = minOf(actualPointCount, pointCount)
 
-        // Set actual polygon points as uniforms (screen coordinates)
+        // Polygon points as uniforms (screen coordinates); the shader loops over pointCount, so
+        // the unused capacity needs no zero-fill
         for (i in 0 until safePointCount) {
             val x = polygonPoints[i * 2]
             val y = polygonPoints[i * 2 + 1]
             val uniformLocation = glGetUniformLocation(program.programId, "points[$i]")
             glUniform2f(uniformLocation, x, y)
         }
-
-        // Set remaining array elements to zero
-        for (i in safePointCount until pointCount) {
-            val uniformLocation = glGetUniformLocation(program.programId, "points[$i]")
-            glUniform2f(uniformLocation, 0.0f, 0.0f)
-        }
+        glUniform1i(glGetUniformLocation(program.programId, "pointCount"), safePointCount)
 
         // Check for OpenGL errors
         val error = glGetError()
@@ -255,11 +260,14 @@ class ShieldShader(
         boundingBoxHeight = boundingBoxMaxY - boundingBoxMinY
 
         debugLayer.setBoundingBox(boundingBoxMinX, boundingBoxMinY, boundingBoxMaxX, boundingBoxMaxY)
+        distortionLayer.setCopyRegion(boundingBoxMinX, boundingBoxMinY, boundingBoxWidth, boundingBoxHeight)
     }
 
     fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f)) {
-        scaleX = scale.x
-        scaleY = scale.y
+        // Collapse pushes the shell outward (Reach extrusion); the bounding box follows the scaled points.
+        val shellScale = plasmaLayer.effect.shellScale
+        scaleX = scale.x * shellScale
+        scaleY = scale.y * shellScale
 
         // Get viewport scale for world-to-screen conversion
         viewportScaleX = viewport.viewMult
@@ -286,6 +294,9 @@ class ShieldShader(
         val screenPoints = mutableListOf<Float>()
         var sweepMinX = Float.MAX_VALUE
         var sweepMaxX = Float.MIN_VALUE
+        var relMinY = Float.MAX_VALUE
+        var relMaxY = -Float.MAX_VALUE
+        var maxRadius = 0f
 
         // Get ship center in screen coordinates for consistent calculations
         val shipScreenX = viewport.convertWorldXtoScreenX(ship.location.x)
@@ -307,17 +318,27 @@ class ShieldShader(
             val cosFacing = kotlin.math.cos(facingRad)
             val sinFacing = kotlin.math.sin(facingRad)
             val shipRelX = screenRelPoint.x * cosFacing + screenRelPoint.y * sinFacing
+            val shipRelY = -screenRelPoint.x * sinFacing + screenRelPoint.y * cosFacing
 
             sweepMinX = minOf(sweepMinX, shipRelX)
             sweepMaxX = maxOf(sweepMaxX, shipRelX)
+            relMinY = minOf(relMinY, shipRelY)
+            relMaxY = maxOf(relMaxY, shipRelY)
+            maxRadius = maxOf(maxRadius, screenRelPoint.length())
 
             screenPoints.add(screenX)
             screenPoints.add(screenY)
         }
 
-        // Calculate sweep position using the bounds we just calculated
+        // Calculate sweep position using the bounds we just calculated. A collapsing shield shows
+        // its whole polygon (the cloak is already winding down).
         val sweepWidth = sweepMaxX - sweepMinX
-        sweepLayer.sweepPosition = sweepMaxX - (ship.phaseCloak?.effectLevel ?: 1f) * sweepWidth
+        val sweepLevel = if (plasmaLayer.effect.collapseActive) 1f else (ship.phaseCloak?.effectLevel ?: 1f)
+        sweepLayer.sweepPosition = sweepMaxX - sweepLevel * sweepWidth
+
+        // Body metrics for the plasma layer (screen px): depth = half the shorter extent, radius = farthest point
+        plasmaLayer.setBodyMetrics(0.5f * minOf(sweepWidth, relMaxY - relMinY), maxRadius)
+        distortionLayer.setBodyRadius(maxRadius)
 
         // Store the screen coordinates for the fragment shader
         polygonPoints = screenPoints
@@ -385,12 +406,30 @@ class ShieldShader(
         borderLayer.setBorder(r, g, b, a, width)
     }
 
-    fun startRipple(x: Float, y: Float, width: Float, r: Int, g: Int, b: Int, a: Int, intensity: Float = 1f) {
-        rippleLayer.startRipple(x, y, width, r, g, b, a, intensity)
+    /** A shield hit at a world position; [strength] is the damage level 0..1 (floored by the effect). */
+    fun triggerHit(x: Float, y: Float, strength: Float) {
+        plasmaLayer.effect.addHit(x, y, strength, ship.location.x, ship.location.y, ship.facing)
+        distortionLayer.addWave(x, y, strength)
     }
 
-    fun updateRipple(deltaTime: Float, speed: Float = 400f) {
-        rippleLayer.update(deltaTime, speed, viewportScaleX)
+    /** Starts the Reach collapse (flash + flare + expansion); the owner keeps rendering until [isCollapseFinished]. */
+    fun startCollapse() {
+        plasmaLayer.effect.startCollapse()
+        distortionLayer.clear()
+    }
+
+    /** Starts the recharge wave (plasma sweeping out from the core). */
+    fun triggerRecharge() {
+        plasmaLayer.effect.startRecharge()
+    }
+
+    fun isCollapseActive(): Boolean = plasmaLayer.effect.collapseActive
+
+    fun isCollapseFinished(): Boolean = plasmaLayer.effect.collapseFinished
+
+    /** Clears a finished collapse so the shield can be drawn again when re-raised. */
+    fun resetImpact() {
+        plasmaLayer.effect.reset()
     }
 
     fun setHoneycombEnabled(enabled: Boolean) {
@@ -408,10 +447,12 @@ class ShieldShader(
 
     fun updateTime(amount: Float) {
         this.time += amount
+        for (layer in layers) layer.advance(amount)
     }
 
+    /** Shield HP fraction 0..1: drives the plasma layer's vitality (flare size/brightness, low-HP baseline). */
     fun updateShieldHPPercent(percent: Float) {
-        fillLayer.setShieldHPPercent(percent)
+        plasmaLayer.effect.vitality = percent.coerceIn(0f, 1f)
     }
 
     override fun render(viewport: ViewportAPI) {
@@ -452,7 +493,15 @@ class ShieldShader(
         val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
         val currentVAO = glGetInteger(GL_VERTEX_ARRAY_BINDING)
         val currentVBO = glGetInteger(GL_ARRAY_BUFFER_BINDING)
-        val currentTexture = glGetInteger(GL_TEXTURE_BINDING_2D)
+        // The plasma layer binds its noise maps on units 0 and 1, the distortion layer the screen copy on 2
+        val currentActiveTexture = glGetInteger(GL_ACTIVE_TEXTURE)
+        glActiveTexture(GL_TEXTURE0)
+        val currentTexture0 = glGetInteger(GL_TEXTURE_BINDING_2D)
+        glActiveTexture(GL_TEXTURE1)
+        val currentTexture1 = glGetInteger(GL_TEXTURE_BINDING_2D)
+        glActiveTexture(GL_TEXTURE2)
+        val currentTexture2 = glGetInteger(GL_TEXTURE_BINDING_2D)
+        glActiveTexture(currentActiveTexture)
         val blendEnabled = glIsEnabled(GL_BLEND)
         val depthTestEnabled = glIsEnabled(GL_DEPTH_TEST)
         val stencilTestEnabled = glIsEnabled(GL_STENCIL_TEST)
@@ -479,12 +528,17 @@ class ShieldShader(
             glUniform1f(glGetUniformLocation(program.programId, "shipFacing"), ship.facing)
             glUniform1f(glGetUniformLocation(program.programId, "time"), time)
 
-            // Polygon points as uniforms (zero-fill unused slots — the polygon
-            // test iterates the full array)
+            // Polygon points + pointCount
             setPolygonPointUniforms(calculateMaxPointsAfterSmoothing(boundsCount))
 
-            // Layer uniforms, in layer order (disabled layers skipped)
-            program.uploadLayerUniforms(viewport)
+            // Layer uniforms, in layer order; layers disabled by the ShaderLayers command are
+            // stubbed in the shared program, so their uploads are skipped
+            val enabled = CompositionDebug.enabledLayersFor(ShieldProgram.SYSTEM_NAME)
+            for (layer in layers) {
+                if (enabled == null || enabled.isEmpty() || layer.layerName in enabled) {
+                    layer.uploadUniforms(program.programId, viewport)
+                }
+            }
 
             // Enable blending for transparency
             glEnable(GL_BLEND)
@@ -498,7 +552,13 @@ class ShieldShader(
             glUseProgram(currentProgram)
             glBindVertexArray(currentVAO)
             glBindBuffer(GL_ARRAY_BUFFER, currentVBO)
-            glBindTexture(GL_TEXTURE_2D, currentTexture)
+            glActiveTexture(GL_TEXTURE2)
+            glBindTexture(GL_TEXTURE_2D, currentTexture2)
+            glActiveTexture(GL_TEXTURE1)
+            glBindTexture(GL_TEXTURE_2D, currentTexture1)
+            glActiveTexture(GL_TEXTURE0)
+            glBindTexture(GL_TEXTURE_2D, currentTexture0)
+            glActiveTexture(currentActiveTexture)
 
             // Restore scissor test state
             if (scissorTestEnabled) {
@@ -530,7 +590,7 @@ class ShieldShader(
                 glDeleteVertexArrays(vao)
                 vao = 0
             }
-            program.dispose()
+            // The program is shared (ShieldProgram); not disposed per ship
         } catch (e: Exception) {
             Global.getLogger(this.javaClass).error("Error during cleanup: ${e.message}")
         }

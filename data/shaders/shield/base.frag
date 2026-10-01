@@ -5,7 +5,9 @@ in vec2 TexCoord;
 
 // Shared uniforms — used by more than one layer module.
 // Layer-specific uniforms are declared in each layer's .glsl module.
-uniform vec2 points[POINT_COUNT_PLACEHOLDER]; // Shield polygon, screen coordinates
+uniform vec2 points[POINT_COUNT_PLACEHOLDER]; // Shield polygon, screen coordinates (array capacity)
+uniform int pointCount;                       // Points in use. A uniform (not the placeholder) so the
+                                              // driver does not unroll every outline loop at compile time.
 uniform vec2 resolution;                      // Screen resolution
 uniform vec2 center;                          // Ship center, screen coordinates
 uniform vec4 shipRotationMatrix;              // Pre-calculated rotation matrix as vec4 (m00, m01, m10, m11)
@@ -24,8 +26,7 @@ float distanceToLine(vec2 point, vec2 lineStart, vec2 lineEnd) {
 
 // Point-in-polygon test using ray casting algorithm
 bool isPointInPolygon(vec2 point) {
-    // Use the fixed array size from POINT_COUNT_PLACEHOLDER
-    const int numPoints = POINT_COUNT_PLACEHOLDER;
+    int numPoints = pointCount;
     if (numPoints < 3)
     return false;
 
@@ -126,9 +127,10 @@ vec4 shieldFrag(vec2 pixelPos) {
     // Mix order is the pixel contract — do not reorder
     result = border_apply(result, pixelPos);
     result = sweep_applyEdge(result, sweepEdge);
-    result = ripple_apply(result, pixelPos);
     result = honeycomb_apply(result, pixelPos);
     result = fortress_apply(result, pixelPos);
+    // Plasma last: additive Reach light on top of everything (incl. the Fortress lattice)
+    result = plasma_apply(result, pixelPos);
 
     return result;
 }
@@ -151,5 +153,9 @@ void main() {
         discard;
     }
 
-    FragColor = shieldFrag(pixelPos);
+    // Hit refraction rings: the whole mix chain is evaluated at the displaced position (hexes,
+    // border and plasma bend with the ring), then composed over the displaced background (alpha 1).
+    // Where no ring displaces the pixel the ordinary alpha-blended colour passes through.
+    vec2 warp = distortion_offset(pixelPos);
+    FragColor = distortion_compose(shieldFrag(pixelPos + warp), pixelPos, warp);
 }

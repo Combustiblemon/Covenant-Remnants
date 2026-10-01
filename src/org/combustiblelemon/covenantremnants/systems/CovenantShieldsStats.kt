@@ -51,6 +51,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     // while it is active and gates it on the shield being up.
     private var wasFortressActive = false
 
+    // Regen paused -> running edge (post-hit pause ending, Fortress ending): fires the recharge wave.
+    private var wasRegenActive = false
+
     var shieldDamageMult: Float = 0.3f
     var breakCooldownTime = 9f
 
@@ -166,6 +169,16 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 }
             }
 
+            // Recharge wave whenever regen goes from paused to running while the shield is visible.
+            // Edge-tracked independent of visibility, so raising the shield mid-regen fires nothing;
+            // the post-break wave is the render plugin's (fires once the activation sweep completes).
+            val regenActive = !parent.breakCooldownActive && !fortressActive &&
+                    parent.shieldHealth < parent.maxShieldHealth && parent.regenMult() > 0f
+            if (regenActive && !parent.wasRegenActive && (ship.phaseCloak?.effectLevel ?: 0f) > 0f) {
+                parent.renderPlugin?.triggerRechargeWave()
+            }
+            parent.wasRegenActive = regenActive
+
             parent.updateRenderers()
         }
     }
@@ -194,6 +207,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 shipListenerInstance = null
                 lastShieldDamageTime = Float.NEGATIVE_INFINITY
                 wasFortressActive = false
+                wasRegenActive = false
                 breakCooldownActive = false
                 shieldInit = false
             }
@@ -339,11 +353,12 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 val damageNumber = rawDamage * parent.shieldDamageMult *
                         attachedTo.mutableStats.shieldDamageTakenMult.modifiedValue
 
+                // Hit flare strength (Reach: every hit flares; the plugin floors weak ones)
                 var level = (damageNumber - 30f) / (300f - 30f)
                 level = max(0f, min(1f, level))
 
-                if (param !is BeamWeaponRay && level > 0.03f) {
-                    parent.renderPlugin?.triggerRippleAtPoint(point.x, point.y, 100, level)
+                if (!parent.breakCooldownActive) {
+                    parent.renderPlugin?.triggerShieldHit(point.x, point.y, level)
                 }
 
                 val source = when (param) {

@@ -5,6 +5,7 @@ import com.fs.starfarer.api.Global
 import org.combustiblelemon.covenantremnants.campaign.systems.generateSlipspaceSystem
 import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilities
 import org.combustiblelemon.covenantremnants.utils.initShieldData
+import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldProgram
 import org.combustiblelemon.lemonlib.hullmods.HullmodIncompatibilityInstaller
 
 class CovenantRemnantsPlugin : BaseModPlugin() {
@@ -34,6 +35,11 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         logger.info(shieldData.toString())
 
         HullmodIncompatibilityInstaller.install(CovenantIncompatibilities.registry())
+
+        // Compile the (one, shared) Covenant shield program now, on the GL thread, instead of on the
+        // first shield activation in combat (developer request 2026-10-02: ~250 ms per compile
+        // stacked into a multi-second hitch when a fleet raised shields).
+        ShieldProgram.warmUp()
     }
 
     override fun onGameLoad(newGame: Boolean) {

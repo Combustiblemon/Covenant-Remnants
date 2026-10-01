@@ -5,7 +5,7 @@ uniform float borderWidth;
 
 vec4 border_apply(vec4 color, vec2 pixelPos) {
     float minDistToEdge = 1000.0;
-    const int numPoints = POINT_COUNT_PLACEHOLDER;
+    int numPoints = pointCount;
     int j = numPoints - 1;
 
     for (int i = 0; i < numPoints; i++) {

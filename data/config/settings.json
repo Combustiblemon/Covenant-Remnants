@@ -24,7 +24,9 @@
       "rupture_glitter": "graphics/fx/slipspace_rupture/glitter.png",
       "rupture_star_flare": "graphics/fx/slipspace_rupture/star_flare.png",
       "rupture_light_volume_glow": "graphics/fx/slipspace_rupture/light_volume_glow.png",
-      "rupture_distortion_ring": "graphics/fx/slipspace_rupture/distortion_ring.png"
+      "rupture_distortion_ring": "graphics/fx/slipspace_rupture/distortion_ring.png",
+      "shield_plasma_clouds_a": "graphics/fx/shield/plasma_clouds_512_a.png",
+      "shield_plasma_clouds_b": "graphics/fx/shield/plasma_clouds_512_b.png"
     }
   }
 }

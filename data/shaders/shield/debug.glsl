@@ -10,7 +10,7 @@ bool debug_check(vec2 pixelPos, out vec4 dbgColor) {
         return false;
     }
 
-    const int numPoints = POINT_COUNT_PLACEHOLDER;
+    int numPoints = pointCount;
 
     // Show bounding box outline (red rectangle)
     float boundingBoxLeft = boundingBoxMin.x;

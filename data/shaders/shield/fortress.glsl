@@ -23,7 +23,7 @@ float fortress_lattice(vec2 pixelPos) {
 // Edge glow strength at this pixel: 1 on the shield edge, fading to 0 over fortressGlowWidth.
 float fortress_glow(vec2 pixelPos) {
     float minDistToEdge = 1000000.0;
-    const int numPoints = POINT_COUNT_PLACEHOLDER;
+    int numPoints = pointCount;
     int j = numPoints - 1;
 
     for (int i = 0; i < numPoints; i++) {
