@@ -13,23 +13,19 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   regen/debug console commands.
 - **Plasma weapon family** — artillery, beam, cannon, lance, missile, repeater, barrage;
   energy projector effect; plasma projectiles.
-- **Ships** — 28 `.ship` hulls across frigate → super-capital, `shield type NONE`
+- **Ships** — 19 `.ship` hulls (16 combat + 3 wing) across frigate → super-capital, `shield type NONE`
   (named: CCS, CAS, ORS, Seraph, Phantom, Banshee, + class-generic hulls).
 - **Fighters** — via `wing*` hulls + variants + `wing_data.csv`.
 - **Hullmods** — nanolaminate armor, Huragok crew, Covenant systems, hullmod manager.
+- **ID migration `covenantremnants_` → `covenant_remnants_`** — done. No legacy ids remain in
+  `data/` or `src/` (Kotlin package `covenantremnants` is unaffected).
 
 ## In progress / open
 
 - **Quests & narrative content — not started.** No `data/campaign/rules.csv`, missions, intel, or
   bar events yet. This is the primary acquisition path (ships/weapons are quest-gated only — see
   [CLAUDE.md](../CLAUDE.md)) and the next major area of work.
-- **ID migration `covenantremnants_` → `covenant_remnants_`.** Two conventions coexist in the repo.
-  Canonical is `covenant_remnants_`; legacy no-separator ids need migrating (ships, weapons,
-  variants). Do this carefully — ids are referenced across `.ship`/`.variant`/CSV/Kotlin.
-- **Dependency declaration gap.** `mod_info.json` declares only MagicLib + LazyLib, but the build
-  uses LunaLib and Console Commands. **Open question:** are LunaLib / Console Commands required
-  runtime deps (declare them) or optional (guard usage)? Decide, then reconcile `mod_info.json`.
-- **Balance TODOs** (from [balance.txt](../balance.txt)):
+- **Balance TODOs** (originally from the old root `balance.txt`, no longer in the repo):
   - Make the energy projector a **ship system**; nerf it for anything other than the CAS.
   - Add a hullmod that buffs the weapons, and nerf the weapons themselves to compensate.
   - Add 3 PD frigates — stinger proximity mine.
@@ -41,8 +37,9 @@ in-progress work and unresolved questions, not settled decisions (those live in 
 - **More ships & fighters** — fill out the roster; keep the long-range-elite-brawler identity and
   the swarm weakness (see [CLAUDE.md](../CLAUDE.md)).
 - Ongoing polish of shaders and feel.
+- **LunaLib settings** — in-game options to control the mod. LunaLib is optional, so each setting
+  needs a default for when LunaLib is absent.
 
 ## Open questions
 
-- LunaLib / Console Commands: required vs optional (see above).
 - Final acquisition design for each quest — which ships/weapons unlock where.

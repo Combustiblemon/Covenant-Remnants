@@ -115,7 +115,7 @@ no `setEffect()`, so:
 - Not yet verified in-game (see verification checklist in the plan: grey-outs + reasons on
   Covenant hull, vanilla ships unchanged, direction B on vanilla hull with Covenant Shield,
   codex null-ship tooltips, legacy-combo refit strip, save/load, simulator).
-- `covenant_remnants_frigate3.ship` does NOT have `covenant_remnants_slipspace_drive` in
-  `builtInMods` unlike every other combat hull — looks like an oversight; ask developer.
+- ~~`covenant_remnants_frigate3.ship` lacks `covenant_remnants_slipspace_drive`~~ — resolved
+  2026-10-01 in the ship-editor bounds pass.
 - Kotlin `by` wrapper vs future `HullModEffect` interface additions → `AbstractMethodError` until
   recompiled against the new API jar. Accepted; the mod is version-pinned.

@@ -75,13 +75,13 @@ void main() {
     // Calculate pixel position from texture coordinates (this is the actual screen position)
     vec2 pixelPos = TexCoord * resolution;
 
-    // Debug mode: show polygon outline, points, and bounding box
-    if (debugMode) {
-        vec4 dbgColor;
-        if (debug_check(pixelPos, dbgColor)) {
-            FragColor = dbgColor;
-            return;
-        }
+    // Debug mode: show polygon outline, points, and bounding box.
+    // The debugMode gate lives inside debug_check so this footer never
+    // references a layer uniform (a stubbed debug layer does not declare it).
+    vec4 dbgColor;
+    if (debug_check(pixelPos, dbgColor)) {
+        FragColor = dbgColor;
+        return;
     }
 
     // Check if pixel is inside the shield polygon

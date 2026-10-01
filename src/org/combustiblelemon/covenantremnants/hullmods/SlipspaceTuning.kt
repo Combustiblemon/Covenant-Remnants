@@ -11,7 +11,9 @@ import org.combustiblelemon.lemonlib.geometry.getPercentage
  *  - Reduces the drive's ship-system cooldown (engine-applied via systemCooldownBonus).
  *  - Loosens the flux ceiling required to jump (read by [org.combustiblelemon.covenantremnants.systems.SlipspaceDrive]).
  *
- * Only installable on hulls that actually mount the slipspace drive system.
+ * Installable on any ship carrying the Slipspace Drive hullmod ([SlipspaceDriveHullmod]), built-in
+ * or not. Both combat effects apply only when the ship's system is the slipspace drive; on other
+ * ships the mod has no combat effect (a campaign slipspace-jump bonus is planned — see TODO.md).
  */
 class SlipspaceTuning : BaseHullMod() {
     companion object {
@@ -30,21 +32,29 @@ class SlipspaceTuning : BaseHullMod() {
         if (ship == null) {
             return "This hullmod is only applicable to ships."
         }
-        if (ship.hullSpec.shipSystemId != SLIPSPACE_SYSTEM_ID) {
-            return "Requires a ship equipped with the slipspace drive."
+        if (!hasSlipspaceDrive(ship)) {
+            return "Requires a ship with a slipspace drive."
         }
         return null
     }
 
     override fun isApplicableToShip(ship: ShipAPI?): Boolean {
-        return ship != null && ship.hullSpec.shipSystemId == SLIPSPACE_SYSTEM_ID
+        return ship != null && hasSlipspaceDrive(ship)
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: ShipAPI.HullSize?, stats: MutableShipStatsAPI?, id: String?) {
         if (stats == null) {
             return
         }
+        // Cooldown cut targets the drive only — never another ship system
+        if (stats.variant?.hullSpec?.shipSystemId != SLIPSPACE_SYSTEM_ID) {
+            return
+        }
         stats.systemCooldownBonus.modifyMult(id, SYSTEM_COOLDOWN_MULT)
+    }
+
+    private fun hasSlipspaceDrive(ship: ShipAPI): Boolean {
+        return ship.variant?.hasHullMod(SlipspaceDriveHullmod.ID) == true
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {

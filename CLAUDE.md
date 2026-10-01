@@ -43,12 +43,16 @@ These are settled. Do not re-open them without asking the developer.
   portals) uses the mod's own GLSL shaders. GraphicsLib is **not** a dependency.
 - **Kotlin.** Code is Kotlin, compiled to `jars/CovenantRemnants.jar` via Gradle.
 - **Canonical id prefix: `covenant_remnants_`.** New content uses the underscore-separated prefix.
-  Older `covenantremnants_` ids are **legacy** and are being migrated (see [planning/PLAN.md](planning/PLAN.md)).
+  The legacy `covenantremnants_` prefix has been fully migrated out of `data/` and `src/`; never
+  reintroduce it (the Kotlin package `covenantremnants` is unaffected).
 
 ## Stack
 
 - **Language/build:** Kotlin (JVM, Java 8 target), Gradle Kotlin DSL. See [planning/ARCHITECTURE.md](planning/ARCHITECTURE.md).
-- **Declared dependencies:** MagicLib, LazyLib.
+- **Declared dependencies (required):** LemonLib, MagicLib, LazyLib.
+- **Optional dependencies (ruling 2026-10-01):** LunaLib, Console Commands — compile-only, never
+  declared in `mod_info.json`; the mod must run without them (Console Commands code stays isolated
+  in `commands/`, loaded only via `data/console/commands.csv`).
 - **Rendering:** custom OpenGL/GLSL shaders (`.frag`/`.vert` in `data/shaders/`, Kotlin loaders in
   `src/.../utils/render/`).
 

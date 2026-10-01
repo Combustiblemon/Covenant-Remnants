@@ -24,6 +24,12 @@ import kotlin.math.max
 import kotlin.math.min
 
 class CovenantShieldsStats : BaseShipSystemScript() {
+    companion object {
+        // After the regen delay ends, regen runs at REGEN_SLOW_MULT for REGEN_SLOW_DURATION seconds
+        const val REGEN_SLOW_MULT = 0.5f
+        const val REGEN_SLOW_DURATION = 3f
+    }
+
     private var statusKey = Any()
     private var renderPlugin: CovenantShieldsRenderPlugin? = null
     private var UIRenderPlugin: CovenantShieldsUIRenderPlugin? = null
@@ -36,11 +42,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     private var shieldRegen: Float = 1250f
 
-    // Regen is halved while cumulative shield damage within the trailing window exceeds
-    // regenSlowThreshold (fraction of max shield HP); each hit inside the window keeps it active.
-    private val regenSlowMult: Float = 0.5f
-    private val regenSlowWindow: Float = 3f
-    private val regenSlowThreshold: Float = 0.01f
+    // Any shield hit pauses regen for the hull's shield regen delay (shield_data.csv), then regen
+    // runs at REGEN_SLOW_MULT for REGEN_SLOW_DURATION seconds before returning to full rate.
+    private var lastShieldDamageTime: Float = Float.NEGATIVE_INFINITY
     // TODO(fortress): the Reverence-class battleship (covenant_remnants_capital1) carries the
     //  vanilla "fortressshield" ship system as a trigger. When that system is active on the ship,
     //  drop shieldDamageMult toward ~0.05 and halt shield decay / boost regen so the custom shield
@@ -65,9 +69,6 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     // The stats script instance may outlive a single battle; used to detect a new combat and
     // drop per-battle state (plugins, listeners, shield state) so everything re-initializes.
     private var combatEngine: CombatEngineAPI? = null
-
-    // first value is damage number and second is time it happened
-    private var damageInstances: MutableList<List<Float>> = mutableListOf()
 
     var maxShieldHealth: Float = 1f
         private set(value) {
@@ -171,7 +172,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 damageListener = null
                 damageConverter = null
                 shipListenerInstance = null
-                damageInstances.clear()
+                lastShieldDamageTime = Float.NEGATIVE_INFINITY
                 breakCooldownActive = false
                 shieldInit = false
             }
@@ -369,24 +370,18 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     }
 
     fun dealShieldDamage(amount: Float, time: Float) {
-        this.damageInstances.add(listOf(amount, time))
+        this.lastShieldDamageTime = time
         this.shieldHealth -= abs(amount)
         this.lastDamageToShield = abs(amount)
     }
 
     fun regenMult(): Float {
-        if (damageInstances.isEmpty()) {
-            return 1f
+        val sinceHit = Global.getCombatEngine().getTotalElapsedTime(false) - lastShieldDamageTime
+        return when {
+            sinceHit < shieldStats.shieldRegenDelay -> 0f
+            sinceHit < shieldStats.shieldRegenDelay + REGEN_SLOW_DURATION -> REGEN_SLOW_MULT
+            else -> 1f
         }
-
-        val cutoffTime = Global.getCombatEngine().getTotalElapsedTime(false) - regenSlowWindow
-
-        damageInstances = damageInstances.filter { it[1] > cutoffTime }.toMutableList()
-
-        var sum = 0f
-        damageInstances.forEach { sum += it[0] }
-
-        return if (sum > maxShieldHealth * regenSlowThreshold) regenSlowMult else 1f
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {

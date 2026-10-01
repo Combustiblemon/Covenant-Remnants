@@ -9,16 +9,17 @@
     "center":[
         41, 63
     ],
-    "collisionRadius":68.5,
+    "collisionRadius":63,
     "coversColor":"",
     "shieldCenter":[
         0, 0
     ],
-    "shieldRadius":64.5,
+    "shieldRadius":63,
     "viewOffset":0,
     "builtInMods":[
         "covenant_remnants_covenantsystems",
         "covenant_remnants_nanolaminate_armor",
+        "covenant_remnants_slipspace_drive",
         "covenant_remnants_covenantshieldhullmod"
     ],
     "builtInWings":[],
@@ -32,42 +33,42 @@
             "arc":360,
             "angle":0,
             "locations":[
-                    52.5,        0
+                      10,        0
             ]
         }
     ],
     "engineSlots":[
         {
             "location":[
-                -40.5, 10.5
+                -50, 8
             ],
-            "length":2.5,
-            "width":9,
+            "length":15,
+            "width":4,
             "angle":180,
-            "contrailSize":0,
-            "style":"OMEGA"
+            "contrailSize":3,
+            "style":"HIGH_TECH"
         },
         {
             "location":[
-                -40.5, -10.5
+                -50, -8
             ],
-            "length":2.5,
-            "width":9,
+            "length":15,
+            "width":4,
             "angle":180,
-            "contrailSize":0,
-            "style":"OMEGA"
+            "contrailSize":3,
+            "style":"HIGH_TECH"
         }
     ],
     "bounds":[
                6,      -39,
              -15,      -25,
              -33,      -18,
-             -46,      -11,
-           -43.5,     -6.5,
+           -46.5,    -10.5,
+           -44.5,     -6.5,
         
              -61,        0,
-           -43.5,      6.5,
-             -46,       11,
+           -44.5,      6.5,
+           -46.5,     10.5,
              -33,       19,
              -15,       26,
         
@@ -75,17 +76,16 @@
               15,       39,
               23,       36,
               38,       26,
-            39.5,       17,
+              41,       17,
         
-            53.5,       10,
-              62,        3,
-              62,       -3,
-            53.5,      -10,
-            39.5,      -17,
-        
+              52,       11,
+              63,        0,
+              52,      -10,
+              41,      -16,
               38,      -25,
+        
               23,      -35,
               14,      -38
-    # 23 points total.
+    # 22 points total.
     ]
 }

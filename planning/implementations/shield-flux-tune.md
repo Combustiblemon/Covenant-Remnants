@@ -31,6 +31,10 @@ as-is.
 
 ### Regen-slow mechanic — all Covenant shields (`CovenantShieldsStats.kt`)
 
+> **Superseded 2026-10-01** — replaced by pause-then-halved regen (any hit pauses regen for the
+> hull's `shield regen delay`, then 50% for 3 s). See
+> [in-game-test-pass-2026-10-01.md](in-game-test-pass-2026-10-01.md). Original design below.
+
 - New `regenMult()`: prunes `damageInstances` older than a trailing 3s window
   (`regenSlowWindow`), sums the rest; if the sum exceeds 1% of max shield HP
   (`regenSlowThreshold`) regen is multiplied by 0.5 (`regenSlowMult`). Cumulative trigger —

@@ -36,6 +36,6 @@ Prints a summary line with per-category counts.
 
 - Decorative `*covercap` weapons carry no prefix, so the filter drops them automatically.
 - Console Commands is a Gradle `compileOnly` reference, **not** a declared `mod_info.json` dependency.
-  The command registers at runtime only when Console Commands is active. Not changed — raise with dev
-  if a hard dependency is wanted.
+  The command registers at runtime only when Console Commands is active. Developer ruling
+  2026-10-01: Console Commands stays optional.
 - Verified against starsector-knowledge (0.98a-RC8); builds clean via `buildMod`. Not yet run in-game.

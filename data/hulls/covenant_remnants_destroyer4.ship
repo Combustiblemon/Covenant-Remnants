@@ -1,31 +1,136 @@
 {
-  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor", "covenant_remnants_slipspace_drive", "covenant_remnants_covenantshieldhullmod"],
-  "hullName": "Ket-pattern Assault Destroyer",
-  "hullId": "covenant_remnants_destroyer4",
-  "hullSize": "DESTROYER",
-  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_destroyer4.png",
-  "style": "COVENANT",
-  "height": 217,
-  "width": 122,
-  "center": [61, 108.5],
-  "collisionRadius": 108.5,
-  "shieldCenter": [0, 0],
-  "shieldRadius": 108.5,
-  "viewOffset": 0,
-  "weaponSlots": [
-    { "id": "WS0001", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 5, "angle": 0, "locations": [38, 0] },
-    { "id": "WS0002", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 240, "angle": 75, "locations": [0, 32] },
-    { "id": "WS0003", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 240, "angle": -75, "locations": [0, -32] }
-  ],
-  "engineSlots": [
-    { "location": [-95, 12], "length": 22, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" },
-    { "location": [-98, 0], "length": 24, "width": 7, "angle": 180, "contrailSize": 6, "style": "HIGH_TECH" },
-    { "location": [-95, -12], "length": 22, "width": 6, "angle": 180, "contrailSize": 5, "style": "HIGH_TECH" }
-  ],
-  "bounds": [
-    -14.5, -51.0, -28.5, -60.0, -41.5, -55.0, -48.5, -42.0, -55.5, -32.0, -77.5, -29.0,
-    -99.5, -19.0, -107.5, 0.0, -99.5, 20.0, -77.5, 30.0, -55.5, 33.0, -48.5, 43.0,
-    -41.5, 56.0, -28.5, 61.0, -4.5, 47.0, 11.5, 34.0, 32.5, 23.0, 108.5, 1.0,
-    32.5, -22.0, 11.5, -33.0, -4.5, -46.0
-  ]
+    "hullName":"Ket-pattern Assault Destroyer",
+    "hullId":"covenant_remnants_destroyer4",
+    "hullSize":"DESTROYER",
+    "style":"COVENANT",
+    "spriteName":"graphics/covenant_remnants/ships/covenant_remnants_destroyer4.png",
+    "height":217,
+    "width":122,
+    "center":[
+        61, 108.5
+    ],
+    "collisionRadius":108.5,
+    "coversColor":"",
+    "shieldCenter":[
+        0, 0
+    ],
+    "shieldRadius":108.5,
+    "viewOffset":0,
+    "builtInMods":[
+        "covenant_remnants_covenantsystems",
+        "covenant_remnants_nanolaminate_armor",
+        "covenant_remnants_slipspace_drive",
+        "covenant_remnants_covenantshieldhullmod"
+    ],
+    "builtInWings":[],
+    "builtInModules":null,
+    "weaponSlots":[
+        {
+            "id":"WS0001",
+            "size":"LARGE",
+            "type":"ENERGY",
+            "mount":"HARDPOINT",
+            "arc":5,
+            "angle":0,
+            "locations":[
+                      38,        0
+            ]
+        },
+        {
+            "id":"WS0002",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":240,
+            "angle":75,
+            "locations":[
+                       0,       32
+            ]
+        },
+        {
+            "id":"WS0003",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":240,
+            "angle":-75,
+            "locations":[
+                       0,      -32
+            ]
+        }
+    ],
+    "engineSlots":[
+        {
+            "location":[
+                -95, 12
+            ],
+            "length":22,
+            "width":6,
+            "angle":180,
+            "contrailSize":5,
+            "style":"HIGH_TECH"
+        },
+        {
+            "location":[
+                -98, 0
+            ],
+            "length":24,
+            "width":7,
+            "angle":180,
+            "contrailSize":6,
+            "style":"HIGH_TECH"
+        },
+        {
+            "location":[
+                -95, -12
+            ],
+            "length":22,
+            "width":6,
+            "angle":180,
+            "contrailSize":5,
+            "style":"HIGH_TECH"
+        }
+    ],
+    "bounds":[
+           -14.5,      -51,
+             -29,    -59.5,
+           -41.5,      -55,
+           -48.5,      -42,
+           -55.5,      -32,
+        
+           -62.5,      -29,
+           -69.5,      -34,
+           -77.5,      -29,
+           -86.5,      -23,
+           -99.5,      -19,
+        
+          -107.5,        0,
+           -99.5,       20,
+           -86.5,       23,
+           -77.5,       30,
+           -69.5,       34,
+        
+           -62.5,       29,
+           -55.5,       33,
+           -48.5,       43,
+           -41.5,       56,
+             -29,     59.5,
+        
+            -4.5,       47,
+            11.5,       34,
+            32.5,       23,
+              48,     14.5,
+            83.5,     13.5,
+        
+             103,      8.5,
+           108.5,        1,
+             103,     -8.5,
+            83.5,    -13.5,
+              48,    -14.5,
+        
+            32.5,      -22,
+            11.5,      -33,
+            -4.5,      -46
+    # 33 points total.
+    ]
 }

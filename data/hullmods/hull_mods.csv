@@ -17,7 +17,7 @@ Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,"req_spacepor
 
 Replaces the ship's defenses with a regenerating Covenant energy shield:
  Shield capacity: %s
- Regenerates %s per second after %s seconds without taking damage
+ Regenerates %s per second after %s seconds without taking damage (%s rate for the first %s seconds)
  Collapses when depleted and comes back online after %s seconds
 
 Can not work in conjunction with hullmods that modify shields or phase systems.",,,

@@ -5,6 +5,11 @@ uniform vec2 boundingBoxMin;
 uniform vec2 boundingBoxMax;
 
 bool debug_check(vec2 pixelPos, out vec4 dbgColor) {
+    if (!debugMode) {
+        dbgColor = vec4(0.0);
+        return false;
+    }
+
     const int numPoints = POINT_COUNT_PLACEHOLDER;
 
     // Show bounding box outline (red rectangle)

@@ -48,4 +48,5 @@ Deleted the exploration orphans that referenced missing art / were unused: `plas
 ## Open / TODO
 
 Bespoke weapon art; recolor projectile/missile bolts (currently vanilla visuals); balance tuning;
-optional KINETIC variant of the Suppressor Beam. See [TODO.md](../TODO.md).
+optional KINETIC variant of the Suppressor Beam. See [TODO.md](../TODO.md). **Resolved 2026-10-01:**
+developer ruled the Suppressor Beam stays ENERGY.

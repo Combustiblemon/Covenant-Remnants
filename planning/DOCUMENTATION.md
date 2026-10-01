@@ -44,8 +44,8 @@ task list. This documentation duty is a fixed AI-assistant rule — see
 
 - **Canonical prefix: `covenant_remnants_`** (underscore-separated). All new ship / weapon / variant
   / system / hullmod / ability ids use it.
-- **Legacy prefix `covenantremnants_`** (no separators) exists on older content and is being
-  migrated. Do not create new ids with it. See [PLAN.md](PLAN.md) for migration status.
+- **Legacy prefix `covenantremnants_`** (no separators) — fully migrated; no content ids use it.
+  Do not create new ids with it.
 - The mod **id** in `mod_info.json` is `combustiblelemon_covenant_remnants` — separate from content
   id prefixes; do not change it.
 - Match id to filename: `covenant_remnants_ccs.ship` defines hull id `covenant_remnants_ccs`.

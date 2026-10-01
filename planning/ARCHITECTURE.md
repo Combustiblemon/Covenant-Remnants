@@ -64,7 +64,9 @@ Covenant ships use `shield type NONE` and get defense from a custom shield inste
   entity `campaign/entities/SlipspacePortalEntity.kt`, drive `systems/SlipspaceDrive.kt`.
 - Render: `plugins/SlipspaceDriveRenderPlugin.kt`, `utils/render/SlipspacePortalEntityShader.kt`
   (`data/shaders/slipspacePortalEntityShader.frag`/`.vert`).
-- Console commands: `commands/RegenerateSlipspace.kt`, `commands/DebugHook.kt`.
+- Console commands: `commands/RegenerateSlipspace.kt`, `commands/DebugHook.kt`,
+  `commands/CovenantGiveAll.kt` (registered in `data/console/commands.csv`). `ShaderLayers` lives
+  in LemonLib and is registered by LemonLib's own `commands.csv`.
 
 ### Weapons
 
@@ -98,13 +100,15 @@ subsystem shaders above. Reflection helper: `org.combustiblelemon.lemonlib.refle
 Gradle Kotlin DSL, Kotlin JVM 2.1.0, Java 8 target (`build.gradle.kts`):
 
 - **sourceSets:** `src` → Kotlin/Java classes; `data` + `graphics` → resources.
-- **compileOnly (NOT declared runtime deps):** Starsector core jars (`../../starsector-core/*`,
-  incl. `starfarer.api.jar`, obf jars, `json.jar`, `lwjgl`), LazyLib, MagicLib, LunaLib,
+- **compileOnly:** Starsector core jars (`../../starsector-core/*`, incl. `starfarer.api.jar`, obf
+  jars, `json.jar`, `lwjgl`), LemonLib (composite build — `settings.gradle.kts`
+  `includeBuild("../LemonLib")`, resolved to LemonLib's classes), LazyLib, MagicLib, LunaLib,
   Console Commands, log4j 1.2.17.
 - **Tasks:** `buildMod` (compile → `jars/CovenantRemnants.jar`), `cleanMod`,
   `packageMod` (assemble `build/mod_package/` → `Covenant Remnants.zip`).
 
-> **Dependency gap to know:** `mod_info.json` declares only MagicLib + LazyLib, but the code is
-> built against LunaLib and Console Commands too (and GraphicsLib is wired as an IDE-only classpath
-> convenience via `.idea/libraries/Graphics.xml`, not a real dependency). Whether LunaLib / Console
-> Commands should be required or optional runtime deps is an open item — see [PLAN.md](PLAN.md).
+> **Runtime dependencies:** `mod_info.json` declares LemonLib, MagicLib, LazyLib (required).
+> LunaLib and Console Commands are **optional** (developer ruling 2026-10-01): compile-only, not
+> declared, and the mod must run without them. Console Commands code is isolated in `commands/`.
+> LunaLib is currently unused (old debug `LunaSettings.csv` removed 2026-10-01); mod settings via
+> LunaLib are planned — see [PLAN.md](PLAN.md).

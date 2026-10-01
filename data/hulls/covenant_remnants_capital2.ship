@@ -1,35 +1,188 @@
 {
-  "builtInMods": ["covenant_remnants_covenantsystems", "covenant_remnants_nanolaminate_armor", "covenant_remnants_slipspace_drive", "covenant_remnants_covenantshieldhullmod"],
-  "hullName": "ORS-class Heavy Cruiser",
-  "hullId": "covenant_remnants_capital2",
-  "hullSize": "CAPITAL_SHIP",
-  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_capital2.png",
-  "style": "COVENANT",
-  "height": 457,
-  "width": 182,
-  "center": [91, 228.5],
-  "collisionRadius": 228.5,
-  "shieldCenter": [0, 0],
-  "shieldRadius": 228.5,
-  "viewOffset": 0,
-  "weaponSlots": [
-    { "id": "WS0001", "size": "LARGE", "type": "ENERGY", "mount": "HARDPOINT", "arc": 6, "angle": 0, "locations": [120, 0] },
-    { "id": "WS0002", "size": "LARGE", "type": "ENERGY", "mount": "TURRET", "arc": 180, "angle": 55, "locations": [40, 45] },
-    { "id": "WS0003", "size": "LARGE", "type": "ENERGY", "mount": "TURRET", "arc": 180, "angle": -55, "locations": [40, -45] },
-    { "id": "WS0004", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 200, "angle": 75, "locations": [0, 62] },
-    { "id": "WS0005", "size": "MEDIUM", "type": "ENERGY", "mount": "TURRET", "arc": 200, "angle": -75, "locations": [0, -62] },
-    { "id": "WS0006", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": 120, "locations": [-60, 40] },
-    { "id": "WS0007", "size": "SMALL", "type": "ENERGY", "mount": "TURRET", "arc": 270, "angle": -120, "locations": [-60, -40] }
-  ],
-  "engineSlots": [
-    { "location": [-205, 22], "length": 46, "width": 12, "angle": 180, "contrailSize": 12, "style": "HIGH_TECH" },
-    { "location": [-210, 0], "length": 52, "width": 15, "angle": 180, "contrailSize": 14, "style": "HIGH_TECH" },
-    { "location": [-205, -22], "length": 46, "width": 12, "angle": 180, "contrailSize": 12, "style": "HIGH_TECH" }
-  ],
-  "bounds": [
-    -20.5, -67.0, -37.5, -72.0, -64.5, -90.0, -88.5, -85.0, -110.5, -71.0, -200.5, -40.0,
-    -226.5, 0.0, -200.5, 41.0, -110.5, 72.0, -88.5, 86.0, -64.5, 91.0, -37.5, 73.0,
-    -20.5, 69.0, 3.5, 52.0, 34.5, 45.0, 53.5, 36.0, 184.5, 47.0, 228.5, 1.0,
-    184.5, -46.0, 53.5, -35.0, 34.5, -44.0, 3.5, -51.0
-  ]
+    "hullName":"ORS-class Heavy Cruiser",
+    "hullId":"covenant_remnants_capital2",
+    "hullSize":"CAPITAL_SHIP",
+    "style":"COVENANT",
+    "spriteName":"graphics/covenant_remnants/ships/covenant_remnants_capital2.png",
+    "height":457,
+    "width":182,
+    "center":[
+        91, 228.5
+    ],
+    "collisionRadius":228.5,
+    "coversColor":"",
+    "shieldCenter":[
+        0, 0
+    ],
+    "shieldRadius":228.5,
+    "viewOffset":0,
+    "builtInMods":[
+        "covenant_remnants_covenantsystems",
+        "covenant_remnants_nanolaminate_armor",
+        "covenant_remnants_slipspace_drive",
+        "covenant_remnants_covenantshieldhullmod"
+    ],
+    "builtInWings":[],
+    "builtInModules":null,
+    "weaponSlots":[
+        {
+            "id":"WS0001",
+            "size":"LARGE",
+            "type":"ENERGY",
+            "mount":"HARDPOINT",
+            "arc":6,
+            "angle":0,
+            "locations":[
+                     120,        0
+            ]
+        },
+        {
+            "id":"WS0002",
+            "size":"LARGE",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":180,
+            "angle":55,
+            "locations":[
+                      40,       45
+            ]
+        },
+        {
+            "id":"WS0003",
+            "size":"LARGE",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":180,
+            "angle":-55,
+            "locations":[
+                      40,      -45
+            ]
+        },
+        {
+            "id":"WS0004",
+            "size":"MEDIUM",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":200,
+            "angle":75,
+            "locations":[
+                       0,       62
+            ]
+        },
+        {
+            "id":"WS0005",
+            "size":"MEDIUM",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":200,
+            "angle":-75,
+            "locations":[
+                       0,      -62
+            ]
+        },
+        {
+            "id":"WS0006",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":270,
+            "angle":120,
+            "locations":[
+                     -60,       40
+            ]
+        },
+        {
+            "id":"WS0007",
+            "size":"SMALL",
+            "type":"ENERGY",
+            "mount":"TURRET",
+            "arc":270,
+            "angle":-120,
+            "locations":[
+                     -60,      -40
+            ]
+        }
+    ],
+    "engineSlots":[
+        {
+            "location":[
+                -205, 22
+            ],
+            "length":46,
+            "width":12,
+            "angle":180,
+            "contrailSize":12,
+            "style":"HIGH_TECH"
+        },
+        {
+            "location":[
+                -210, 0
+            ],
+            "length":52,
+            "width":15,
+            "angle":180,
+            "contrailSize":14,
+            "style":"HIGH_TECH"
+        },
+        {
+            "location":[
+                -205, -22
+            ],
+            "length":46,
+            "width":12,
+            "angle":180,
+            "contrailSize":12,
+            "style":"HIGH_TECH"
+        }
+    ],
+    "bounds":[
+             -17,    -65.5,
+           -31.5,    -72.5,
+             -46,      -72,
+           -51.5,    -91.5,
+           -64.5,      -90,
+        
+           -88.5,      -85,
+          -110.5,      -71,
+          -123.5,      -57,
+          -129.5,      -64,
+            -189,    -40.5,
+        
+          -200.5,      -40,
+            -225,      -16,
+            -225,       16,
+          -200.5,       41,
+            -189,     40.5,
+        
+          -129.5,       64,
+          -123.5,       57,
+          -110.5,       72,
+           -88.5,       86,
+           -64.5,       91,
+        
+           -51.5,     91.5,
+             -46,       72,
+           -31.5,     72.5,
+             -17,     65.5,
+             3.5,       50,
+        
+            34.5,       45,
+            51.5,       34,
+            59.5,       26,
+             136,       39,
+           189.5,       37,
+        
+             213,     21.5,
+           226.5,      8.5,
+           226.5,     -8.5,
+             213,    -21.5,
+           189.5,      -37,
+        
+             136,      -39,
+            59.5,      -26,
+            51.5,      -34,
+            34.5,      -44,
+             3.5,      -50
+    # 40 points total.
+    ]
 }

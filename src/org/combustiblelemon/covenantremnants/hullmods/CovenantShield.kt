@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.hullmods
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
 import org.combustiblelemon.covenantremnants.utils.generateDefaultShieldData
 import org.combustiblelemon.covenantremnants.utils.shieldData
 import org.combustiblelemon.lemonlib.hullmods.HullmodBlocker
@@ -96,7 +97,9 @@ class CovenantShield : BaseHullMod() {
             0 -> "${data.shieldHealth.toInt()}"
             1 -> "${data.shieldRegenRate.toInt()}"
             2 -> "${data.shieldRegenDelay.formatSeconds()}"
-            3 -> "${data.brokenShieldCooldown.formatSeconds()}"
+            3 -> "${(CovenantShieldsStats.REGEN_SLOW_MULT * 100).toInt()}%"
+            4 -> CovenantShieldsStats.REGEN_SLOW_DURATION.formatSeconds()
+            5 -> "${data.brokenShieldCooldown.formatSeconds()}"
             else -> null
         }
     }

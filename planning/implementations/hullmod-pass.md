@@ -37,8 +37,10 @@ the hulls, and added two new hullmods. All choices confirmed with the developer 
    - `systemCooldownBonus.modifyMult(id, 0.7f)` — −30% slipspace drive cooldown (engine-applied).
    - Loosens the drive's flux ceiling: `systems/SlipspaceDrive.kt` `isUsable` now reads
      `SlipspaceTuning.FLUX_GATE` (0.85) instead of the hardcoded 0.7 when the hullmod is installed.
-   - Restricted to hulls whose `hullSpec.shipSystemId == covenant_remnants_slipspacedrive`
-     (frigate1, frigate3, destroyer2, supercap1) via `isApplicableToShip` / `getUnapplicableReason`.
+   - ~~Restricted to hulls whose `hullSpec.shipSystemId == covenant_remnants_slipspacedrive`
+     (frigate1, frigate3, destroyer2, supercap1).~~ **Superseded 2026-10-01:** installable on any ship
+     with the Slipspace Drive hullmod; combat bonuses apply only on drive-system ships. See
+     [in-game-test-pass-2026-10-01.md](in-game-test-pass-2026-10-01.md).
 
 6. **Plasma Capacitors** (`covenant_remnants_plasma_capacitors`) — `hullmods/PlasmaCapacitors.kt`.
    Optional, any ship, OP 5/10/15/25.
@@ -64,5 +66,6 @@ the hulls, and added two new hullmods. All choices confirmed with the developer 
 - Covenant hull refit: Systems + Nanolaminate show built-in (0 OP); CR/repair reflect baseline penalty.
 - Install Huragok Crew: CR/repair return to ~baseline.
 - Optional mods cost OP per the table.
-- Slipspace Tuning: only on frigate1/frigate3/destroyer2/supercap1; faster cooldown, jumps at higher flux.
+- Slipspace Tuning: any ship with the Slipspace Drive hullmod; on drive-system ships faster
+  cooldown + jumps at higher flux (changed 2026-10-01, see the test-pass doc).
 - Plasma Capacitors: any ship; more flux capacity + venting, longer overloads.
