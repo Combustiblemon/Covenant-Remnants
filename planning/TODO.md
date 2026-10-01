@@ -25,13 +25,35 @@ Keep this file current — tick items off and add new ones as work lands.
 
 ## Code stubs to finish
 
-- [ ] **Fortress-shield wiring (capital1)** — `fortressshield` is assigned but inert vs the custom
-      shield. Wire `CovenantShieldsStats` to detect `ship.system.id == "fortressshield" && isActive`
-      and, while active, drop `shieldDamageMult` (~0.3→0.05) + halt shield decay. TODO comment left
-      in `src/.../systems/CovenantShieldsStats.kt`.
+- [x] **Fortress-shield wiring (capital1)** — vanilla `fortressshield` now hardens the Covenant
+      shield. The shield honours `shieldDamageTakenMult` (×0.1 at full). Regen is frozen while it's
+      active and comes back at full rate after. It only works with the shield up, a custom
+      incoming-damage AI drives it, and a magenta tint + new `fortress` shader layer show it. Also
+      fixed 3 shield-damage bugs (sticky converter flag, beams ~10× too strong vs shield, breaking hit
+      passing 100%). See [implementations/fortress-shield.md](implementations/fortress-shield.md).
+- [x] **Fortress Shield in-game test** — developer: working in-game (2026-10-01). See
+      [implementations/fortress-shield.md](implementations/fortress-shield.md).
+- [x] **Fortress visual follow-up re-check** — breathing stop, hex overlap and white lattice all
+      verified in-game (developer 2026-10-01). Fortress Shield signed off.
+- [ ] **Fortress Shield tuning** — AI thresholds, tint and layer constants are placeholders
+      (`systems/FortressShield.kt`, `utils/render/shield/FortressLayer.kt`). The vanilla flux drain is
+      free on this hull (no time limit); revisit if Fortress proves too strong.
+- [x] **Per-type shield-damage stats** — decided: not honoured. The Covenant shield takes the same
+      damage from all sources: no damage-type multipliers, no per-type `*ShieldDamageTakenMult`.
+      Only the general `shieldDamageTakenMult` applies (developer ruling 2026-10-01, "for now").
+- [ ] **UI cue for frozen regen under Fortress** — optional; nothing tells the player that regen
+      is frozen.
 - [ ] **Mass slipspace jump (supercap1)** — currently the placeholder `slipspacedrive`; build the
       radius mass-jump (grab ships/fighters/projectiles/missiles in a radius, jump them together).
-      Full spec is in the plan-file git history; model on `SlipspaceDrive.kt` + `SlipspaceDriveRenderPlugin`.
+      No fuller spec exists: the old "full spec in the plan-file git history" pointer was wrong
+      (searched all branches, reflog, dangling objects and plan files, 2026-10-01). Design it with the
+      developer; model on `SlipspaceDrive.kt` + `SlipspaceDriveRenderPlugin`.
+- [ ] **Slipspace Drive AI** — the drive's `.system` has `aiType: NONE`, so AI-piloted frigate1,
+      frigate3, destroyer2 and supercap1 never jump. Decide whether they should.
+- [ ] **Slipspace Drive portal after the first battle (unverified)** — `SlipspaceDrive` creates its
+      render plugin once per script instance, with no per-combat reset (`CovenantShieldsStats` has
+      one). If system script instances outlive a battle, the portal stops rendering after the first
+      battle. Check in-game; fix as a bug if so.
 - [x] **Verify shield stats-script sharing** — verified 2026-10-01: with 2+ Covenant ships only the
       hit ship's shield drops; state is per-ship, no refactor needed.
 

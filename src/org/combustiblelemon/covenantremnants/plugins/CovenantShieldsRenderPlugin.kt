@@ -3,6 +3,7 @@
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
+import org.combustiblelemon.covenantremnants.systems.FortressShield
 import org.combustiblelemon.lemonlib.geometry.getRandomPointsInPolygon
 import org.combustiblelemon.lemonlib.ship.getShipPolygonInWorld
 import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
@@ -10,12 +11,19 @@ import org.combustiblelemon.lemonlib.geometry.SmoothingMethod
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
+import kotlin.math.roundToInt
 
 class CovenantShieldsRenderPlugin(
     private val attachedTo: ShipAPI,
     private val stats: CovenantShieldsStats
 ) :
     CombatLayeredRenderingPlugin {
+
+    private companion object {
+        // r, g, b on 0-255; a on 0-100 (ShieldShader.updateColor/updateBorder scale).
+        val BASE_FILL = intArrayOf(133, 237, 255, 30)
+        val BASE_BORDER = intArrayOf(255, 255, 255, 80)
+    }
 
     private val shader =
         ShieldShader(attachedTo, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
@@ -97,6 +105,9 @@ class CovenantShieldsRenderPlugin(
         lastEMPTriggerTime = engine.getTotalElapsedTime(false)
     }
 
+    private fun lerpColor(from: IntArray, to: IntArray, t: Float): IntArray =
+        IntArray(4) { i -> (from[i] + (to[i] - from[i]) * t).roundToInt() }
+
     private fun getShipVertexData(): List<Vector2f> {
         // Create vertex data for the shield shape
         val vertexData = mutableListOf<Vector2f>()
@@ -114,8 +125,14 @@ class CovenantShieldsRenderPlugin(
         shader.setDebugMode(false)
         shader.setHoneycombEnabled(true)
         shader.updatePolygon(vertexData, viewport, Vector2f(1.05f, 1.1f))
-        shader.updateColor(133, 237, 255, 30)
-        shader.updateBorder(255, 255, 255, 80, 5f, 5f)
+        // Fortress Shield: tint toward the vanilla Fortress look and drive the fortress overlay layer.
+        val fortressLevel = FortressShield.effectLevel(attachedTo)
+        val fill = lerpColor(BASE_FILL, FortressShield.TINT_FILL, fortressLevel)
+        val border = lerpColor(BASE_BORDER, FortressShield.TINT_BORDER, fortressLevel)
+
+        shader.updateColor(fill[0], fill[1], fill[2], fill[3])
+        shader.updateBorder(border[0], border[1], border[2], border[3], 5f, 5f)
+        shader.setFortressLevel(fortressLevel)
         shader.updateShieldHPPercent(stats.shieldHealth / stats.maxShieldHealth)
         shader.render(viewport)
     }

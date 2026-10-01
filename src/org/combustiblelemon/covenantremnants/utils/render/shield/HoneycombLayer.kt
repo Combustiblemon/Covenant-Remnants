@@ -10,6 +10,11 @@ import org.lwjgl.opengl.GL20.glUniform1i
  * Animated honeycomb hex grid over the shield surface.
  */
 class HoneycombLayer : ShaderLayer {
+    companion object {
+        /** Hex grid size, world units. Shared with [FortressLayer] so its lattice overlaps these hexes. */
+        const val HEX_SIZE = 10.0f
+    }
+
     override val layerName = "honeycomb"
     override val moduleFile = "data/shaders/shield/honeycomb.glsl"
     override val stubSource = """
@@ -17,8 +22,11 @@ class HoneycombLayer : ShaderLayer {
     """.trimIndent()
 
     private var enabled = true
-    private val honeycombSize = 10.0f
+    private val honeycombSize = HEX_SIZE
     private val edgeWidth = 3.0f
+
+    /** Breathing animation amount: 1 = full, 0 = held at full brightness. */
+    var breathing: Float = 1f
 
     fun setEnabled(value: Boolean) {
         enabled = value
@@ -28,5 +36,6 @@ class HoneycombLayer : ShaderLayer {
         glUniform1f(glGetUniformLocation(program, "honeycombSize"), honeycombSize)
         glUniform1f(glGetUniformLocation(program, "edgeWidth"), edgeWidth)
         glUniform1i(glGetUniformLocation(program, "honeycombEnabled"), if (enabled) 1 else 0)
+        glUniform1f(glGetUniformLocation(program, "honeycombBreathing"), breathing)
     }
 }

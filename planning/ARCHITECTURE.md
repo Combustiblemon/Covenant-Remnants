@@ -25,7 +25,7 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
   version `0.1.0`, gameVersion `0.98a`.
 - `modPlugin`: `org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin`.
 - jars: `jars/CovenantRemnants.jar`.
-- **Declared dependencies:** `MagicLib`, `lw_lazylib` (LazyLib).
+- **Declared dependencies:** `combustiblelemon_lemonlib` (LemonLib), `MagicLib`, `lw_lazylib` (LazyLib).
 
 ## Entry point — `CovenantRemnantsPlugin`
 
@@ -42,15 +42,28 @@ Each subsystem spans Kotlin (`src/`), data (`data/`), and — where it renders �
 
 ### Custom energy shields
 
-Covenant ships use `shield type NONE` and get defense from a custom shield instead:
+Covenant combat hulls use `shield type PHASE` with `defense id = covenant_remnants_covenantshield`.
+So the custom shield is a ship system in the phase-cloak slot (`ship.phaseCloak`), and `ship.system`
+stays free for the hull's own ship system. Defense comes from this custom shield instead of a
+vanilla one:
 
 - Hullmod: `hullmods/CovenantShield.kt`; stats via `systems/CovenantShieldsStats.kt`; per-ship data
-  from `shield_data.csv` (loaded at app start).
+  from `shield_data.csv` (loaded at app start). Shield damage honours the vanilla
+  `shieldDamageTakenMult` stat, so shield-damage modifiers (skills, CR, systems) apply. Every
+  source damages the shield equally: no damage-type multipliers, no per-type shield stats
+  (developer ruling 2026-10-01).
 - AI: `ai/CovenantShieldsAI.kt`.
+- Fortress Shield (vanilla `fortressshield` on capital1): its damage reduction arrives through
+  `shieldDamageTakenMult`. `systems/FortressShield.kt` holds the system id, helpers and tuning
+  constants. `CovenantShieldsStats` gates it on the shield being up and freezes regen while it's
+  active. `ai/FortressShieldAI.kt` (run from `CovenantShieldsAI`) toggles it from an
+  incoming-damage estimate. The `fortress` shield layer and a colour tint show it. See
+  [implementations/fortress-shield.md](implementations/fortress-shield.md).
 - Render: `plugins/CovenantShieldsRenderPlugin.kt`, `plugins/CovenantShieldsUIRenderPlugin.kt`,
   `plugins/CovenantShieldsUIRenderer.kt`, using `utils/render/ShieldShader.kt` — composed from
   per-layer `ShaderLayer` classes in `utils/render/shield/` and GLSL modules in
-  `data/shaders/shield/`, on **LemonLib**'s composition engine
+  `data/shaders/shield/` (fill, border, sweep, ripple, honeycomb, fortress, debug), on **LemonLib**'s
+  composition engine
   (`org.combustiblelemon.lemonlib.render.composition`; usage docs in
   `LemonLib/docs/shader-composition/`). See
   [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)

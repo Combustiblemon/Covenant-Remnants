@@ -45,11 +45,12 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     // Any shield hit pauses regen for the hull's shield regen delay (shield_data.csv), then regen
     // runs at REGEN_SLOW_MULT for REGEN_SLOW_DURATION seconds before returning to full rate.
     private var lastShieldDamageTime: Float = Float.NEGATIVE_INFINITY
-    // TODO(fortress): the Reverence-class battleship (covenant_remnants_capital1) carries the
-    //  vanilla "fortressshield" ship system as a trigger. When that system is active on the ship,
-    //  drop shieldDamageMult toward ~0.05 and halt shield decay / boost regen so the custom shield
-    //  becomes near-impenetrable. Check ship?.system?.id == "fortressshield" && it.isActive in the
-    //  per-frame ShipListener.advance()/apply() and modulate these fields off its effectLevel.
+
+    // Fortress Shield (see FortressShield): its damage reduction reaches the shield through
+    // stats.shieldDamageTakenMult (honoured in ShieldDamageListener); ShipListener freezes regen
+    // while it is active and gates it on the shield being up.
+    private var wasFortressActive = false
+
     var shieldDamageMult: Float = 0.3f
     var breakCooldownTime = 9f
 
@@ -117,10 +118,29 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     }
 
-    private class ShipListener(ship: ShipAPI, private val parent: CovenantShieldsStats) : AdvanceableListener {
+    private class ShipListener(private val ship: ShipAPI, private val parent: CovenantShieldsStats) :
+        AdvanceableListener {
 
         override fun advance(amount: Float) {
             val elapsedTime = Global.getCombatEngine().getTotalElapsedTime(false)
+
+            // Fortress Shield is only usable while the Covenant shield is up; dropping or breaking
+            // the shield forces it off.
+            val fortress = FortressShield.system(ship)
+            if (fortress != null && (ship.phaseCloak?.isOn != true || parent.breakCooldownActive)) {
+                ship.blockCommandForOneFrame(ShipCommand.USE_SYSTEM)
+                if (fortress.isOn) {
+                    fortress.deactivate()
+                }
+            }
+
+            // No regen while Fortress is active (incl. charge-up/down); once it is fully off, regen
+            // resumes at full rate, skipping the post-hit pause and the slow stage.
+            val fortressActive = FortressShield.effectLevel(ship) > 0f
+            if (parent.wasFortressActive && !fortressActive) {
+                parent.lastShieldDamageTime = Float.NEGATIVE_INFINITY
+            }
+            parent.wasFortressActive = fortressActive
 
             if (parent.breakCooldownActive) {
                 val remainingTime = parent.breakCooldownStartTime + parent.breakCooldownTime - elapsedTime
@@ -140,7 +160,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                             min(remainingTime / parent.breakCooldownTime, parent.breakCooldownTime)
                         )
                 }
-            } else {
+            } else if (!fortressActive) {
                 if ((parent.shieldHealth < parent.maxShieldHealth)) {
                     parent.shieldHealth += parent.shieldRegen * parent.regenMult() * amount
                 }
@@ -173,6 +193,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 damageConverter = null
                 shipListenerInstance = null
                 lastShieldDamageTime = Float.NEGATIVE_INFINITY
+                wasFortressActive = false
                 breakCooldownActive = false
                 shieldInit = false
             }
@@ -234,9 +255,10 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 return
             }
 
+            // Consume the shield hit recorded by ShieldDamageListener for this damage instance, so
+            // later non-shield hits are not reported as shield damage.
             if (parent.lastDamageIsShield) {
                 result?.damageToShields = parent.lastDamageToShield * 0.3f
-                return
             }
 
             parent.lastDamageIsShield = false
@@ -305,7 +327,17 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     return modifierKey
                 }
 
-                val damageNumber = (damage?.damage ?: 0f) * (parent.shieldDamageMult)
+                // Beam damage is DPS, applied in ticks of dpsDuration seconds.
+                val rawDamage = when {
+                    damage == null -> 0f
+                    damage.isDps -> damage.damage * damage.dpsDuration
+                    else -> damage.damage
+                }
+                // Every source damages the shield equally: no damage-type multipliers, no per-type
+                // shield stats. Only the general shieldDamageTakenMult applies (Fortress Shield,
+                // skills, CR malus, ...).
+                val damageNumber = rawDamage * parent.shieldDamageMult *
+                        attachedTo.mutableStats.shieldDamageTakenMult.modifiedValue
 
                 var level = (damageNumber - 30f) / (300f - 30f)
                 level = max(0f, min(1f, level))
@@ -336,16 +368,18 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 parent.lastDamageIsShield = true
 
                 if (parent.shieldHealth < damageNumber) {
-                    parent.dealShieldDamage(parent.shieldHealth, engine.getTotalElapsedTime(false))
+                    // Capture before dealing damage: the breaking hit zeroes shieldHealth.
+                    val absorbed = parent.shieldHealth
+                    parent.dealShieldDamage(absorbed, engine.getTotalElapsedTime(false))
 
                     damage?.modifier?.modifyMult(
                         "covenant_remnants_covenant_shields",
-                        1f - parent.shieldHealth / damageNumber
+                        1f - absorbed / damageNumber
                     )
 
                     engine.addFloatingDamageText(
                         point,
-                        parent.shieldHealth,
+                        absorbed,
                         MagicUI.BLUCOLOR,
                         attachedTo,
                         source

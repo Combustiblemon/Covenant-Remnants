@@ -9,6 +9,7 @@ import org.combustiblelemon.lemonlib.render.composition.ShaderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.BorderLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.DebugLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.FillLayer
+import org.combustiblelemon.covenantremnants.utils.render.shield.FortressLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.HoneycombLayer
 import org.combustiblelemon.lemonlib.geometry.PolygonSmoothing
 import org.combustiblelemon.covenantremnants.utils.render.shield.RippleLayer
@@ -29,6 +30,8 @@ import org.lwjgl.util.vector.Vector2f
  * (see LemonLib/docs/shader-composition/). Each visual layer (fill, border, sweep,
  * ripples, honeycomb, debug) is a [ShaderLayer] owning its GLSL module +
  * uniforms; [ComposedShaderProgram] assembles them into a single program.
+ *
+ * Layer order: fill, border, sweep, ripples, honeycomb, fortress (Fortress Shield overlay), debug.
  *
  * This class owns the cross-cutting pieces: polygon points + smoothing, sweep
  * position calculation, bounding-box quad, GL state handling, and the shared
@@ -75,10 +78,11 @@ class ShieldShader(
     private val sweepLayer = SweepLayer()
     private val rippleLayer = RippleLayer()
     private val honeycombLayer = HoneycombLayer()
+    private val fortressLayer = FortressLayer()
     private val debugLayer = DebugLayer()
 
     private val layers: List<ShaderLayer> =
-        listOf(fillLayer, borderLayer, sweepLayer, rippleLayer, honeycombLayer, debugLayer)
+        listOf(fillLayer, borderLayer, sweepLayer, rippleLayer, honeycombLayer, fortressLayer, debugLayer)
 
     private val program = ComposedShaderProgram(
         systemName = "shield",
@@ -391,6 +395,15 @@ class ShieldShader(
 
     fun setHoneycombEnabled(enabled: Boolean) {
         honeycombLayer.setEnabled(enabled)
+    }
+
+    /**
+     * Fortress Shield effect level, 0 (off) to 1: drives the fortress overlay and fades out the
+     * honeycomb's breathing animation.
+     */
+    fun setFortressLevel(level: Float) {
+        fortressLayer.level = level
+        honeycombLayer.breathing = 1f - level
     }
 
     fun updateTime(amount: Float) {
