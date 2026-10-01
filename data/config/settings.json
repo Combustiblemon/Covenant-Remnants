@@ -2,5 +2,29 @@
   "designTypeColors": {
     "Covenant": [89, 55, 122, 255]
   },
-  "graphics": {}
+  "graphics": {
+    "covenant_remnants": {
+      "rupture_plasma_clouds01": "graphics/fx/slipspace_rupture/plasma_clouds01.png",
+      "rupture_plasma_clouds02": "graphics/fx/slipspace_rupture/plasma_clouds02.png",
+      "rupture_sphere_web_palette": "graphics/fx/slipspace_rupture/sphere_web_palette.png",
+      "rupture_slipspace_sphere_alpha": "graphics/fx/slipspace_rupture/slipspace_sphere_alpha.png",
+      "rupture_plasma_clouds_512_a": "graphics/fx/slipspace_rupture/plasma_clouds_512_a.png",
+      "rupture_plasma_clouds_512_b": "graphics/fx/slipspace_rupture/plasma_clouds_512_b.png",
+      "rupture_plasma_clouds_256_a": "graphics/fx/slipspace_rupture/plasma_clouds_256_a.png",
+      "rupture_fire_clouds_256": "graphics/fx/slipspace_rupture/fire_clouds_256.png",
+      "rupture_slipspace_init_gradient": "graphics/fx/slipspace_rupture/slipspace_init_gradient.png",
+      "rupture_slipspace_plasma_gradient": "graphics/fx/slipspace_rupture/slipspace_plasma_gradient.png",
+      "rupture_slipspace_burst_sphere_gradient": "graphics/fx/slipspace_rupture/slipspace_burst_sphere_gradient.png",
+      "rupture_soft_plasma_blue": "graphics/fx/slipspace_rupture/soft_plasma_blue.png",
+      "rupture_thin_smoke_large": "graphics/fx/slipspace_rupture/thin_smoke_large.png",
+      "rupture_smoke_fiery_large": "graphics/fx/slipspace_rupture/smoke_fiery_large.png",
+      "rupture_fire_large_vertical": "graphics/fx/slipspace_rupture/fire_large_vertical.png",
+      "rupture_beam": "graphics/fx/slipspace_rupture/beam.png",
+      "rupture_spark_ember": "graphics/fx/slipspace_rupture/spark_ember.png",
+      "rupture_glitter": "graphics/fx/slipspace_rupture/glitter.png",
+      "rupture_star_flare": "graphics/fx/slipspace_rupture/star_flare.png",
+      "rupture_light_volume_glow": "graphics/fx/slipspace_rupture/light_volume_glow.png",
+      "rupture_distortion_ring": "graphics/fx/slipspace_rupture/distortion_ring.png"
+    }
+  }
 }

@@ -1,0 +1,12 @@
+{
+  "id": "covenant_remnants_fleet_slipspace_jump",
+  "type": "STAT_MOD",
+  "aiType": "CUSTOM",
+  "aiScript": "org.combustiblelemon.covenantremnants.ai.FleetSlipspaceJumpAI",
+  "statsScript": "org.combustiblelemon.covenantremnants.systems.FleetSlipspaceJumpStats",
+  "runScriptWhileIdle": true,
+
+  "outOfUsesSound": "gun_out_of_ammo",
+
+  "aiHints": {}
+}

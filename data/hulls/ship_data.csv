@@ -22,7 +22,7 @@ ORS-class Heavy Cruiser,covenant_remnants_capital2,Heavy Cruiser,Covenant Remnan
 CPV-class Heavy Destroyer,covenant_remnants_capital3,Heavy Destroyer,Covenant Remnants,microburn,24,12000,1000,14400,20000,1000,280,,80,70,50,12,16,3000,PHASE,covenant_remnants_covenantshield,,,,,,150,300,300,300,10,30,9,350000,3,15,600,0.25,40,40,,rare_bp,0.5,2,4,,0
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 #Super Capitals,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-CAS-class Assault Carrier,covenant_remnants_supercap1,Assault Carrier,Covenant Remnants,covenant_remnants_slipspacedrive,45,65000,8500,40000,30000,800,460,3,30,15,12,4,4,12000,PHASE,covenant_remnants_covenantshield,,,,,,4500,6500,2000,600,20,40,6,900000,3,12,1200,0.25,60,60,NEVER_DODGE_MISSILES,rare_bp,0.3,2,2,,0
+CAS-class Assault Carrier,covenant_remnants_supercap1,Assault Carrier,Covenant Remnants,covenant_remnants_fleet_slipspace_jump,45,65000,8500,40000,30000,800,460,3,30,15,12,4,4,12000,PHASE,covenant_remnants_covenantshield,,,,,,4500,6500,2000,600,20,40,6,900000,3,12,1200,0.25,60,60,NEVER_DODGE_MISSILES,rare_bp,0.3,2,2,,0
 CVS-class Supercarrier,covenant_remnants_supercap2,Supercarrier,Covenant Remnants,recalldevice,42,42000,7000,36000,28000,700,520,9,30,15,12,4,4,11000,PHASE,covenant_remnants_covenantshield,,,,,,4000,6000,1500,550,20,40,6,800000,3,12,1200,0.25,60,60,NEVER_DODGE_MISSILES,rare_bp,0.3,2,2,,0
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 #Wings,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

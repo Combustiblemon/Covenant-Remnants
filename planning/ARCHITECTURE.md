@@ -10,11 +10,12 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
 | `mod_info.json` | Mod manifest — id, version, `modPlugin`, dependencies, jar list. |
 | `data/` | Game content: `hulls/`, `weapons/` (+ `proj/`), `variants/`, `shipsystems/`, `hullmods/`, `campaign/`, `shaders/`, `config/`, `console/`. |
 | `graphics/` | Sprites/art: `covenant_remnants/`, `ships/`, `weapons/`, `missiles/`, `fx/`, `hullmods/`, `icons/`, `portraits/`, `misc/`. |
+| `sounds/` | Sound files (ids in `data/config/sounds.json`): `fleet_slipspace_jump/` (Halo: Reach-derived). |
 | `src/org/combustiblelemon/covenantremnants/` | Kotlin source (see below). |
 | `jars/CovenantRemnants.jar` | The single compiled mod jar (built by Gradle). |
 | `build.gradle.kts`, `settings.gradle.kts`, `gradle.properties`, `gradlew*`, `gradle/` | Gradle build. |
 | `package_mod.bat` / `.sh` | Packaging helpers. |
-| `assets/`, `fx stuff/`, `temp/`, `temp_data/`, `readme_files/` | Scratch / reference (not shipped). |
+| `assets/`, `fx stuff/`, `temp/`, `temp_data/`, `readme_files/` | Scratch / reference (not shipped). `assets/reference/<topic>/` holds VFX reference frames. |
 | `build/`, `bin/`, `out/`, `.idea/`, `.vscode/`, `.run/` | Build output & IDE config (not authored). |
 
 ## Manifest
@@ -74,12 +75,39 @@ vanilla one:
 - Ability: `campaign/abilities/SlipspaceJump.kt` — declared in `data/campaign/abilities.csv` as
   `covenant_remnants_slipspace_jump` (a Transverse-Jump analog); helper `utils/abilities/Slipspace.kt`.
 - World: `campaign/systems/SlipspaceSystem.kt` (+ `scripts/SlipspaceSystemEFS.kt`),
-  entity `campaign/entities/SlipspacePortalEntity.kt`, drive `systems/SlipspaceDrive.kt`.
+  entity `campaign/entities/SlipspacePortalEntity.kt`, drive `systems/SlipspaceDrive.kt`
+  (single-ship combat jump, `covenant_remnants_slipspacedrive`, on frigate1/frigate3/destroyer2).
 - Render: `plugins/SlipspaceDriveRenderPlugin.kt`, `utils/render/SlipspacePortalEntityShader.kt`
   (`data/shaders/slipspacePortalEntityShader.frag`/`.vert`).
 - Console commands: `commands/RegenerateSlipspace.kt`, `commands/DebugHook.kt`,
-  `commands/CovenantGiveAll.kt` (registered in `data/console/commands.csv`). `ShaderLayers` lives
-  in LemonLib and is registered by LemonLib's own `commands.csv`.
+  `commands/CovenantGiveAll.kt`, `commands/FleetJumpTune.kt` (registered in
+  `data/console/commands.csv`). `ShaderLayers` lives in LemonLib and is registered by LemonLib's
+  own `commands.csv`.
+
+### Fleet Slipspace Jump (supercap1)
+
+The CAS-class Assault Carrier's unique system, `covenant_remnants_fleet_slipspace_jump`
+(`data/shipsystems/`, `STAT_MOD` + `CUSTOM` AI). Jumps everything inside a radius of the carrier —
+ships of any side, fighters, shots, hulks, asteroids — to the destination in one frame.
+
+- `systems/FleetSlipspaceJump.kt` — system id, every tunable (live via `FleetJumpTune`), per-combat
+  shared state (AI→script destination handoff, in-transit set, the one render plugin), shared
+  helpers (grabbable / shield-up / map / landing-spot checks).
+- `systems/FleetSlipspaceJumpStats.kt` — stats script: usability + info text, timing overrides,
+  starts a `systems/FleetSlipspaceJumpSession.kt` per activation. The session is an every-frame
+  plugin: holds the carrier, phases/fades the cargo during the fade, executes the jump (carrier
+  first, nudged landing spots, offsets preserved, rupture damage, flux), restores on abort.
+- AI: `ai/FleetSlipspaceJumpAI.kt` (pull the fight home → strand enemy heavies → regroup).
+- Player activation: `plugins/FleetSlipspaceJumpTargetingPlugin.kt` (one per combat;
+  `processInputPreCoreControls`, so it works paused): system key primes, left click confirms the
+  cursor point, right click cancels; blocks the engine's own `USE_SYSTEM` for the player's CAS.
+- Render: `plugins/FleetSlipspaceJumpRenderPlugin.kt` (one per combat; aiming circles while primed
+  and all live ruptures) → `utils/render/rupture/RuptureRenderer.kt`, a remake of the Halo: Reach
+  slipspace bomb: `RuptureSphereShader` (`data/shaders/rupture/ruptureSphere.*`, analytic spheres)
+  and `RuptureSpriteShader` (`ruptureSprite.*`, batched particles + heat haze over a screen copy);
+  `RuptureEffect.kt` is the per-rupture timeline, driven by Reach's curves (`ReachCurves.kt`,
+  generated) and textures (`graphics/fx/slipspace_rupture/`, ids in `data/config/settings.json`).
+- See [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
 
 ### Weapons
 
@@ -104,7 +132,8 @@ from the mod plugin (`onApplicationLoad` install, `onGameLoad` re-verify). See
 ### Shader framework
 
 `utils/render/Shader.kt` (base), `MinimalShader.kt` (simple example), `PolygonShader.kt`; plus the
-subsystem shaders above. Reflection helper: `org.combustiblelemon.lemonlib.reflection.ReflectionUtils`
+subsystem shaders above. Composed systems registered with LemonLib's `ShaderLayers` command:
+`shield` (ShieldShader). Reflection helper: `org.combustiblelemon.lemonlib.reflection.ReflectionUtils`
 (in LemonLib). Misc: `utils/Utils.kt`, `utils/Data.kt`, `utils/CubicCurve2D.kt`,
 `utils/extensions/CampaignFleetAPI.kt`.
 

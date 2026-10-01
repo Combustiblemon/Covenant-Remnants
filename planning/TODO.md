@@ -43,13 +43,34 @@ Keep this file current — tick items off and add new ones as work lands.
       Only the general `shieldDamageTakenMult` applies (developer ruling 2026-10-01, "for now").
 - [ ] **UI cue for frozen regen under Fortress** — optional; nothing tells the player that regen
       is frozen.
-- [ ] **Mass slipspace jump (supercap1)** — currently the placeholder `slipspacedrive`; build the
-      radius mass-jump (grab ships/fighters/projectiles/missiles in a radius, jump them together).
-      No fuller spec exists: the old "full spec in the plan-file git history" pointer was wrong
-      (searched all branches, reflog, dangling objects and plan files, 2026-10-01). Design it with the
-      developer; model on `SlipspaceDrive.kt` + `SlipspaceDriveRenderPlugin`.
+- [x] **Mass slipspace jump (supercap1)** — built as **Fleet Slipspace Jump**
+      (`covenant_remnants_fleet_slipspace_jump`), the CAS's unique system: grabs everything in a
+      1000 su radius (ships of any side, fighters, shots, hulks, asteroids) and jumps it together,
+      min range 2000, 60 s cooldown, 10% max-hull rupture damage to unshielded ships, pull-home /
+      strand / regroup AI, rupture remade from Halo: Reach data, `FleetJumpTune` live tuning. Designed with the
+      developer 2026-10-01. See
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [x] **Fleet Slipspace Jump visual-only mode — turn off** — the developer set `VISUAL_ONLY`'s
+      default to 0 on 2026-10-01 (full jump); the mode stays as a dev toggle.
+- [ ] **Fleet Slipspace Jump activation flow in-game** — new 2026-10-01: system key primes (aiming
+      circles at the cursor), left click confirms, right click cancels, works while paused
+      (`plugins/FleetSlipspaceJumpTargetingPlugin.kt`). Check item 1 of the checklist in
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [ ] **Fleet Slipspace Jump in-game test** — developer: run the checklist in
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md) (mechanics,
+      damage, abort paths, AI, visuals).
+- [ ] **Fleet Slipspace Jump tuning** — every number is a placeholder (radius, range, costs, AI
+      thresholds, visual timings/colours). Tune live with `FleetJumpTune`, then bake the values into
+      `systems/FleetSlipspaceJump.kt` / the layer classes.
+- [ ] **Fleet Slipspace Jump — exit check vs. stations** — the AI never anchors on friendly
+      stations and the strength model ignores them; decide whether a friendly station should count
+      as a pull-home cluster.
 - [ ] **Slipspace Drive AI** — the drive's `.system` has `aiType: NONE`, so AI-piloted frigate1,
-      frigate3, destroyer2 and supercap1 never jump. Decide whether they should.
+      frigate3 and destroyer2 never jump. Decide whether they should. (supercap1 no longer carries
+      the drive.)
+- [ ] **Slipspace Drive rupture damage** — the drive renderer's "apply damage to non-shielded ships
+      in radius" TODO is still open; the Fleet Jump's rupture damage
+      (`FleetSlipspaceJumpSession.applyRuptureDamage`) is a ready model if the drive should get it too.
 - [ ] **Slipspace Drive portal after the first battle (unverified)** — `SlipspaceDrive` creates its
       render plugin once per script instance, with no per-combat reset (`CovenantShieldsStats` has
       one). If system script instances outlive a battle, the portal stops rendering after the first
@@ -133,6 +154,21 @@ Keep this file current — tick items off and add new ones as work lands.
       `git init` the LemonLib repo when ready.
 - [ ] **Decide fate of remaining monolith shaders** — MinimalShader / PolygonShader /
       SlipspacePortalEntityShader: migrate to the composition system or discard, per shader.
+- [x] **Rupture remake from Reach game data** — developer decision 2026-10-01. The slipspace bomb
+      (m45 `045lf_jorge`) was dumped from the official Reach editing kit (ManagedBlam, curves
+      included) and rebuilt faithfully: `utils/render/rupture/` (`RuptureRenderer`, sphere + sprite
+      programs, `RuptureEffect` timeline, generated `ReachCurves`), `data/shaders/rupture/`
+      (`ruptureSphere`, `ruptureSprite`), 21 Reach bitmaps in `graphics/fx/slipspace_rupture/`.
+      Replaces the composed procedural rupture shader (passes 1–2, removed). Extracted data and
+      tools: `assets/reference/long-night-of-solace/reach-data/`. See
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [ ] **Rupture in-game look** — first in-game look at the Reach remake: texture row order (flame
+      direction), `EXPOSURE`, `SPRITE_SCALE` (charge core, twinkles), heat-haze strength, frame rate
+      during the burst (~2000 sprites). Tune with `FleetJumpTune`.
+- [ ] **Unregistered noise sprites** — `getSprite("covenant_remnants", "shield_noise")`
+      (PolygonShader) and `"portal_noise_long"` (SlipspaceDriveRenderPlugin) have no
+      `settings.json` entry and no texture file; noticed 2026-10-01 while registering the rupture
+      textures. Check whether they render (possible link to the drive-portal TODO).
 - [x] **ReflectionUtils → LemonLib** — moved whole file to
       `org.combustiblelemon.lemonlib.reflection.ReflectionUtils` (public), together with the
       generic hullmod-incompatibility system (`lemonlib.hullmods`: `HullmodBlocker`, wrapper,
@@ -153,6 +189,14 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **IntelliJ legacy files** — deleted `covenant-remnants.iml`, `.idea/libraries/*.xml`,
       `.idea/artifacts/Create__jar.xml` (pre-Gradle leftovers) 2026-10-01. Red-underline fix =
       Gradle → Reload All Gradle Projects.
+- [x] **`FleetJumpTune` console command** — lists / sets / resets every Fleet Slipspace Jump
+      tunable live (CHARGE/FADE/ARRIVAL from the next battle). See
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [ ] **LemonLib repo is dirty** (noticed 2026-10-01) — `README.md`, two shader-composition docs and
+      `jars/LemonLib.jar` modified; `docs/hullmod-incompatibility/`, `src/.../lemonlib/hullmods/`,
+      `src/.../lemonlib/reflection/` untracked. Only commit is `initial commit`, so the
+      hullmod-incompatibility + reflection source Covenant depends on is uncommitted. Developer to
+      commit.
 
 ## From PLAN.md (still open)
 

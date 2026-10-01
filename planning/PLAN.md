@@ -15,6 +15,12 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   [implementations/fortress-shield.md](implementations/fortress-shield.md).
 - **Slipspace travel** — jump ability, portal entity, generated slipspace system, drive + shader,
   regen/debug console commands.
+- **Fleet Slipspace Jump (supercap1)** — the CAS's unique radius mass-jump: grabs everything
+  around the carrier (ships of any side, fighters, shots, hulks, asteroids) and jumps it together,
+  with rupture damage to unshielded ships, a pull-home / strand / regroup AI, a rupture remade from
+  Halo: Reach's own Long Night of Solace slipspace bomb data, and live console tuning
+  (`FleetJumpTune`). See [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+  Awaiting in-game test and tuning.
 - **Plasma weapon family** — artillery, beam, cannon, lance, missile, repeater, barrage;
   energy projector effect; plasma projectiles.
 - **Ships** — 19 `.ship` hulls (16 combat + 3 wing) across frigate → super-capital. Combat hulls use `shield type PHASE` with the Covenant shield as

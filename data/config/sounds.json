@@ -1,0 +1,22 @@
+{
+	# Fleet Slipspace Jump (supercap1). Cut from Halo: Reach audio (official editing kit FMOD bank):
+	# m45 ending foley (m45_jorge_foley_fr0), Seraph slipspace jumps, the m45 Covenant power hum and
+	# the concussion rifle power-up. See planning/implementations/fleet-slipspace-jump.md.
+	"covenant_remnants_fleet_jump_prime":[
+		{"file":"sounds/fleet_slipspace_jump/prime.ogg","pitch":1,"volume":0.8}
+	],
+	"covenant_remnants_fleet_jump_charge_loop":[
+		{"file":"sounds/fleet_slipspace_jump/charge_loop.ogg","pitch":1,"volume":1}
+	],
+	"covenant_remnants_fleet_jump_open":[
+		{"file":"sounds/fleet_slipspace_jump/rupture_open.ogg","pitch":1,"volume":1}
+	],
+	"covenant_remnants_fleet_jump_collapse":[
+		{"file":"sounds/fleet_slipspace_jump/rupture_collapse.ogg","pitch":1,"volume":1}
+	],
+	"covenant_remnants_fleet_jump_arrival":[
+		{"file":"sounds/fleet_slipspace_jump/arrival_1.ogg","pitch":1,"volume":1},
+		{"file":"sounds/fleet_slipspace_jump/arrival_2.ogg","pitch":1,"volume":1},
+		{"file":"sounds/fleet_slipspace_jump/arrival_3.ogg","pitch":1,"volume":1}
+	]
+}

@@ -2,3 +2,4 @@ command,class,tags,syntax,help
 RegenerateSlipspace,org.combustiblelemon.covenantremnants.commands.RegenerateSlipspace,core,RegenerateSlipspace,Regenerates the slipspace system
 DebugHook,org.combustiblelemon.covenantremnants.commands.DebugHook,core,DebugHook,Hook for the debugger
 CovenantGiveAll,org.combustiblelemon.covenantremnants.commands.CovenantGiveAll,"core,cheat,campaign",CovenantGiveAll,Grants all Covenant ships/weapons/fighters/hullmods (dev cheat)
+FleetJumpTune,org.combustiblelemon.covenantremnants.commands.FleetJumpTune,core,FleetJumpTune [<name> <value> | reset [<name>]],Lists or live-tunes the Fleet Slipspace Jump constants (dev tuning; resets on restart)

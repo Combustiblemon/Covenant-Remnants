@@ -60,15 +60,24 @@ task list. This documentation duty is a fixed AI-assistant rule — see
   `data/hulls/wing_data.csv`. There are **no** `.wing` files — do not add them.
 - **Weapons** (`data/weapons/*.wpn` + `weapon_data.csv`, projectiles in `data/weapons/proj/*.proj`)
   are plasma-family and energy. Use vanilla weapons of the same type/size as the stat reference
-  (see [design document.txt](../design%20document.txt)); justify any large deviation.
+  (see [design_document.md](../design_document.md)); justify any large deviation.
 - **Ship systems** (`data/shipsystems/*.system`) — Covenant-specific systems (e.g. energy projector
-  as a system per [balance.txt](../balance.txt)).
+  as a system per [balance.md](../balance.md)).
 - **Shaders** ship as a `.frag` + `.vert` pair in `data/shaders/`, loaded by a matching Kotlin class
   in `src/org/combustiblelemon/covenantremnants/utils/render/`. Keep the pair and its loader named
-  together (e.g. `shieldShader.frag`/`.vert` ↔ `ShieldShader.kt`). Exception: the **shield shader**
-  is composed — per-layer `.glsl` modules under `data/shaders/shield/` assembled into one program by
-  `ShieldShader.kt` (see
+  together (e.g. `shieldShader.frag`/`.vert` ↔ `ShieldShader.kt`). A system with several shader
+  pairs keeps them in `data/shaders/<system>/` with their loaders in a `<system>/` subpackage of
+  `utils/render/` (`ruptureSphere.*` ↔ `rupture/RuptureSphereShader.kt`, `ruptureSprite.*` ↔
+  `rupture/RuptureSpriteShader.kt`). Exception: **composed shaders** — per-layer `.glsl` modules
+  under `data/shaders/<system>/` assembled into one program by the owner class
+  (`ShieldShader.kt` ↔ `data/shaders/shield/`), with the layer classes in a `<system>/` subpackage
+  of `utils/render/` (see
   [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)).
+- **VFX textures** go under `graphics/fx/<effect>/` and are registered in
+  `data/config/settings.json` (`graphics` → `covenant_remnants`). Halo game assets may be shipped
+  (developer decision 2026-10-01); note the source tag path where the texture is used.
+- **Reference material** for art/VFX (screenshots, extracted video frames) goes under
+  `assets/reference/<topic>/` — scratch, not shipped, and gitignored (local only).
 
 ## Kotlin source layout
 
