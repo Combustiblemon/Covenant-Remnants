@@ -21,6 +21,9 @@ in vec2 TexCoord;
 //   5 RING         grab-radius marker during the charge (not in Reach). Additive.
 //   6 LIGHT        Reach's sphere lights as a local glow, centre-weighted, out to the light's
 //                  attenuation end. Additive.
+//   7 CORE         the white charge core (not in Reach): limb-darkened white, brightest at the
+//                  centre and kept below saturation so the additive charge energy and the
+//                  heat-haze rings drawn over it stay visible; soft bloom. Alpha blend.
 uniform vec2 resolution;   // screen size, screen units
 uniform vec2 center;       // sphere center, screen units
 uniform float radius;      // sphere radius, screen units
@@ -122,6 +125,12 @@ void main() {
         float band = 1.0 - smoothstep(0.0, ringWidth, abs(d - 1.0));
         float glow = exp(-abs(d - 1.0) / max(ringWidth * 4.0, 0.001)) * 0.35;
         outColor = vec4(tonemap(color * intensity) * (band * band + glow) * alpha, 1.0);
+    } else if (mode == 7) {
+        float limb = sqrt(max(0.0, 1.0 - d * d));
+        vec3 c = tonemap(color * intensity * (0.45 + 0.55 * limb));
+        float body = discCoverage(d);
+        float bloom = halo * exp(-max(d - 1.0, 0.0) / max(haloWidth, 0.001));
+        outColor = vec4(c, max(body, bloom) * alpha);
     } else {
         // Centre-weighted, so it reads as glow around the source rather than a lit disc; the
         // light's full-strength radius only sharpens the outer edge.
@@ -130,8 +139,8 @@ void main() {
         outColor = vec4(tonemap(color * intensity) * fade * alpha, 1.0);
     }
 
-    // Additive modes carry their strength in rgb (blend ONE, ONE); alpha modes in a.
-    if (mode >= 2) {
+    // Additive modes carry their strength in rgb (blend ONE, ONE); alpha modes (0, 1, 7) in a.
+    if (mode >= 2 && mode != 7) {
         outColor.rgb *= master;
         if (max(outColor.r, max(outColor.g, outColor.b)) <= 0.001) {
             discard;

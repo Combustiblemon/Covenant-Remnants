@@ -49,9 +49,10 @@ import java.nio.ByteBuffer
  * ([RuptureSphereShader], ruptureSphere.vert/.frag) and batched sprites ([RuptureSpriteShader],
  * ruptureSprite.vert/.frag), plus a copy of the screen for the charge's heat-haze rings.
  *
- * Order: heat haze (all ruptures, over a fresh screen copy); then per rupture back to front:
- * light glows and burst shells, glow sphere, black body, web, ring, additive sprites, lens flares,
- * twinkles. The programs are shared ([RupturePrograms], compiled at game start).
+ * Order: per rupture back to front the spheres (light glows and burst shells, charge core, glow
+ * sphere, black body, web, ring); then the heat haze (all ruptures, over a fresh screen copy, so
+ * the rings ripple over the spheres — developer 2026-10-02); then per rupture the additive sprites,
+ * lens flares, twinkles. The programs are shared ([RupturePrograms], compiled at game start).
  */
 class RuptureRenderer : Shader {
     private companion object {
@@ -105,6 +106,13 @@ class RuptureRenderer : Shader {
             glDisable(GL_CULL_FACE)
             glEnable(GL_BLEND)
 
+            for (effect in effects) {
+                for (sphere in effect.spheres) {
+                    if (sphere.active) spheres.draw(sphere, effect, view, time, exposure)
+                }
+            }
+
+            // After the spheres, so the heat-haze rings ripple over the charge core
             if (distortion > 0f && effects.any { effect -> effect.sprites.any { it.kind == SpriteKind.DISTORTION } }) {
                 copyScreen()
                 for (effect in effects) {
@@ -113,9 +121,6 @@ class RuptureRenderer : Shader {
             }
 
             for (effect in effects) {
-                for (sphere in effect.spheres) {
-                    if (sphere.active) spheres.draw(sphere, effect, view, time, exposure)
-                }
                 for (material in ADDITIVE_SPRITES) sprites.draw(material, effect, view, time, exposure)
                 for (flare in effect.flares) {
                     if (flare.active) sprites.drawFlare(flare, effect, view, time, exposure)

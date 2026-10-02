@@ -16,9 +16,11 @@ import kotlin.math.abs
 
 /**
  * Fleet Slipspace Jump — the CAS-class Assault Carrier's (covenant_remnants_supercap1) unique
- * ship system. The carrier opens a slipspace rupture around itself and jumps everything inside
- * the grab radius — ships of any side, fighters, missiles, projectiles, hulks, asteroids — to the
- * destination in one frame, keeping every offset, velocity, facing and target.
+ * ship system. The carrier opens a slipspace rupture off its bow ([portalCenter], PORTAL_AHEAD
+ * collision radii ahead), lurches into it during the fade, and jumps everything inside the grab
+ * radius around the portal — ships of any side, fighters, missiles, projectiles, hulks,
+ * asteroids — to the destination in one frame, keeping every offset from the portal centre,
+ * velocity, facing and target. The carrier always comes along and lands at the destination.
  *
  * This object holds the system id, every tuning constant (live-tunable through the `FleetJumpTune`
  * console command; values reset on restart), and the per-combat shared state used by the stats
@@ -53,8 +55,10 @@ object FleetSlipspaceJump {
 
     // --- Mechanics ---------------------------------------------------------------------------
 
-    val grabRadius = tune("GRAB_RADIUS", 1000f, "Grab radius around the carrier, su")
-    val minRange = tune("MIN_RANGE", 2000f, "Minimum jump distance, su (no maximum)")
+    val grabRadius = tune("GRAB_RADIUS", 1000f, "Grab radius around the portal (off the bow), su")
+    // Developer 2026-10-02: the portal opens off the bow and the carrier lurches into it.
+    val portalAhead = tune("PORTAL_AHEAD", 2f, "Portal centre ahead of the carrier centre, in collision radii (2 = one ship length)")
+    val minRange = tune("MIN_RANGE", 2000f, "Minimum jump distance from the portal centre, su (no maximum)")
     val fluxGate = tune("FLUX_GATE", 0.7f, "Max flux fraction at which the jump can start")
     val exitFlux = tune("EXIT_FLUX", 0.8f, "Carrier flux fraction after the jump")
     val chargeUp = tune("CHARGE", 8f, "Charge-up seconds (applies from the next battle)")
@@ -245,6 +249,13 @@ object FleetSlipspaceJump {
     fun isCombatant(ship: ShipAPI): Boolean =
         ship.isAlive && !ship.isHulk && !ship.isStation && ship.parentStation == null
 
+    /** Where the carrier's portal opens: PORTAL_AHEAD collision radii off its bow, along its facing. */
+    fun portalCenter(carrier: ShipAPI): Vector2f {
+        val ahead = carrier.collisionRadius * portalAhead.value
+        val dir = Misc.getUnitVectorAtDegreeAngle(carrier.facing)
+        return Vector2f(carrier.location.x + dir.x * ahead, carrier.location.y + dir.y * ahead)
+    }
+
     fun isWithin(location: Vector2f, center: Vector2f, radius: Float): Boolean {
         val dx = location.x - center.x
         val dy = location.y - center.y
@@ -286,15 +297,20 @@ object FleetSlipspaceJump {
         return false
     }
 
-    /** Ships (and asteroids) the carrier would take along right now — ignored by the exit check. */
+    /**
+     * Ships (and asteroids) the carrier would take along right now — everything inside the grab
+     * radius around its portal, plus the carrier itself. Ignored by the exit check.
+     */
     fun currentCargo(carrier: ShipAPI, engine: CombatEngineAPI): Set<CombatEntityAPI> {
         val cargo: MutableSet<CombatEntityAPI> = Collections.newSetFromMap(IdentityHashMap())
         val radius = grabRadius.value
+        val center = portalCenter(carrier)
+        cargo.add(carrier)
         for (ship in engine.ships) {
-            if (isGrabbableShip(ship) && isWithin(ship.location, carrier.location, radius)) cargo.add(ship)
+            if (isGrabbableShip(ship) && isWithin(ship.location, center, radius)) cargo.add(ship)
         }
         for (asteroid in engine.asteroids) {
-            if (isWithin(asteroid.location, carrier.location, radius)) cargo.add(asteroid)
+            if (isWithin(asteroid.location, center, radius)) cargo.add(asteroid)
         }
         return cargo
     }
@@ -304,7 +320,8 @@ object FleetSlipspaceJump {
      * script's isUsable (shown as the system's info text) and the AI's destination picking.
      */
     fun destinationProblem(carrier: ShipAPI, destination: Vector2f, engine: CombatEngineAPI): String? {
-        if (Misc.getDistance(carrier.location, destination) < minRange.value) return "TOO CLOSE"
+        // The portal is what moves: the carrier lurches into its centre and lands at the destination.
+        if (Misc.getDistance(portalCenter(carrier), destination) < minRange.value) return "TOO CLOSE"
         if (!isInsideMap(destination, carrier.collisionRadius, engine)) return "OFF MAP"
         if (isSpotBlocked(destination, carrier.collisionRadius, currentCargo(carrier, engine), engine)) return "EXIT BLOCKED"
         return null

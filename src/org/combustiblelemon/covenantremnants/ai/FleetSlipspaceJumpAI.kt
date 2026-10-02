@@ -34,6 +34,9 @@ import kotlin.math.max
  *    than REGROUP_DISTANCE: jump beside it.
  *
  * Strength = deployment cost (supplies to recover) × hull level; fighters count FIGHTER_STRENGTH.
+ *
+ * "Inside the radius" means inside the grab circle around the portal off the carrier's current bow
+ * ([FleetSlipspaceJump.portalCenter]); the AI does not turn to aim it (developer 2026-10-02).
  */
 class FleetSlipspaceJumpAI : ShipSystemAIScript {
     private lateinit var ship: ShipAPI
@@ -53,7 +56,8 @@ class FleetSlipspaceJumpAI : ShipSystemAIScript {
     private enum class Plan { PULL_HOME, STRAND, REGROUP }
 
     private class Situation(val carrier: ShipAPI, engine: CombatEngineAPI) {
-        val center: Vector2f = carrier.location
+        /** The grab circle's centre: the portal off the current bow. */
+        val center: Vector2f = FleetSlipspaceJump.portalCenter(carrier)
         val radius = FleetSlipspaceJump.grabRadius.value
         val combatants: List<ShipAPI> = engine.ships.filter { it !== carrier && FleetSlipspaceJump.isCombatant(it) }
         val allies: List<ShipAPI> = combatants.filter { it.owner == carrier.owner }
@@ -289,9 +293,10 @@ class FleetSlipspaceJumpAI : ShipSystemAIScript {
     private fun planRegroup(s: Situation): Vector2f? {
         if (s.enemiesInRadius.any { !it.isFighter }) return null
 
+        // Distance to the fleet is measured from the carrier itself, not from its portal.
         val anchors = s.allies.filter { !it.isFighter }
-        val nearest = anchors.minByOrNull { Misc.getDistance(it.location, s.center) } ?: return null
-        if (Misc.getDistance(nearest.location, s.center) <= FleetSlipspaceJump.regroupDistance.value) return null
+        val nearest = anchors.minByOrNull { Misc.getDistance(it.location, ship.location) } ?: return null
+        if (Misc.getDistance(nearest.location, ship.location) <= FleetSlipspaceJump.regroupDistance.value) return null
 
         // Only enemy fighters can be in the radius here; they come along.
         val carriedAllied = s.strength(s.alliesInRadius) + s.carrierStrength()

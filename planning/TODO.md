@@ -56,6 +56,18 @@ Keep this file current — tick items off and add new ones as work lands.
       circles at the cursor), left click confirms, right click cancels, works while paused
       (`plugins/FleetSlipspaceJumpTargetingPlugin.kt`). Check item 1 of the checklist in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [ ] **Fleet Slipspace Jump — portal off the bow (in-game check)** — built 2026-10-02: the rupture
+      and grab circle sit one ship length off the bow (`PORTAL_AHEAD` 2), the CAS lurches into the
+      portal during the fade and lands at the exit centre; entry ring in the aiming preview; AI
+      counts the circle off its current bow. Check items 1–4 and 9 of the checklist in
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [ ] **Fleet Slipspace Jump — white charge core (in-game look)** — built 2026-10-02, revised same
+      day: white sphere at the centre of the charge-up (star-flare core size, ≈ 12–18 su radius, so
+      the spokes reach past it; breathing, soft bloom, below
+      saturation so the charge energy and the heat-haze ripples — now drawn after the spheres — show
+      over it), swallowed by the opening glow sphere; same at the exit seed. Constants `CORE_*` in `RuptureEffect`
+      (placeholders). Checklist items 2–3 in
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
 - [ ] **Fleet Slipspace Jump in-game test** — developer: run the checklist in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md) (mechanics,
       damage, abort paths, AI, visuals).

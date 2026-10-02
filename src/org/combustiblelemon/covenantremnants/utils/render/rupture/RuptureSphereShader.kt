@@ -93,7 +93,7 @@ internal class RuptureSphereShader {
         val radius = view.screenLength(sphere.radius)
         if (radius < 0.5f) return
         val margin = when (sphere.mode) {
-            SphereMode.GLOW -> sphere.haloWidth * HALO_REACH
+            SphereMode.GLOW, SphereMode.CORE -> sphere.haloWidth * HALO_REACH
             SphereMode.RING -> sphere.ringWidth * RING_REACH
             else -> 0f
         }

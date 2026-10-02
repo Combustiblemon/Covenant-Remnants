@@ -140,6 +140,8 @@ at 0.3 × 130 × 35 = 1365 (≈ **2.2×**; the 3.6× quoted before the fit was w
 | Reach game data | Remake the effect from Halo: Reach's own data (the official Reach editing kit's tags) instead of the video. Reach **textures/meshes may be used and shipped** if needed — non-commercial fan project, small audience; the developer accepts the takedown risk. |
 | Activation (player) | System key **primes**; the aiming circles appear only while primed; **left click confirms**, **right click cancels**; must work while paused (developer 2026-10-01). |
 | Startup trims | Drop the white flash going out and back in (Reach's arming flare); the grab-radius ring during the charge off for now (developer 2026-10-01). |
+| Portal off the bow (2026-10-02) | The rupture opens **one ship length off the bow** (`PORTAL_AHEAD` 2 collision radii ≈ 660 su ahead of the CAS centre) and the **grab radius is centred on it**, not on the carrier (grabs ~1000 su ahead, ~340 su behind the stern). **Lurch**: during the 2 s fade the CAS physically eases into the portal centre (phased and fading like the cargo), reaching it at the jump; the CAS always comes along. **Exit**: the CAS lands at the destination = exit portal centre; cargo keeps its offsets from the portal centre. **Preview**: the entry grab ring off the bow is drawn too while aiming. `MIN_RANGE` is measured portal centre → destination. **AI** judges the circle off its current bow, no turning to aim. |
+| Charge core (2026-10-02) | A **white sphere at the centre of the charge-up** (not in Reach): **the size of the star flare's bright core** so the flare's spokes reach past it (radius = flare half-size × 0.11, measured from star_flare.png; ≈ 12–18 su; the spokes reach ~3×), grown in from a point over the charge, eased out; **breathes** (radius ±8 %, brightness ±15 %, 1.6 s period); limb-darkened white kept below saturation (new sphere mode `CORE`) so the **charge energy and the heat-haze ripples stay visible over it** — the ripple pass now draws after the spheres; soft bloom building with the charge. At the fade it holds until the opening glow sphere outgrows it, then fades in 0.15 s. The exit seed grows the same sphere. First pass (80 su, flat saturated white, flicker) hid the energy and ripples: developer asked for half the size (40 su), breathing, and both visible on top; then for the flare-core size. (The developer considered switching the whole portal to the Halo 3: ODST look and kept the Reach one.) |
 | Reach remake | **Faithful**: real particle systems and the three spheres, with Reach's textures, curves and timings (supersedes pass 2's procedural look; its *intent* carries over — charging sphere building over the whole charge, thin violet ring at R, expansion to R, white rim, web over black, exit mirrors the entry's charge). **Exit**: the same charge stream at the destination, then at the jump the glow sphere bursts to R as a white-violet flash and fades, with twinkles and a star flare; **no black sphere** at the exit. **Body pure black** (not Reach's near-black multiply palette). **Extras**: heat-distortion ring during the charge — yes; full-screen violet exposure flash — no (local only); debris meshes — no; remnant **capped near 1.3 R** (not Reach's ~2.2 R). |
 
 Implementation calls made while building (in the approved plan): fighters never block a landing
@@ -168,8 +170,10 @@ inside the opaque sphere would only matter for shots flying out of it).
   per-combat state (engine identity reset): AI→script `pendingDestination` (2 s lifetime), the
   `inTransit` identity set (two carriers never grab the same entity), the one render plugin. Shared
   helpers: `isGrabbableShip` (no stations, no modules, alive or hulk), `isCombatant`, `hasShieldUp`,
-  `isInsideMap` / `clampIntoMap`, `isSpotBlocked` (fighters ignored), `currentCargo`,
-  `destinationProblem` → `TOO CLOSE` / `OFF MAP` / `EXIT BLOCKED`.
+  `isInsideMap` / `clampIntoMap`, `isSpotBlocked` (fighters ignored), `portalCenter` (the
+  portal off the bow: `PORTAL_AHEAD` collision radii along the facing; 2026-10-02), `currentCargo`
+  (around the portal, plus the carrier), `destinationProblem` → `TOO CLOSE` (portal centre →
+  destination < `MIN_RANGE`) / `OFF MAP` / `EXIT BLOCKED`.
 - **`systems/FleetSlipspaceJumpStats.kt`** (new, `BaseShipSystemScript`) — `isUsable` and
   `getInfoText` both compute the problem live (`NO TARGET`, `FLUX TOO HIGH`, or the destination
   problem); timing overrides from the tunables, clamped to ≥ 0.1 s so the OUT frame the jump needs
@@ -179,17 +183,23 @@ inside the opaque sphere would only matter for shots flying out of it).
   forming" / "everything in the rupture is phased" / "fleet jump complete").
 - **`systems/FleetSlipspaceJumpSession.kt`** (new, `BaseEveryFrameCombatPlugin`, one per
   activation; registers and removes itself):
+  - The portal centre is fixed at activation (`portalCenter`; the carrier cannot move or turn
+    through the charge-up); the entry rupture and the grab radius are centred on it (2026-10-02).
   - IN: zeroes the carrier's velocity and turn every frame; drives the entry preview from the
     system's effect level; spawns the exit seed `EXIT_SEED_LEAD` s before the fade.
-  - ACTIVE (fade): each frame, grabbable ships inside the radius (incl. the carrier) are **held**:
+  - ACTIVE (fade): the carrier **lurches** into the portal — moved each frame (with its modules)
+    from where it stood to the portal centre, eased in (progress²), reaching it at the jump (not in
+    `VISUAL_ONLY`). Each frame, grabbable ships inside the radius around the portal (the carrier
+    always, wherever the lurch has got it to) are **held**:
     themselves plus child modules `setPhased(true)` (prior state remembered), alpha fade to 0.4,
     purple jitter, `setHoldFireOneFrame` + `blockCommandForOneFrame(FIRE)`. Ships that leave are
     released. Another carrier's cargo is skipped.
   - First OUT frame (triggered by the stats script's `apply(OUT)`; the session's own state check is
-    the backup) — the jump: cargo = grabbable ships, `engine.projectiles` (missiles included)
-    and asteroids inside the radius. Obstacles = everything staying behind except fighters, plus
-    cargo as it lands. Carrier lands first (`findFreeSpot`: target if free and in-map, else rings ×
-    directions, else clamped into the map); `delta` = carrier's actual landing − origin. Then ships
+    the backup) — the jump: the carrier is snapped to the portal centre (= origin); cargo = the
+    carrier plus grabbable ships, `engine.projectiles` (missiles included) and asteroids inside the
+    radius. Obstacles = everything staying behind except fighters, plus cargo as it lands. Carrier
+    lands first (`findFreeSpot`: target if free and in-map, else rings × directions, else clamped
+    into the map); `delta` = carrier's actual landing − portal centre. Then ships
     (alive largest-first, fighters clamped only, hulks), asteroids, then shots translated by `delta`
     (`interruptContrail` around missile moves). Child modules move with their parent. Rupture damage,
     flux → max(current, 80%), everything released, jump sound, visual transitions.
@@ -203,7 +213,9 @@ inside the opaque sphere would only matter for shots flying out of it).
     reports that hit itself. The CAS and fighters are included (developer decision).
 - **`ai/FleetSlipspaceJumpAI.kt`** (new, `ShipSystemAIScript`), every `AI_INTERVAL` while ready, not
   overloaded/venting, flux below the gate. Strength = `suppliesToRecover × hullLevel`; fighters
-  `FIGHTER_STRENGTH`.
+  `FIGHTER_STRENGTH`. "Inside the radius" = inside the circle around the portal off the current
+  bow (2026-10-02; the AI does not turn to aim it); the regroup distance is measured from the
+  carrier itself.
   1. **Pull home**: enemy strength in radius ≥ `PULL_MIN_THREAT`; for each allied non-fighter anchor
      ≥ `MIN_RANGE` away, cluster surplus = Σ allies within `CLUSTER_RADIUS` (not coming along) ×
      (1 − flux × `FLUX_PRESSURE`) + carried allies + the CAS − `PULL_MARGIN` × (enemies there +
@@ -250,7 +262,9 @@ invalid); **right click = cancel**. The system key while aiming does nothing. Wo
 - **`FleetSlipspaceJumpStats`** — player idle and not aiming counts as ready (the widget shows
   READY); while aiming the widget shows the aim point's problem (TOO CLOSE / OFF MAP / EXIT
   BLOCKED / FLUX TOO HIGH); IN consumes the confirmed point and drops any priming.
-- **Render plugin** — the aiming circles only while primed, drawn at `aimPoint`.
+- **Render plugin** — the aiming circles only while primed, drawn at `aimPoint`; since
+  2026-10-02 also the entry grab ring around the portal off the bow (follows the facing while
+  aiming), same validity colour.
 
 AI ships are unchanged (they hand their destination over and press the system themselves).
 
@@ -383,7 +397,7 @@ Untouched: `SlipspaceDrive.kt`, `SlipspaceDriveRenderPlugin.kt`, `SlipspaceTunin
 
 ## Placeholder numbers (all live-tunable)
 
-Mechanics: `GRAB_RADIUS 1000`, `MIN_RANGE 2000`, `FLUX_GATE 0.7`, `EXIT_FLUX 0.8`, `CHARGE 8`, `FADE 2`,
+Mechanics: `GRAB_RADIUS 1000`, `PORTAL_AHEAD 2` (collision radii; ≈ 660 su on the CAS), `MIN_RANGE 2000`, `FLUX_GATE 0.7`, `EXIT_FLUX 0.8`, `CHARGE 8`, `FADE 2`,
 `ARRIVAL 3`, `COOLDOWN 60`, `DAMAGE_HULL_FRACTION 0.10`, `NUDGE_RINGS 10`, `NUDGE_DIRECTIONS 12`.
 AI: `AI_INTERVAL 0.75`, `FIGHTER_STRENGTH 1`, `PULL_MIN_THREAT 15`, `CLUSTER_RADIUS 1500`,
 `PULL_MARGIN 1.5`, `FLUX_PRESSURE 0.5`, `STRAND_MAX_SPEED 60`, `STRAND_MIN_STRENGTH 15`,
@@ -444,25 +458,32 @@ with allies and enemies; or AI-vs-AI in the sim with the CAS on either side.
 only the animation (items 1–3 and the look in 4).
 
 1. **Activation.** Player CAS idle: widget shows `READY` (or `FLUX TOO HIGH` above 70% flux); no
-   circles. System key → aiming circles (grab radius + carrier footprint) at the cursor, green/red;
+   circles. System key → aiming circles (grab radius + carrier footprint) at the cursor, plus the
+   entry grab ring one ship length off the bow (turns with the ship), green/red;
    widget shows `TOO CLOSE` near the ship, `OFF MAP` past the border, `EXIT BLOCKED` over a ship
    that isn't inside your 1000 su ring. Left click on red: nothing. Left click on green: the jump
    starts toward that point, no shot fired. Right click while aiming: circles gone, shield not
    toggled. Repeat the whole thing while **paused**: aiming and confirming work; the jump starts on
    unpause. Autopilot on while aiming: aiming drops.
 2. **Charge-up.** After confirming: CAS stops and can't turn/fire/vent; **Covenant shield stays
-   up**; a small crackling white sphere with blue filaments (~60 su) builds at the carrier with a
+   up**; a **white sphere** the size of the star flare's core grows at the centre (the flare's spokes
+   reaching past it; breathing, soft bloom) with the
+   crackling blue energy visible on it and the heat-haze ripples warping it, **one ship length off
+   the bow**, with a
    blue star flare and glow, no big white flash; heat-haze rings ripple outward (ships behind them
    bend); no ring at the grab radius (`CHARGE_RING 1` to see it); the same charge appears at the
    destination ~2 s before the fade. Ships inside can still fly out.
-3. **Fade (2 s).** A white sphere grows to the ring (~0.75 s) going salmon → violet-white; the body
+3. **Fade (2 s).** The white core is swallowed as a white sphere grows to the ring (~0.75 s) going
+   salmon → violet-white; the body
    goes pure black under it with the violet lightning web on top; a thick white rim around ~1–1.5 s;
+   the CAS lurches forward into the sphere's centre, accelerating, and reaches it at the jump;
    everything inside (allies, enemies, fighters, the CAS) is phased, faded and jittered, cannot fire,
    and shots pass through it. Enemies that walk out during the fade are released.
 4. **Jump.** Entry: sparks streak inward at the rim, the sphere shrinks to a white core, salmon-pink
    pop and glow, then a violet veined shell (~1.3 R) and drifting plasma wisps with tiny twinkles
    for several seconds. Exit: a white-violet sphere bursts to the ring in 0.3 s and dissolves to
-   reveal the arrivals in formation with velocities/facings kept, with twinkles; enemy missiles keep
+   reveal the arrivals in formation with velocities/facings kept (the CAS at the exit centre,
+   the cargo at its offsets from the entry portal's centre), with twinkles; enemy missiles keep
    tracking; nothing stuck inside another ship or off map; blocked spots nudged (try jumping onto a
    crowd). Sound at the jump.
 5. **Damage.** Ships with shields down lose 10% max hull (floating purple number), shielded ones

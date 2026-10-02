@@ -141,7 +141,8 @@ internal enum class SphereMode(val id: Int, val additive: Boolean) {
     SHELL(3, true),
     PLASMA_SHELL(4, true),
     RING(5, true),
-    LIGHT(6, true)
+    LIGHT(6, true),
+    CORE(7, false)
 }
 
 /** One analytic sphere to draw this frame; filled by [RuptureEffect]. Radius in world units. */

@@ -26,14 +26,20 @@ import kotlin.math.sin
  * Runs as its own every-frame plugin so it keeps advancing — and can restore everything it
  * touched — even if the carrier dies or the system is interrupted mid-jump.
  *
+ * The rupture opens off the carrier's bow ([FleetSlipspaceJump.portalCenter], fixed at activation:
+ * the carrier cannot move or turn through the charge-up) and the grab radius is centred on it.
+ *
  * - IN (charge-up): the carrier is held in place; the entry rupture's charging core tracks the
  *   charge; the exit seed appears EXIT_SEED_LEAD seconds before the fade and builds toward the jump.
- * - ACTIVE (fade): every grabbable ship inside the radius is held — phased (no collisions, not
- *   targetable by the engine), faded, jittered, and unable to fire. Ships that leave the radius are
- *   released. Shots and asteroids are untouched until the jump.
- * - First OUT frame: the jump. The carrier lands first (nudged to a free spot if needed); every
- *   other cargo entity lands at its offset from the carrier's actual landing spot — ships largest
- *   first, then fighters, hulks, asteroids (nudged), then shots (not nudged). Child modules ride with
+ * - ACTIVE (fade): the carrier lurches into the portal — moved (ease-in) from where it stood to
+ *   the portal centre, reaching it at the jump. Every grabbable ship inside the radius (the
+ *   carrier always) is held — phased (no collisions, not targetable by the engine), faded,
+ *   jittered, and unable to fire. Ships that leave the radius are released. Shots and asteroids
+ *   are untouched until the jump.
+ * - First OUT frame: the jump. The carrier (snapped to the portal centre) lands first at the
+ *   destination (nudged to a free spot if needed); every other cargo entity lands at its offset
+ *   from the portal centre, relative to the carrier's actual landing spot — ships largest first,
+ *   then fighters, hulks, asteroids (nudged), then shots (not nudged). Child modules ride with
  *   their parent. Unshielded cargo ships lose DAMAGE_HULL_FRACTION of max hull, ignoring armor. The
  *   carrier's flux is set to EXIT_FLUX.
  * - Rest of OUT: arrival jitter on the cargo; then the session ends.
@@ -78,11 +84,16 @@ class FleetSlipspaceJumpSession private constructor(
     // Frozen at activation so a console change mid-jump cannot desync the visual from the grab.
     private val radius = FleetSlipspaceJump.grabRadius.value
 
+    // The portal off the bow and where the carrier stood when the jump started (the lurch runs
+    // between the two during the fade).
+    private val entryCenter: Vector2f = FleetSlipspaceJump.portalCenter(carrier)
+    private val carrierStart = Vector2f(carrier.location)
+
     // VISUAL_ONLY (frozen at activation): play both ruptures, touch nothing else.
     private val visualOnly = FleetSlipspaceJump.isVisualOnly
 
     private val renderPlugin = FleetSlipspaceJump.renderPlugin(engine)
-    private val entryEffect: RuptureEffect = renderPlugin.addEffect(RuptureEffect.entry(carrier.location, radius))
+    private val entryEffect: RuptureEffect = renderPlugin.addEffect(RuptureEffect.entry(entryCenter, radius))
     private var exitEffect: RuptureEffect? = null
 
     // Top-level ship -> itself plus its child modules, with the state to restore.
@@ -110,18 +121,19 @@ class FleetSlipspaceJumpSession private constructor(
                     holdCarrier()
                     startExitSeedIfDue(false)
                     updateExitSeed()
-                    playChargeHum(carrier, carrier.location, system.effectLevel, 1f)
+                    playChargeHum(carrier, entryCenter, system.effectLevel, 1f)
                     playExitHum()
                 }
                 ShipSystemAPI.SystemState.ACTIVE -> {
                     activeTime += amount
                     holdCarrier()
+                    if (!visualOnly) lurch()
                     startExitSeedIfDue(true)
                     updateExitSeed()
                     entryEffect.startFade()
                     if (!openSoundPlayed) {
                         openSoundPlayed = true
-                        Global.getSoundPlayer().playSound(SOUND_OPEN, 1f, 1f, carrier.location, carrier.velocity)
+                        Global.getSoundPlayer().playSound(SOUND_OPEN, 1f, 1f, entryCenter, Vector2f())
                     }
                     playExitHum()
                     if (!visualOnly) markStep()
@@ -157,8 +169,24 @@ class FleetSlipspaceJumpSession private constructor(
     private fun holdCarrier() {
         carrier.velocity.set(0f, 0f)
         carrier.angularVelocity = 0f
-        entryEffect.center.set(carrier.location)
         entryEffect.chargeLevel = system.effectLevel
+    }
+
+    /**
+     * The carrier lurches into the portal over the fade: eased in (it accelerates into the
+     * rupture) from where it stood to the portal centre, reaching it at the jump. Phased as cargo
+     * meanwhile, so it passes through whatever is in the way.
+     */
+    private fun lurch() {
+        val progress = (activeTime / system.chargeActiveDur.coerceAtLeast(0.01f)).coerceIn(0f, 1f)
+        val eased = progress * progress
+        moveShip(
+            carrier,
+            Vector2f(
+                carrierStart.x + (entryCenter.x - carrierStart.x) * eased,
+                carrierStart.y + (entryCenter.y - carrierStart.y) * eased
+            )
+        )
     }
 
     private fun startExitSeedIfDue(force: Boolean) {
@@ -200,12 +228,13 @@ class FleetSlipspaceJumpSession private constructor(
 
     private fun markStep() {
         val progress = (activeTime / system.chargeActiveDur.coerceAtLeast(0.01f)).coerceIn(0f, 1f)
-        val center = carrier.location
+        val center = entryCenter
 
         val inside: MutableSet<ShipAPI> = Collections.newSetFromMap(IdentityHashMap())
         for (ship in engine.ships) {
             if (!FleetSlipspaceJump.isGrabbableShip(ship)) continue
-            if (!FleetSlipspaceJump.isWithin(ship.location, center, radius)) continue
+            // The carrier is always held, wherever the lurch has got it to.
+            if (ship !== carrier && !FleetSlipspaceJump.isWithin(ship.location, center, radius)) continue
             // Another carrier's cargo stays theirs.
             if (ship !in held && ship in FleetSlipspaceJump.inTransit) continue
             inside.add(ship)
@@ -264,13 +293,17 @@ class FleetSlipspaceJumpSession private constructor(
             playRupturesOnly()
             return
         }
-        val origin = Vector2f(carrier.location)
+        // The lurch ends at the portal centre; snap there (the last fade frame may stop just short).
+        moveShip(carrier, entryCenter)
+        val origin = Vector2f(entryCenter)
 
-        // Cargo: everything inside the radius at this moment.
+        // Cargo: the carrier plus everything inside the radius around the portal at this moment.
         val ships = engine.ships.filter {
-            FleetSlipspaceJump.isGrabbableShip(it) &&
-                    FleetSlipspaceJump.isWithin(it.location, origin, radius) &&
-                    (it in held || it !in FleetSlipspaceJump.inTransit)
+            it === carrier || (
+                    FleetSlipspaceJump.isGrabbableShip(it) &&
+                            FleetSlipspaceJump.isWithin(it.location, origin, radius) &&
+                            (it in held || it !in FleetSlipspaceJump.inTransit)
+                    )
         }
         val shots = engine.projectiles.filter { FleetSlipspaceJump.isWithin(it.location, origin, radius) }
         val asteroids = engine.asteroids.filter { FleetSlipspaceJump.isWithin(it.location, origin, radius) }
@@ -330,7 +363,6 @@ class FleetSlipspaceJumpSession private constructor(
         releaseAll()
         cargoShips = ships
 
-        entryEffect.center.set(origin)
         entryEffect.startCollapse()
         val exit = exitEffect ?: renderPlugin.addEffect(RuptureEffect.exit(destination, radius)).also { exitEffect = it }
         exit.center.set(carrierFinal)
@@ -346,13 +378,12 @@ class FleetSlipspaceJumpSession private constructor(
         sounds.playSound(SOUND_ARRIVAL, 1f, 1f, to, Vector2f())
     }
 
-    /** VISUAL_ONLY jump: entry collapses where the carrier stands, exit dissolves at the destination. */
+    /** VISUAL_ONLY jump: entry collapses off the bow (no lurch), exit dissolves at the destination. */
     private fun playRupturesOnly() {
-        entryEffect.center.set(carrier.location)
         entryEffect.startCollapse()
         val exit = exitEffect ?: renderPlugin.addEffect(RuptureEffect.exit(destination, radius)).also { exitEffect = it }
         exit.startDissolve()
-        playJumpSounds(Vector2f(carrier.location), destination)
+        playJumpSounds(Vector2f(entryCenter), destination)
     }
 
     /** Alive ships first (largest first within a rank), then fighters, then hulks. */

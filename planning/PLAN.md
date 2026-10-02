@@ -19,8 +19,9 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   (engine teleporter, 500 su toward the cursor, 3 charges) with ODST-style hull ripple + portals.
   Placeholder portal until the ODST kit data is pulled. See
   [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md).
-- **Fleet Slipspace Jump (supercap1)** — the CAS's unique radius mass-jump: grabs everything
-  around the carrier (ships of any side, fighters, shots, hulks, asteroids) and jumps it together,
+- **Fleet Slipspace Jump (supercap1)** — the CAS's unique radius mass-jump: opens a rupture off
+  the bow, lurches into it, and grabs everything around the portal (ships of any side, fighters,
+  shots, hulks, asteroids) and jumps it together,
   with rupture damage to unshielded ships, a pull-home / strand / regroup AI, a rupture remade from
   Halo: Reach's own Long Night of Solace slipspace bomb data, and live console tuning
   (`FleetJumpTune`). See [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).

@@ -35,8 +35,15 @@ import kotlin.math.sqrt
  *   to nothing by 3 s; at 2.5 s the burst (blast shell, plasma shell, plasma clouds and flames,
  *   twinkles, fiery smoke going salmon to violet, the haze); the collapse flare from 2.6 s.
  *
+ * Charge core (not in Reach, developer 2026-10-02): a white sphere at the centre of the charge,
+ * the size of the star flare's bright core (so the flare's spokes reach past it), growing in from
+ * a point over the charge, breathing (size and brightness pulse),
+ * limb-darkened and kept below saturation so the charge energy and the heat-haze rings show over
+ * it, with a soft bloom that builds with the charge. At the opening it holds until the glow sphere
+ * outgrows it, then fades out.
+ *
  * Exit rupture (at the destination):
- * - SEED: the same charge, building toward the jump through [chargeLevel].
+ * - SEED: the same charge (white core included), building toward the jump through [chargeLevel].
  * - FLASH (at the jump): the glow sphere bursts to the grab radius and fades over DISSOLVE, with
  *   twinkles and a star flare; no black sphere (developer decision).
  *
@@ -98,6 +105,21 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         private const val EXIT_FLARE_DURATION = 1.5f
         private const val EXIT_STAR_BRIGHTNESS = 5f
         private const val ABORT_DURATION = 0.5f
+
+        // Charge core: white sphere at the centre of the charge (developer 2026-10-02).
+        // Core radius = the star flare's half-size × this: the bright core of star_flare.png (measured:
+        // saturated out to ~0.11 of the half-size at the flare's charge brightness; the spokes fade
+        // out at ~0.3-0.35). ≈ 12-18 su at R 1000.
+        private const val CORE_FLARE_FRACTION = 0.11f
+        private const val CORE_INTENSITY_MIN = 1.2f    // HDR white before tone mapping; 1.9 ≈ 0.85 at the centre,
+        private const val CORE_INTENSITY_MAX = 1.9f    // so the additive charge energy still shows on top
+        private const val CORE_HALO_MIN = 0.2f
+        private const val CORE_HALO_MAX = 0.6f
+        private const val CORE_HALO_WIDTH = 0.5f       // in core radii
+        private const val CORE_BREATH_PERIOD = 1.6f    // seconds per breath
+        private const val CORE_BREATH_SIZE = 0.08f     // radius pulse, ± fraction
+        private const val CORE_BREATH_BRIGHTNESS = 0.15f // brightness pulse, ± fraction
+        private const val CORE_SWALLOW_FADE = 0.15f    // fade once the opening glow sphere outgrows it
 
         // Colours and intensities from the tags
         private val RING_VIOLET = floatArrayOf(0.55f, 0.35f, 1f)
@@ -231,6 +253,8 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         xformB = SHELL_XFORM_B
         uOffset = SHELL_U_OFFSET
     }
+    /** The white charge core (white by default), behind the opening glow sphere that swallows it. */
+    internal val core = SphereDraw(SphereMode.CORE)
     internal val glow = SphereDraw(SphereMode.GLOW)
     /** Blink portal only: the bright origin core over the glow body. */
     internal val origin = SphereDraw(SphereMode.GLOW)
@@ -246,8 +270,8 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     }
     internal val ring = SphereDraw(SphereMode.RING).apply { RING_VIOLET.copyInto(color) }
 
-    /** Back to front: lights and shells, glow, origin core, black body, web, ring. */
-    internal val spheres = listOf(light, shell, plasmaShell, glow, origin, black, web, ring)
+    /** Back to front: lights and shells, charge core, glow, origin core, black body, web, ring. */
+    internal val spheres = listOf(light, shell, plasmaShell, core, glow, origin, black, web, ring)
 
     internal val starFlare = FlareDraw(SpriteMaterial.FLARE_STAR)
     internal val collapseFlare = FlareDraw(SpriteMaterial.FLARE_GLOW)
@@ -265,6 +289,7 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     private var twinkleAccumulator = 0f
     private var lingerAccumulator = 0f
     private var exitTwinklesStarted = false
+    private var coreSwallowedAt = -1f
 
     private val scratch = FloatArray(4)
 
@@ -367,6 +392,35 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
             spawnDistortion()
         }
         chargeExtras(c, 1f)
+        chargeCore(c, 1f)
+    }
+
+    /** Core radius at charge [c]: the star flare's bright core, grown in (eased out) from a point. */
+    private fun coreRadius(c: Float): Float {
+        val grow = 1f - (1f - c) * (1f - c)
+        return ReachCurves.STAR_FLARE_RADIUS.at(c) * unit * CORE_FLARE_FRACTION * grow
+    }
+
+    /** The white sphere at the centre of the charge: grows with [c], brightens, breathes. */
+    private fun chargeCore(c: Float, alpha: Float) {
+        if (alpha <= 0f) return
+        val breath = sin(2f * PI.toFloat() * time / CORE_BREATH_PERIOD + seed)
+        core.active = true
+        core.radius = coreRadius(c) * (1f + CORE_BREATH_SIZE * breath)
+        core.intensity = lerp(CORE_INTENSITY_MIN, CORE_INTENSITY_MAX, c) * (1f + CORE_BREATH_BRIGHTNESS * breath)
+        core.alpha = alpha
+        core.halo = lerp(CORE_HALO_MIN, CORE_HALO_MAX, c)
+        core.haloWidth = CORE_HALO_WIDTH
+    }
+
+    /** After the charge: the core holds until the opening glow sphere outgrows it, then fades out. */
+    private fun swallowCore() {
+        val c = chargeLevel.coerceIn(0f, 1f)
+        if (coreSwallowedAt < 0f && glow.active && glow.radius >= coreRadius(c)) {
+            coreSwallowedAt = time
+        }
+        val alpha = if (coreSwallowedAt < 0f) 1f else 1f - (time - coreSwallowedAt) / CORE_SWALLOW_FADE
+        chargeCore(c, alpha)
     }
 
     /** The ring, flares and blue glow of the charge; [fade] dims them as the rupture opens. */
@@ -402,6 +456,7 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     private fun open() {
         val t = min(phaseTime, COLLAPSE_AT)
         spheres(t)
+        swallowCore()
         ruptureLight(t)
         chargeExtras(1f, 1f - ramp(phaseTime, 0f, CHARGE_FADE))
     }
@@ -541,6 +596,7 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
             glow.halo = GLOW_HALO
             glow.haloWidth = GLOW_HALO_WIDTH
         }
+        swallowCore()
 
         if (!exitTwinklesStarted) {
             exitTwinklesStarted = true

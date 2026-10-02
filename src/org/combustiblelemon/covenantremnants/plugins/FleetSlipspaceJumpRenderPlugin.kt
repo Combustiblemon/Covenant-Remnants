@@ -61,7 +61,11 @@ class FleetSlipspaceJumpRenderPlugin : BaseCombatLayeredRenderingPlugin(CombatEn
         shader.render(viewport)
     }
 
-    /** Player-only: the grab footprint at the cursor while the jump is primed (aiming). */
+    /**
+     * Player-only, while the jump is primed (aiming): the grab ring at the cursor (where everything
+     * lands) with the carrier footprint at its centre, and the entry grab ring off the bow (what
+     * will be taken; follows the facing while aiming), both in the validity colour.
+     */
     private fun renderDestinationPreview() {
         val engine = Global.getCombatEngine() ?: return
         val ship = engine.playerShip ?: return
@@ -85,6 +89,9 @@ class FleetSlipspaceJumpRenderPlugin : BaseCombatLayeredRenderingPlugin(CombatEn
             DrawUtils.drawCircle(target.x, target.y, FleetSlipspaceJump.grabRadius.value, PREVIEW_SEGMENTS, false)
             // Carrier footprint at the center
             DrawUtils.drawCircle(target.x, target.y, ship.collisionRadius, 48, false)
+            // Entry: the grab ring around the portal off the bow
+            val portal = FleetSlipspaceJump.portalCenter(ship)
+            DrawUtils.drawCircle(portal.x, portal.y, FleetSlipspaceJump.grabRadius.value, PREVIEW_SEGMENTS, false)
         } finally {
             GL11.glPopAttrib()
         }

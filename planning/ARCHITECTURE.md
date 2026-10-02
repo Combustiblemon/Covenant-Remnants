@@ -120,8 +120,9 @@ The jump is the engine's; the mod only draws it (Halo 3: ODST carrier-jump look)
 ### Fleet Slipspace Jump (supercap1)
 
 The CAS-class Assault Carrier's unique system, `covenant_remnants_fleet_slipspace_jump`
-(`data/shipsystems/`, `STAT_MOD` + `CUSTOM` AI). Jumps everything inside a radius of the carrier —
-ships of any side, fighters, shots, hulks, asteroids — to the destination in one frame.
+(`data/shipsystems/`, `STAT_MOD` + `CUSTOM` AI). Opens a rupture one ship length off the bow,
+lurches the carrier into it during the fade, and jumps everything inside the grab radius around the
+portal — ships of any side, fighters, shots, hulks, asteroids — to the destination in one frame.
 
 - `systems/FleetSlipspaceJump.kt` — system id, every tunable (live via `FleetJumpTune`), per-combat
   shared state (AI→script destination handoff, in-transit set, the one render plugin), shared

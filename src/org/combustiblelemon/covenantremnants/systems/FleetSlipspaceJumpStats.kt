@@ -24,8 +24,8 @@ import com.fs.starfarer.api.plugins.ShipSystemStatsScript
  * Player activation (developer 2026-10-01): the system key primes, left click confirms the cursor
  * point, right click cancels (FleetSlipspaceJumpTargetingPlugin). Usable when: flux is below
  * FLUX_GATE and the destination (the confirmed / aimed point for the player, the AI-chosen point
- * otherwise) is at least MIN_RANGE away, inside the map, with the carrier's landing spot clear of
- * ships that are not coming along.
+ * otherwise) is at least MIN_RANGE from the portal off the bow, inside the map, with the carrier's
+ * landing spot clear of ships that are not coming along.
  */
 class FleetSlipspaceJumpStats : BaseShipSystemScript() {
     private companion object {
