@@ -46,7 +46,7 @@ IDE setup, and troubleshooting.
 
 - Kotlin for all code, organised by feature under `org.combustiblelemon.covenantremnants` (see
   [planning/ARCHITECTURE.md](planning/ARCHITECTURE.md)).
-- For rendering, prefer OpenGL shaders. Simple example:
-  `src/org/combustiblelemon/covenantremnants/utils/render/MinimalShader.kt`; more complex:
-  `.../utils/render/ShieldShader.kt`.
+- For rendering, prefer OpenGL shaders built on LemonLib's shader composition system (docs:
+  `../LemonLib/docs/shader-composition/`). Reference implementation:
+  `src/org/combustiblelemon/covenantremnants/utils/render/ShieldShader.kt`.
 - New content ids use the `covenant_remnants_` prefix (see [planning/DOCUMENTATION.md](planning/DOCUMENTATION.md)).

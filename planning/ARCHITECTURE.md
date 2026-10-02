@@ -87,8 +87,10 @@ vanilla one:
 - World: `campaign/systems/SlipspaceSystem.kt` (+ `scripts/SlipspaceSystemEFS.kt`),
   entity `campaign/entities/SlipspacePortalEntity.kt`, drive `systems/SlipspaceDrive.kt`
   (single-ship combat jump, `covenant_remnants_slipspacedrive`, on frigate1/frigate3/destroyer2).
-- Render: `plugins/SlipspaceDriveRenderPlugin.kt`, `utils/render/SlipspacePortalEntityShader.kt`
-  (`data/shaders/slipspacePortalEntityShader.frag`/`.vert`).
+- Render: `plugins/SlipspaceDriveRenderPlugin.kt` (combat portal; its three sprite ids —
+  `portal_outer_loop`, `portal_inner_loop`, `portal_noise_long` — are currently unregistered, so it
+  resolves them defensively and draws an untextured placeholder; art pass pending),
+  `utils/render/SlipspacePortalEntityShader.kt` (`data/shaders/slipspacePortalEntityShader.frag`/`.vert`).
 - Console commands: `commands/RegenerateSlipspace.kt`, `commands/DebugHook.kt`,
   `commands/CovenantGiveAll.kt`, `commands/FleetJumpTune.kt` (registered in
   `data/console/commands.csv`). `ShaderLayers` lives in LemonLib and is registered by LemonLib's
@@ -141,11 +143,13 @@ from the mod plugin (`onApplicationLoad` install, `onGameLoad` re-verify). See
 
 ### Shader framework
 
-`utils/render/Shader.kt` (base), `MinimalShader.kt` (simple example), `PolygonShader.kt`; plus the
-subsystem shaders above. Composed systems registered with LemonLib's `ShaderLayers` command:
-`shield` (ShieldShader). Reflection helper: `org.combustiblelemon.lemonlib.reflection.ReflectionUtils`
-(in LemonLib). Misc: `utils/Utils.kt`, `utils/Data.kt`, `utils/CubicCurve2D.kt`,
-`utils/extensions/CampaignFleetAPI.kt`.
+`Shader` interface and `getShaderCode` live in LemonLib (`org.combustiblelemon.lemonlib.render`);
+the subsystem shaders above implement it. Composed systems registered with LemonLib's
+`ShaderLayers` command: `shield` (ShieldShader). The one remaining monolith (non-composed) shader is
+`SlipspacePortalEntityShader`. Reflection helper:
+`org.combustiblelemon.lemonlib.reflection.ReflectionUtils` (in LemonLib); cubic-bezier easing:
+`org.combustiblelemon.lemonlib.geometry.CubicCurve2D` (in LemonLib). Misc: `utils/Utils.kt`,
+`utils/Data.kt`, `utils/extensions/CampaignFleetAPI.kt`.
 
 ## Build & data flow
 

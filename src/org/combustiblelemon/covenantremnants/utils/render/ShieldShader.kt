@@ -462,7 +462,7 @@ class ShieldShader(
         // rebuild the program lazily — render() is on the GL thread
         program.ensureUpToDate()
 
-        // Update viewport scale for ripple calculations
+        // Update viewport scale for the layers
         viewportScaleX = viewport.viewMult
         viewportScaleY = viewport.viewMult
 

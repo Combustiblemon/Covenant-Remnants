@@ -1,6 +1,7 @@
 ﻿package org.combustiblelemon.covenantremnants.systems
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipSystemAPI
@@ -8,7 +9,7 @@ import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
 import org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning
 import org.combustiblelemon.covenantremnants.plugins.SlipspaceDriveRenderPlugin
-import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
+import org.combustiblelemon.lemonlib.geometry.CubicCurve2D
 import org.combustiblelemon.lemonlib.ship.getVelocityVectorInFacing
 import org.combustiblelemon.lemonlib.geometry.normalize
 import org.lazywizard.lazylib.MathUtils
@@ -21,6 +22,10 @@ class SlipspaceDrive : BaseShipSystemScript() {
     private var facing: Float = 0f
     private var renderPlugin: SlipspaceDriveRenderPlugin? = null
     private val cubicFunction = CubicCurve2D(1f, 0f, 0f, 1f)
+
+    // Script instances can outlive a battle; on a new combat engine drop the per-battle state
+    // (render plugin, phase flags) so everything re-initializes (same pattern as CovenantShieldsStats).
+    private var combatEngine: CombatEngineAPI? = null
 
     //    IN
     private var isIn = false
@@ -66,7 +71,17 @@ class SlipspaceDrive : BaseShipSystemScript() {
         } else {
             return
         }
-        val currentTime = Global.getCombatEngine().getTotalElapsedTime(false)
+        val engine = Global.getCombatEngine()
+        if (combatEngine !== engine) {
+            combatEngine = engine
+            renderPlugin = null
+            isIn = false
+            isActive = false
+            isOut = false
+            launchStartTime = 0f
+            portalExit = null
+        }
+        val currentTime = engine.getTotalElapsedTime(false)
 
         if (renderPlugin == null) {
             renderPlugin = SlipspaceDriveRenderPlugin(ship, portalDuration, portalDistance, portalRadius)

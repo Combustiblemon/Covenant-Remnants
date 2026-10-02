@@ -71,10 +71,16 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Slipspace Drive rupture damage** — the drive renderer's "apply damage to non-shielded ships
       in radius" TODO is still open; the Fleet Jump's rupture damage
       (`FleetSlipspaceJumpSession.applyRuptureDamage`) is a ready model if the drive should get it too.
-- [ ] **Slipspace Drive portal after the first battle (unverified)** — `SlipspaceDrive` creates its
-      render plugin once per script instance, with no per-combat reset (`CovenantShieldsStats` has
-      one). If system script instances outlive a battle, the portal stops rendering after the first
-      battle. Check in-game; fix as a bug if so.
+- [x] **Slipspace Drive portal after the first battle** — `SlipspaceDrive` now drops its render
+      plugin + phase flags whenever the combat engine changes (same pattern as
+      `CovenantShieldsStats`). 2026-10-02. In-game check still pending (second battle, same
+      session). See [implementations/cleanup-batch-2026-10-02.md](implementations/cleanup-batch-2026-10-02.md).
+- [ ] **Drive portal art** — the three portal sprites (`portal_outer_loop`, `portal_inner_loop`,
+      `portal_noise_long`) were deleted in commit `9b5ecc1` and unregistered in `a22e7d8`; until
+      2026-10-02 the drive **crashed the game on activation** (`getSprite` throws on an unknown key).
+      Now guarded: untextured placeholder rings/disc + one log warn. Developer will redo the drive
+      visuals; old textures recoverable from `9b5ecc1^` at
+      `graphics/covenant_remnants/fx/slipspace/{slipspace_portal_ring_outer,slipspace_portal_ring_inner,noiseTexture}.png`.
 - [x] **Verify shield stats-script sharing** — verified 2026-10-01: with 2+ Covenant ships only the
       hit ship's shield drops; state is per-ship, no refactor needed.
 
@@ -172,8 +178,10 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/lemonlib-extraction.md](implementations/lemonlib-extraction.md).
       Verified in-game 2026-10-01 (runs, hard dependency enforced by launcher). Developer:
       `git init` the LemonLib repo when ready.
-- [ ] **Decide fate of remaining monolith shaders** — MinimalShader / PolygonShader /
-      SlipspacePortalEntityShader: migrate to the composition system or discard, per shader.
+- [x] **Decide fate of remaining monolith shaders** — `MinimalShader` + `PolygonShader` (and
+      `data/shaders/minimalShader.*`) deleted 2026-10-02 (nothing instantiated them; developer
+      ruling). `SlipspacePortalEntityShader` stays as-is (live, campaign portal entity) — migrate to
+      the composition system only if the portal look gets reworked.
 - [x] **Rupture remake from Reach game data** — developer decision 2026-10-01. The slipspace bomb
       (m45 `045lf_jorge`) was dumped from the official Reach editing kit (ManagedBlam, curves
       included) and rebuilt faithfully: `utils/render/rupture/` (`RuptureRenderer`, sphere + sprite
@@ -185,10 +193,10 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Rupture in-game look** — first in-game look at the Reach remake: texture row order (flame
       direction), `EXPOSURE`, `SPRITE_SCALE` (charge core, twinkles), heat-haze strength, frame rate
       during the burst (~2000 sprites). Tune with `FleetJumpTune`.
-- [ ] **Unregistered noise sprites** — `getSprite("covenant_remnants", "shield_noise")`
-      (PolygonShader) and `"portal_noise_long"` (SlipspaceDriveRenderPlugin) have no
-      `settings.json` entry and no texture file; noticed 2026-10-01 while registering the rupture
-      textures. Check whether they render (possible link to the drive-portal TODO).
+- [x] **Unregistered noise sprites** — `shield_noise` went with `PolygonShader` (deleted);
+      `portal_noise_long` + the two portal ring ids are now guarded (see "Drive portal art").
+      `graphics/covenant_remnants/fx/shield/noise.png` is an orphan (never registered, no reader
+      left) — kept for the developer's art pass; delete or reuse there.
 - [x] **ReflectionUtils → LemonLib** — moved whole file to
       `org.combustiblelemon.lemonlib.reflection.ReflectionUtils` (public), together with the
       generic hullmod-incompatibility system (`lemonlib.hullmods`: `HullmodBlocker`, wrapper,
@@ -196,10 +204,11 @@ Keep this file current — tick items off and add new ones as work lands.
       only `hullmods/CovenantIncompatibilities.kt` (registry). Docs:
       `LemonLib/docs/hullmod-incompatibility/README.md`. Verified in-game 2026-10-01 (via the
       incompatibility registry).
-- [ ] **Evaluate more LemonLib candidates** — `CubicCurve2D.kt`, `extensions/`
-      (`Data.kt` likely stays — Covenant shield data).
-- [ ] **Ripple zoom consistency** (pre-existing TODO) — ripple speed/radius/width inconsistent
-      across zoom levels.
+- [x] **Evaluate more LemonLib candidates** — `CubicCurve2D` moved to
+      `org.combustiblelemon.lemonlib.geometry` 2026-10-02. `extensions/CampaignFleetAPI.kt`
+      (`isInSlipspace`) and `Data.kt` stay — Covenant-specific.
+- [x] **Ripple zoom consistency** — obsolete: the ripple layer was replaced by the plasma layer
+      2026-10-02; nothing ripple-related is left in the shield stack.
 
 ## Dev tooling
 
@@ -212,11 +221,9 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **`FleetJumpTune` console command** — lists / sets / resets every Fleet Slipspace Jump
       tunable live (CHARGE/FADE/ARRIVAL from the next battle). See
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
-- [ ] **LemonLib repo is dirty** (noticed 2026-10-01) — `README.md`, two shader-composition docs and
-      `jars/LemonLib.jar` modified; `docs/hullmod-incompatibility/`, `src/.../lemonlib/hullmods/`,
-      `src/.../lemonlib/reflection/` untracked. Only commit is `initial commit`, so the
-      hullmod-incompatibility + reflection source Covenant depends on is uncommitted. Developer to
-      commit.
+- [ ] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
+      (`65a5b80`). Still uncommitted as of 2026-10-02: `jars/LemonLib.jar`, new
+      `src/.../lemonlib/geometry/CubicCurve2D.kt`, `README.md` row. Developer to commit.
 
 ## From PLAN.md (still open)
 

@@ -2,9 +2,10 @@
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import com.fs.starfarer.api.graphics.SpriteAPI
 import com.fs.starfarer.api.impl.campaign.terrain.RingRenderer
 import com.fs.starfarer.api.util.Misc
-import org.combustiblelemon.covenantremnants.utils.CubicCurve2D
+import org.combustiblelemon.lemonlib.geometry.CubicCurve2D
 import org.combustiblelemon.lemonlib.ship.getLocationInFrontOfShip
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.opengl.DrawUtils
@@ -27,17 +28,31 @@ class SlipspaceDriveRenderPlugin(
     private val startUpTime = 3f
     private var isPortalActive = false
     private val cubicFunction = CubicCurve2D(.01, .75, 0.0, .99) //.02,.65,1,-0.91
-    private val outerRingRenderer = RingRenderer("covenant_remnants", "portal_outer_loop")
-    private val innerRingRenderer = RingRenderer("covenant_remnants", "portal_inner_loop")
-    private val noiseSprite = Global.getSettings().getSprite("covenant_remnants", "portal_noise_long")
+    // Portal textures are not registered in settings.json (art pass pending — see
+    // planning/TODO.md "Drive portal art"). getSprite(category, key) throws on an unknown key,
+    // so each one is resolved defensively; a missing sprite falls back to an untextured placeholder.
+    private val outerRingRenderer: RingRenderer? = loadRing("portal_outer_loop")
+    private val innerRingRenderer: RingRenderer? = loadRing("portal_inner_loop")
+    private val noiseSprite: SpriteAPI? = loadSprite("portal_noise_long")
     private val texturePoints =
         MathUtils.getPointsAlongCircumference(Vector2f(0.5f, 0.5f), 0.5f, 40, 0f).toTypedArray<Vector2f>()
     private var effectLevelExtra = 0f
     private var counter = 0
     private var reverse = false
     private var reverseLevel = 0f
+    private fun loadRing(key: String): RingRenderer? =
+        runCatching { RingRenderer("covenant_remnants", key) }.getOrElse { warnMissing(key); null }
+
+    private fun loadSprite(key: String): SpriteAPI? =
+        runCatching { Global.getSettings().getSprite("covenant_remnants", key) }.getOrElse { warnMissing(key); null }
+
+    private fun warnMissing(key: String) {
+        Global.getLogger(this.javaClass)
+            .warn("Portal sprite [covenant_remnants/$key] is not registered; rendering the slipspace drive portal as a placeholder")
+    }
+
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
-        // TODO: IMPROVE VISUALS
+        // Visuals: placeholder until the drive art pass (planning/TODO.md "Drive portal art").
         // TODO: APPLY DAMAGE TO NON SHIELDED SHIPS IN RADIUS
         if (!attachedTo!!.system.isActive) {
             return
@@ -94,9 +109,9 @@ class SlipspaceDriveRenderPlugin(
         val noiseRadius = (innerRadius - 10).coerceAtLeast(0f)
 
         // Render the outer white ring
-        outerRingRenderer.render(portalLocation, radius, radius * 0.9f, Color.white, false, 1f, 1f)
+        outerRingRenderer?.render(portalLocation, radius, radius * 0.9f, Color.white, false, 1f, 1f)
         // Render the inner purple-black ring
-        innerRingRenderer.render(portalLocation, innerRadius, radius * 0.88f, Color.white, false, 1f, 1f)
+        innerRingRenderer?.render(portalLocation, innerRadius, radius * 0.88f, Color.white, false, 1f, 1f)
 
         // Fill the inner ring with color
         GL11.glDisable(GL11.GL_TEXTURE_2D)
@@ -106,7 +121,16 @@ class SlipspaceDriveRenderPlugin(
 
         // Get points so we can map the noise texture
         val points = MathUtils.getPointsAlongCircumference(portalLocation, noiseRadius, 40, 0f).toTypedArray<Vector2f>()
-        noiseSprite.bindTexture()
+        val noise = noiseSprite
+        if (noise == null) {
+            // Placeholder: flat disc, no texture.
+            GL11.glDisable(GL11.GL_TEXTURE_2D)
+            Misc.setColor(Color(139, 130, 251))
+            DrawUtils.drawCircle(portalLocation!!.x, portalLocation!!.y, noiseRadius, 40, true)
+            GL11.glEnable(GL11.GL_TEXTURE_2D)
+            return
+        }
+        noise.bindTexture()
         Misc.setColor(Color(139, 130, 251))
         GL11.glBegin(GL11.GL_POLYGON)
         GL11.glEnable(GL11.GL_BLEND)
