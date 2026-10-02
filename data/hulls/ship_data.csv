@@ -19,7 +19,7 @@ RCS-class Armored Cruiser,covenant_remnants_cruiser4,Heavy Cruiser,Covenant Remn
 #Capitals,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Reverence-class Battleship,covenant_remnants_capital1,Battleship,Covenant Remnants,fortressshield,32,20000,1600,20000,26000,1250,360,,25,12,10,4,5,4000,PHASE,covenant_remnants_covenantshield,,,,,,400,1000,300,300,10,30,7,550000,3,15,720,0.25,60,60,,rare_bp,0.4,2,4,,0
 ORS-class Heavy Cruiser,covenant_remnants_capital2,Heavy Cruiser,Covenant Remnants,displacer,30,20000,1500,20000,26000,1500,320,,40,30,20,7,10,3500,PHASE,covenant_remnants_covenantshield,,,,,,300,600,300,400,10,40,8,500000,3,15,720,0.25,50,50,,rare_bp,0.4,2,4,,0
-CPV-class Heavy Destroyer,covenant_remnants_capital3,Heavy Destroyer,Covenant Remnants,microburn,24,12000,1000,14400,20000,1000,280,,80,70,50,12,16,3000,PHASE,covenant_remnants_covenantshield,,,,,,150,300,300,300,10,30,9,350000,3,15,600,0.25,40,40,,rare_bp,0.5,2,4,,0
+CPV-class Heavy Destroyer,covenant_remnants_cruiser5,Heavy Destroyer,Covenant Remnants,microburn,24,12000,1000,14400,20000,1000,280,,80,70,50,12,16,3000,PHASE,covenant_remnants_covenantshield,,,,,,150,300,300,300,10,30,9,350000,3,15,600,0.25,40,40,,rare_bp,0.5,2,4,,0
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 #Super Capitals,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 CAS-class Assault Carrier,covenant_remnants_supercap1,Assault Carrier,Covenant Remnants,covenant_remnants_fleet_slipspace_jump,45,65000,8500,40000,30000,800,460,3,30,15,12,4,4,12000,PHASE,covenant_remnants_covenantshield,,,,,,4500,6500,2000,600,20,40,6,900000,3,12,1200,0.25,60,60,NEVER_DODGE_MISSILES,rare_bp,0.3,2,2,,0

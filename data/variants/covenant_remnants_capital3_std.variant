@@ -1,6 +1,6 @@
 {
-  "variantId": "covenant_remnants_capital3_std",
-  "hullId": "covenant_remnants_capital3",
+  "variantId": "covenant_remnants_cruiser5_std",
+  "hullId": "covenant_remnants_cruiser5",
   "displayName": "Standard",
   "goalVariant": true,
   "fluxCapacitors": 24,
@@ -14,26 +14,26 @@
       "mode": "LINKED",
       "weapons": {
         "WS0001": "covenant_remnants_energyprojector",
-        "WS0002": "covenant_remnants_plasmaautocannon"
-      }
+        "WS0002": "covenant_remnants_plasmaautocannon",
+      },
     },
     {
       "autofire": false,
       "mode": "LINKED",
       "weapons": {
         "WS0003": "covenant_remnants_plasmabeam",
-        "WS0004": "covenant_remnants_plasmabeam"
-      }
+        "WS0004": "covenant_remnants_plasmabeam",
+      },
     },
     {
       "autofire": true,
       "mode": "LINKED",
       "weapons": {
         "WS0005": "covenant_remnants_pulselaserturret",
-        "WS0006": "covenant_remnants_pulselaserturret"
-      }
-    }
+        "WS0006": "covenant_remnants_pulselaserturret",
+      },
+    },
   ],
   "modules": [],
-  "wings": []
+  "wings": [],
 }
