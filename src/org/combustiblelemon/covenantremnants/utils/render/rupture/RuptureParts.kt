@@ -133,16 +133,19 @@ internal class RuptureSprite(val kind: SpriteKind) {
     val isDead: Boolean get() = age >= life
 }
 
+/** How a sphere mode's output combines with the screen. */
+internal enum class SphereBlend { ALPHA, ADD, MULTIPLY }
+
 /** Sphere modes of ruptureSphere.frag (see there). */
-internal enum class SphereMode(val id: Int, val additive: Boolean) {
-    GLOW(0, false),
-    BLACK(1, false),
-    WEB(2, true),
-    SHELL(3, true),
-    PLASMA_SHELL(4, true),
-    RING(5, true),
-    LIGHT(6, true),
-    CORE(7, false)
+internal enum class SphereMode(val id: Int, val blend: SphereBlend) {
+    GLOW(0, SphereBlend.ALPHA),
+    BLACK(1, SphereBlend.MULTIPLY),
+    WEB(2, SphereBlend.ADD),
+    SHELL(3, SphereBlend.ADD),
+    PLASMA_SHELL(4, SphereBlend.ADD),
+    RING(5, SphereBlend.ADD),
+    LIGHT(6, SphereBlend.ADD),
+    CORE(7, SphereBlend.ALPHA)
 }
 
 /** One analytic sphere to draw this frame; filled by [RuptureEffect]. Radius in world units. */
@@ -156,6 +159,12 @@ internal class SphereDraw(val mode: SphereMode) {
     var haloWidth = 0.1f
     var ringWidth = 0.012f
     var lightStart = 0.8f
+    /** BLACK: Reach's particle angle fade, degrees from edge-on (0 range = off). */
+    var angleFadeCutoff = 0f
+    var angleFadeRange = 0f
+    /** BLACK: the glow sphere under it (HDR colour × intensity, radius in this sphere's radii). */
+    val underHdr = floatArrayOf(0f, 0f, 0f)
+    var underRadius = 0f
     var noiseA: RuptureTexture? = null
     var noiseB: RuptureTexture? = null
     var palette: RuptureTexture? = null

@@ -11,7 +11,12 @@ in vec2 TexCoord;
 // Modes (RuptureSphereShader sets the blend function per mode):
 //   0 GLOW         slipspace_sphere_glow: flat HDR colour, tone-mapped, plus a local bloom halo.
 //                  Alpha blend.
-//   1 BLACK        slipspace_sphere_multiply, made pure black (developer decision). Alpha blend.
+//   1 BLACK        slipspace_sphere_multiply, made pure black (developer decision), with the
+//                  particle's angle fade: gone where the surface is seen edge-on, so the glow
+//                  sphere behind shows as a white rim from the first frame. Multiply blend, and
+//                  like Reach it darkens the glow in HDR, before tone mapping: over the glow the
+//                  factor is tonemap(glow * (1 - k)) / tonemap(glow), so the over-bright glow stays
+//                  white while the black is thin and goes lavender, blue, black as it thickens.
 //   2 WEB          slipspace_sphere_plasma: palettized plasma - two scrolling noise maps, their
 //                  difference indexes a palette that is violet only near 0, so only the lines where
 //                  the noises cross light up - masked at the poles. Side view (pole on screen Y).
@@ -39,6 +44,10 @@ uniform float halo;        // GLOW: bloom halo strength
 uniform float haloWidth;   // GLOW: bloom falloff, in radii
 uniform float ringWidth;   // RING: band width, in radii
 uniform float lightStart;  // LIGHT: full-strength radius, in radii
+uniform float angleFadeCutoff; // BLACK: fully faded below this angle from edge-on, degrees
+uniform float angleFadeRange;  // BLACK: back to full over this many degrees past the cutoff
+uniform vec3 underHdr;     // BLACK: the glow sphere under it, HDR colour x intensity
+uniform float underRadius; // BLACK: the glow sphere's radius, in this sphere's radii
 
 uniform sampler2D noiseA;
 uniform sampler2D noiseB;
@@ -98,7 +107,19 @@ void main() {
         float bloom = halo * exp(-max(d - 1.0, 0.0) / max(haloWidth, 0.001));
         outColor = vec4(c, max(body, bloom) * alpha);
     } else if (mode == 1) {
-        outColor = vec4(0.0, 0.0, 0.0, discCoverage(d) * alpha);
+        // Angle between the view ray and the surface (top-down view): 90 at the centre, 0 at the
+        // silhouette.
+        float fade = 1.0;
+        if (angleFadeRange > 0.0) {
+            float edgeAngle = degrees(asin(sqrt(max(0.0, 1.0 - d * d))));
+            fade = clamp((edgeAngle - angleFadeCutoff) / angleFadeRange, 0.0, 1.0);
+        }
+        float k = discCoverage(d) * fade * alpha * master;
+        vec3 factor = vec3(1.0 - k);
+        if (d < underRadius) {
+            factor = tonemap(underHdr * (1.0 - k)) / max(tonemap(underHdr), vec3(0.001));
+        }
+        outColor = vec4(factor, 1.0);
     } else if (mode == 2) {
         if (d >= 1.0) {
             discard;
@@ -139,8 +160,13 @@ void main() {
         outColor = vec4(tonemap(color * intensity) * fade * alpha, 1.0);
     }
 
-    // Additive modes carry their strength in rgb (blend ONE, ONE); alpha modes (0, 1, 7) in a.
-    if (mode >= 2 && mode != 7) {
+    // Additive modes carry their strength in rgb (blend ONE, ONE); BLACK its factor in rgb (blend
+    // ZERO, SRC_COLOR), master already in; alpha modes (0, 7) in a.
+    if (mode == 1) {
+        if (min(outColor.r, min(outColor.g, outColor.b)) >= 0.999) {
+            discard;
+        }
+    } else if (mode >= 2 && mode != 7) {
         outColor.rgb *= master;
         if (max(outColor.r, max(outColor.g, outColor.b)) <= 0.001) {
             discard;

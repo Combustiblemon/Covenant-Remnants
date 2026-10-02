@@ -61,12 +61,19 @@ Keep this file current — tick items off and add new ones as work lands.
       portal during the fade and lands at the exit centre; entry ring in the aiming preview; AI
       counts the circle off its current bow. Check items 1–4 and 9 of the checklist in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
-- [ ] **Fleet Slipspace Jump — white charge core (in-game look)** — built 2026-10-02, revised same
+- [x] **Fleet Slipspace Jump — white charge core (in-game look)** — developer OK 2026-10-02 — built 2026-10-02, revised same
       day: white sphere at the centre of the charge-up (star-flare core size, ≈ 12–18 su radius, so
       the spokes reach past it; breathing, soft bloom, below
       saturation so the charge energy and the heat-haze ripples — now drawn after the spheres — show
       over it), swallowed by the opening glow sphere; same at the exit seed. Constants `CORE_*` in `RuptureEffect`
       (placeholders). Checklist items 2–3 in
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [x] **Fleet Slipspace Jump — black body inside the white (in-game look)** — developer OK 2026-10-02 ("great for now") — 2026-10-02: the
+      opening's black body now has Reach's angle fade (10°/25°), so the white ball grows first and
+      the darkness fills in inside it, edge staying a white rim; and it now darkens the glow in HDR
+      (multiply before tone mapping, like Reach), so the burst stays white before going lavender →
+      blue → black; and the black now trails the white by `BLACK_DELAY` 0.3 s (same curves, so a
+      white ball shows first and the dark grows out from the centre). Checklist item 3 in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
 - [ ] **Fleet Slipspace Jump in-game test** — developer: run the checklist in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md) (mechanics,
@@ -104,9 +111,8 @@ Keep this file current — tick items off and add new ones as work lands.
       plugin both reset on engine change).
 - [x] **Drive portal art** — superseded 2026-10-02: the drive is now the blink (below); the old
       portal plugin and its missing `portal_*` sprite ids are gone.
-- [ ] **Slipspace Drive AI** — the drive's `.system` has `aiType: NONE`, so AI-piloted frigate1,
-      frigate3 and destroyer2 never jump. Decide whether they should. (supercap1 no longer carries
-      the drive.)
+- [x] **Slipspace Drive AI** — decided with the blink (developer 2026-10-02): `aiType:
+      PHASE_TELEPORTER_2`, so AI-piloted frigate1, frigate3 and destroyer2 now use the drive.
 - [ ] **Slipspace Drive rupture damage** — the drive renderer's "apply damage to non-shielded ships
       in radius" TODO is still open; the Fleet Jump's rupture damage
       (`FleetSlipspaceJumpSession.applyRuptureDamage`) is a ready model if the drive should get it too.
@@ -114,12 +120,6 @@ Keep this file current — tick items off and add new ones as work lands.
       plugin + phase flags whenever the combat engine changes (same pattern as
       `CovenantShieldsStats`). 2026-10-02. In-game check still pending (second battle, same
       session). See [implementations/cleanup-batch-2026-10-02.md](implementations/cleanup-batch-2026-10-02.md).
-- [ ] **Drive portal art** — the three portal sprites (`portal_outer_loop`, `portal_inner_loop`,
-      `portal_noise_long`) were deleted in commit `9b5ecc1` and unregistered in `a22e7d8`; until
-      2026-10-02 the drive **crashed the game on activation** (`getSprite` throws on an unknown key).
-      Now guarded: untextured placeholder rings/disc + one log warn. Developer will redo the drive
-      visuals; old textures recoverable from `9b5ecc1^` at
-      `graphics/covenant_remnants/fx/slipspace/{slipspace_portal_ring_outer,slipspace_portal_ring_inner,noiseTexture}.png`.
 - [x] **Verify shield stats-script sharing** — verified 2026-10-01: with 2+ Covenant ships only the
       hit ship's shield drops; state is per-ship, no refactor needed.
 

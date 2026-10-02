@@ -99,6 +99,8 @@ object FleetSlipspaceJump {
     val particleDensity = tune("PARTICLE_DENSITY", 1f, "Emission multiplier for every particle system")
     val exposure = tune("EXPOSURE", 1f, "Tone-mapping exposure for Reach's HDR colours")
     val distortion = tune("DISTORTION", 1f, "Heat-haze strength of the charge rings (0 = off)")
+    // Developer 2026-10-02: the white ball leads, the darkness grows in inside it (Reach: together).
+    val blackDelay = tune("BLACK_DELAY", 0.3f, "Opening: the black body's growth and fade-in start this many seconds after the white sphere's")
 
     val tunables: Collection<Tunable> get() = registry.values
 

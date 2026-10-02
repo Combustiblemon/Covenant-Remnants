@@ -93,7 +93,9 @@ sprites are the "small white vibrating sphere". Plus a distortion ring (3 s), a 
 - *multiply*: `palettized_plasma` (`plasma_clouds01` ×4 scrolling 2.5/3 s, `plasma_clouds02` ×16
   scrolling 4/5 s) through palette `multiply_plasma` (near black with faint streaks), blend
   `multiply`; alpha 0 → 1 over 0.65 s — the body going black. Scale like the glow, → 0 over
-  2.35–3 s.
+  2.35–3 s. **Angle fade range 25°, cutoff 10°**: gone where the surface is within 10° of
+  edge-on, full from 35° (≈ the outer 18 % of the radius) — the glow shows through there as the
+  white rim from the first frame, the darkness filling in inside it.
 - *plasma*: `palettized_plasma` (`plasma_clouds01` ×7, `plasma_clouds02` ×3, 6 s scroll) through
   palette `plasma_clouds` (violet only at index 0 → thin violet lines where the two noises cross:
   the lightning web), alpha map `slipspace_sphere_alpha` (jagged fade at the poles), blend
@@ -142,6 +144,9 @@ at 0.3 × 130 × 35 = 1365 (≈ **2.2×**; the 3.6× quoted before the fit was w
 | Startup trims | Drop the white flash going out and back in (Reach's arming flare); the grab-radius ring during the charge off for now (developer 2026-10-01). |
 | Portal off the bow (2026-10-02) | The rupture opens **one ship length off the bow** (`PORTAL_AHEAD` 2 collision radii ≈ 660 su ahead of the CAS centre) and the **grab radius is centred on it**, not on the carrier (grabs ~1000 su ahead, ~340 su behind the stern). **Lurch**: during the 2 s fade the CAS physically eases into the portal centre (phased and fading like the cargo), reaching it at the jump; the CAS always comes along. **Exit**: the CAS lands at the destination = exit portal centre; cargo keeps its offsets from the portal centre. **Preview**: the entry grab ring off the bow is drawn too while aiming. `MIN_RANGE` is measured portal centre → destination. **AI** judges the circle off its current bow, no turning to aim. |
 | Charge core (2026-10-02) | A **white sphere at the centre of the charge-up** (not in Reach): **the size of the star flare's bright core** so the flare's spokes reach past it (radius = flare half-size × 0.11, measured from star_flare.png; ≈ 12–18 su; the spokes reach ~3×), grown in from a point over the charge, eased out; **breathes** (radius ±8 %, brightness ±15 %, 1.6 s period); limb-darkened white kept below saturation (new sphere mode `CORE`) so the **charge energy and the heat-haze ripples stay visible over it** — the ripple pass now draws after the spheres; soft bloom building with the charge. At the fade it holds until the opening glow sphere outgrows it, then fades in 0.15 s. The exit seed grows the same sphere. First pass (80 su, flat saturated white, flicker) hid the energy and ripples: developer asked for half the size (40 su), breathing, and both visible on top; then for the flare-core size. (The developer considered switching the whole portal to the Halo 3: ODST look and kept the Reach one.) |
+| Black body inside the white (2026-10-02) | Developer: in Reach the white ball grows and the darkness comes in *inside* it; ours grew a dark disc with the white only arriving later. Cause: the remake missed the multiply sphere's **angle fade** (range 25°, cutoff 10°), so the black covered the glow edge to edge until the glow's 10 % oversize at 1.1–1.4 s. Now ported (shader `BLACK` mode): the black fades out toward the limb, the glow stays a white rim around it from the first frame. |
+| Burst stays white (2026-10-02) | Developer: the opening's white burst read off-purple. Cause: the black was alpha-blended *after* tone mapping, so 20–40 % black already dimmed the white to grey (purple under the web). Reach's multiply works on the HDR glow (intensity 10 → 5) before tone mapping, so the glow stays white while the black is thin. Now: `BLACK` multiplies (blend `ZERO, SRC_COLOR`) by `tonemap(glow × (1 − k)) / tonemap(glow)` over the glow, `1 − k` outside it. Expected: white ball (~0.1 s), light lavender (~0.2 s), lavender-blue (~0.3 s), blue-violet (~0.4 s), black by ~0.7 s; the collapse's shrinking core also comes back brighter as the black thins. |
+| Black trails the white (2026-10-02) | Developer: the white burst should stay white; the real issue was the black ball growing as fast as the white (Reach: same scale curve), so the darkness covered the white from the start. Now the black body runs the **same scale and alpha curves delayed by `BLACK_DELAY` (0.3 s, placeholder)**: a white ball first, then the dark grows out from the centre inside it, fading in (Reach alpha, HDR multiply: lavender → blue → black inside the black only); the white keeps Reach's tint. At the collapse the black shrinks on the normal timeline (min of both curves), so it never outgrows the white. |
 | Reach remake | **Faithful**: real particle systems and the three spheres, with Reach's textures, curves and timings (supersedes pass 2's procedural look; its *intent* carries over — charging sphere building over the whole charge, thin violet ring at R, expansion to R, white rim, web over black, exit mirrors the entry's charge). **Exit**: the same charge stream at the destination, then at the jump the glow sphere bursts to R as a white-violet flash and fades, with twinkles and a star flare; **no black sphere** at the exit. **Body pure black** (not Reach's near-black multiply palette). **Extras**: heat-distortion ring during the charge — yes; full-screen violet exposure flash — no (local only); debris meshes — no; remnant **capped near 1.3 R** (not Reach's ~2.2 R). |
 
 Implementation calls made while building (in the approved plan): fighters never block a landing
@@ -305,7 +310,7 @@ flash layers) were removed.
   flickering blue glow (Reach's charge light), thin violet ring at R. **OPEN** (fade) —
   `slipspace_event` 0..2 s (held at 2 s if FADE is longer): glow sphere (size × scale curves,
   salmon → blue-violet, intensity 10 → 5, local bloom halo), black body (alpha curve 0 → 1 over
-  0.65 s, pure black), web (scale curve), violet rupture glow from 0.37 s; charge extras fade over
+  0.65 s, pure black, Reach's angle fade 10°/25° so it stays inside a white rim), web (scale curve), violet rupture glow from 0.37 s; charge extras fade over
   0.3 s. **COLLAPSE** (from the jump, event clock 2 s on): 150 sparks on the 600 shell (inward
   streaks, life 0.8 s), spheres shrink to 0 by 3 s; burst at 2.5 s: blast shell + plasma shell
   (6 s, × `REMNANT_SCALE`), 10 + 7/s plasma clouds, 50 + 15/s plasma flames, 120 + rate-curve
@@ -406,7 +411,8 @@ AI: `AI_INTERVAL 0.75`, `FIGHTER_STRENGTH 1`, `PULL_MIN_THREAT 15`, `CLUSTER_RAD
 Visual (timings, sizes and colours come from Reach; these scale or bridge it): `EXIT_SEED_LEAD 2`,
 `CHARGE_RING 0`,
 `DISSOLVE 0.6`, `REMNANT_SCALE 0.6` (burst shell ends ≈ 1.3 R; 1 = Reach's ≈ 2.2 R),
-`SPRITE_SCALE 1`, `PARTICLE_DENSITY 1`, `EXPOSURE 1`, `DISTORTION 1`. The pass 1–2 tunables
+`SPRITE_SCALE 1`, `PARTICLE_DENSITY 1`, `EXPOSURE 1`, `DISTORTION 1`, `BLACK_DELAY 0.3` (the
+black body's growth and fade-in start this long after the white sphere's). The pass 1–2 tunables
 (`PREVIEW_ALPHA`, `CORE_RADIUS`, `EXPAND`, `OPEN`, `COLLAPSE`, `POP`, `POP_SCALE`, `CLOUD_START`,
 `CLOUD_END`, `CLOUD_LIFE`) are gone with the procedural shader.
 
@@ -474,8 +480,9 @@ only the animation (items 1–3 and the look in 4).
    bend); no ring at the grab radius (`CHARGE_RING 1` to see it); the same charge appears at the
    destination ~2 s before the fade. Ships inside can still fly out.
 3. **Fade (2 s).** The white core is swallowed as a white sphere grows to the ring (~0.75 s) going
-   salmon → violet-white; the body
-   goes pure black under it with the violet lightning web on top; a thick white rim around ~1–1.5 s;
+   salmon → violet-white; a white ball first, then ~0.3 s later the darkness grows out from the
+   centre **inside** it (lavender, then blue, then pure black) while the edge stays a white rim, with the violet lightning web on
+   top; the rim thickens around ~1–1.5 s;
    the CAS lurches forward into the sphere's centre, accelerating, and reaches it at the jump;
    everything inside (allies, enemies, fighters, the CAS) is phased, faded and jittered, cannot fire,
    and shots pass through it. Enemies that walk out during the fade are released.

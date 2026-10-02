@@ -29,8 +29,12 @@ import kotlin.math.sqrt
  *   flickering blue glow, and (CHARGE_RING, off by default) a thin violet ring at the grab radius
  *   (not in Reach). Reach's arming flare is left out (developer decision).
  * - OPEN (the fade): `slipspace_event` 0..2 s, held at 2 s if the fade lasts longer. The glow sphere
- *   bursts to the grab radius going salmon to blue-violet; the black body fades in over it (pure
- *   black, developer decision); the lightning web runs over the black; a violet light glow.
+ *   bursts to the grab radius going salmon to blue-violet; the black body grows and fades in inside
+ *   it on the same curves, BLACK_DELAY s behind (developer 2026-10-02; in Reach together), and
+ *   shrinks with the white at the collapse (pure
+ *   black, developer decision; Reach's angle fade keeps it off the limb, so the glow stays a white
+ *   rim around the darkness; it multiplies the glow in HDR like Reach, so the burst stays white
+ *   while the black is thin); the lightning web runs over the black; a violet light glow.
  * - COLLAPSE (from the jump): `slipspace_event` from 2 s. 150 sparks on the rim; the spheres shrink
  *   to nothing by 3 s; at 2.5 s the burst (blast shell, plasma shell, plasma clouds and flames,
  *   twinkles, fiery smoke going salmon to violet, the haze); the collapse flare from 2.6 s.
@@ -123,6 +127,9 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
 
         // Colours and intensities from the tags
         private val RING_VIOLET = floatArrayOf(0.55f, 0.35f, 1f)
+        // slipspace_sphere_multiply.particle angle fade, degrees from edge-on
+        private const val BLACK_ANGLE_FADE_CUTOFF = 10f
+        private const val BLACK_ANGLE_FADE_RANGE = 25f
         private val STAR_FLARE_COLOR = floatArrayOf(0.2f, 0.2457f, 1f)
         private const val STAR_FLARE_MIN = 2.3f
         private const val STAR_FLARE_MAX = 7.3f
@@ -487,9 +494,15 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         glow.halo = GLOW_HALO
         glow.haloWidth = GLOW_HALO_WIDTH
 
+        // Growth and fade-in delayed behind the white; the min keeps the collapse on time.
+        val xb = max(t - FleetSlipspaceJump.blackDelay.value, 0f) / SPHERE_LIFE
         black.active = true
-        black.radius = SPHERE_MESH_RADIUS * BODY_SIZE * ReachCurves.BLACK_SCALE.at(x) * unit
-        black.alpha = ReachCurves.BLACK_ALPHA.at(x)
+        black.radius = SPHERE_MESH_RADIUS * BODY_SIZE * min(ReachCurves.BLACK_SCALE.at(xb), ReachCurves.BLACK_SCALE.at(x)) * unit
+        black.alpha = min(ReachCurves.BLACK_ALPHA.at(xb), ReachCurves.BLACK_ALPHA.at(x))
+        black.angleFadeCutoff = BLACK_ANGLE_FADE_CUTOFF
+        black.angleFadeRange = BLACK_ANGLE_FADE_RANGE
+        for (i in 0..2) black.underHdr[i] = glow.color[i] * glow.intensity
+        black.underRadius = if (black.radius > 0f) glow.radius / black.radius else 0f
 
         web.active = true
         web.radius = SPHERE_MESH_RADIUS * BODY_SIZE * ReachCurves.WEB_SCALE.at(x) * unit

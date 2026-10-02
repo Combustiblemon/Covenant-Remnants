@@ -8,7 +8,9 @@ import org.lwjgl.opengl.GL11.GL_FLOAT
 import org.lwjgl.opengl.GL11.GL_ONE
 import org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA
 import org.lwjgl.opengl.GL11.GL_SRC_ALPHA
+import org.lwjgl.opengl.GL11.GL_SRC_COLOR
 import org.lwjgl.opengl.GL11.GL_TRIANGLE_FAN
+import org.lwjgl.opengl.GL11.GL_ZERO
 import org.lwjgl.opengl.GL11.glBlendFunc
 import org.lwjgl.opengl.GL11.glDrawArrays
 import org.lwjgl.opengl.GL11.glEnable
@@ -116,7 +118,11 @@ internal class RuptureSphereShader {
         glBufferSubData(GL_ARRAY_BUFFER, 0, quad)
 
         glEnable(GL_BLEND)
-        if (sphere.mode.additive) glBlendFunc(GL_ONE, GL_ONE) else glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        when (sphere.mode.blend) {
+            SphereBlend.ALPHA -> glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            SphereBlend.ADD -> glBlendFunc(GL_ONE, GL_ONE)
+            SphereBlend.MULTIPLY -> glBlendFunc(GL_ZERO, GL_SRC_COLOR)
+        }
 
         glUniform2f(program.location("resolution"), view.screenWidth, view.screenHeight)
         glUniform2f(program.location("center"), centerX, centerY)
@@ -131,6 +137,10 @@ internal class RuptureSphereShader {
         glUniform1f(program.location("haloWidth"), sphere.haloWidth)
         glUniform1f(program.location("ringWidth"), sphere.ringWidth)
         glUniform1f(program.location("lightStart"), sphere.lightStart)
+        glUniform1f(program.location("angleFadeCutoff"), sphere.angleFadeCutoff)
+        glUniform1f(program.location("angleFadeRange"), sphere.angleFadeRange)
+        glUniform3f(program.location("underHdr"), sphere.underHdr[0], sphere.underHdr[1], sphere.underHdr[2])
+        glUniform1f(program.location("underRadius"), sphere.underRadius)
         glUniform1f(program.location("paletteV"), sphere.paletteV)
         glUniform1f(program.location("uOffset"), sphere.uOffset + effect.seed)
         uploadXform("xformA", sphere.xformA, time)
