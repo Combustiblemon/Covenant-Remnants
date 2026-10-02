@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils.render.rupture
 
+import org.combustiblelemon.covenantremnants.utils.render.PlainProgram
 import com.fs.starfarer.api.combat.ViewportAPI
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.GL_BLEND
@@ -65,7 +66,7 @@ internal class RuptureSphereShader {
         const val RING_REACH = 26f
     }
 
-    private val program = RuptureProgram(VERTEX_FILE, FRAGMENT_FILE)
+    private val program = PlainProgram(VERTEX_FILE, FRAGMENT_FILE)
     private val vao: Int = glGenVertexArrays()
     private val vbo: Int = glGenBuffers()
     private val quad = BufferUtils.createFloatBuffer(8)

@@ -1,8 +1,33 @@
 {
   "id": "covenant_remnants_slipspacedrive",
-  "type": "STAT_MOD",
-  "aiType": "NONE",
+  # Engine teleporter (Hyperion family): jumps to the targeted point, clamped to "range", at the end
+  # of the chargeup. Timings and charges live in ship_systems.csv (1.5 s in, 0.5 s out, 3 charges,
+  # 1 per 10 s). The stats script only drives the visuals (hull ripple, portals, ghost slide).
+  "type": "TELEPORTER",
+  "aiType": "PHASE_TELEPORTER_2",
   "statsScript": "org.combustiblelemon.covenantremnants.systems.SlipspaceDrive",
 
-  "outOfUsesSound": "gun_out_of_ammo"
+  "jitterColor": [139, 130, 251, 120],
+  "jitterCopies": 5,
+  "jitterRange": 15,
+  "jitterRangeRadiusFraction": 0,
+
+  "range": 500,
+  "randomRange": 0,
+
+  "vulnerableChargeup": false,
+  "vulnerableChargedown": false,
+  # The mod draws its own ghost (slides into / out of the portals); the engine copy stays off.
+  "renderCopyDuringTeleport": false,
+
+  "fadeActivationSoundOnChargedown": false,
+  # Placeholder vanilla sound until the slipspace drive gets its own.
+  "useSound": "system_phase_teleporter",
+  "outOfUsesSound": "gun_out_of_ammo",
+
+  "aiHints": {
+    "activeSpeedIncrease": 0,
+    "burstMovementPotential": 500,
+    "averageSpeedIncrease": 50
+  }
 }

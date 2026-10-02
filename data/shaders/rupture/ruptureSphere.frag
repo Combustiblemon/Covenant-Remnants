@@ -102,7 +102,7 @@ void main() {
         }
         vec2 uv = sideViewUv(p, d);
         float mask = texture(alphaMap, uv).a;
-        vec3 web = tonemap(plasma(uv) * intensity) * mask * alpha * discCoverage(d);
+        vec3 web = tonemap(plasma(uv) * color * intensity) * mask * alpha * discCoverage(d);
         outColor = vec4(web, 1.0);
     } else if (mode == 3) {
         if (d >= 1.0) {

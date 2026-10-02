@@ -1,197 +1,78 @@
-﻿package org.combustiblelemon.covenantremnants.plugins
+package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.Global
-import com.fs.starfarer.api.combat.*
-import com.fs.starfarer.api.graphics.SpriteAPI
-import com.fs.starfarer.api.impl.campaign.terrain.RingRenderer
-import com.fs.starfarer.api.util.Misc
-import org.combustiblelemon.lemonlib.geometry.CubicCurve2D
-import org.combustiblelemon.lemonlib.ship.getLocationInFrontOfShip
-import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.opengl.DrawUtils
-import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GL14
+import com.fs.starfarer.api.combat.CombatEngineLayers
+import com.fs.starfarer.api.combat.CombatEntityAPI
+import com.fs.starfarer.api.combat.CombatLayeredRenderingPlugin
+import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.utils.render.blink.BlinkRenderer
+import org.combustiblelemon.covenantremnants.utils.render.blink.BlinkRipple
+import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureEffect
+import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureRenderer
 import org.lwjgl.util.vector.Vector2f
-import java.awt.Color
-import java.util.*
+import java.util.EnumSet
 
-class SlipspaceDriveRenderPlugin(
-    private val attachedTo: ShipAPI?,
-    private val portalDuration: Float,
-    private var portalDistance: Float,
-    private var portalRadius: Float
-) : CombatLayeredRenderingPlugin {
-    private var layer = CombatEngineLayers.JUST_BELOW_WIDGETS
-    private var entity: CombatEntityAPI? = null
-    private var portalLocation: Vector2f? = null
-    private var startTime = 0f
-    private val startUpTime = 3f
-    private var isPortalActive = false
-    private val cubicFunction = CubicCurve2D(.01, .75, 0.0, .99) //.02,.65,1,-0.91
-    // Portal textures are not registered in settings.json (art pass pending — see
-    // planning/TODO.md "Drive portal art"). getSprite(category, key) throws on an unknown key,
-    // so each one is resolved defensively; a missing sprite falls back to an untextured placeholder.
-    private val outerRingRenderer: RingRenderer? = loadRing("portal_outer_loop")
-    private val innerRingRenderer: RingRenderer? = loadRing("portal_inner_loop")
-    private val noiseSprite: SpriteAPI? = loadSprite("portal_noise_long")
-    private val texturePoints =
-        MathUtils.getPointsAlongCircumference(Vector2f(0.5f, 0.5f), 0.5f, 40, 0f).toTypedArray<Vector2f>()
-    private var effectLevelExtra = 0f
-    private var counter = 0
-    private var reverse = false
-    private var reverseLevel = 0f
-    private fun loadRing(key: String): RingRenderer? =
-        runCatching { RingRenderer("covenant_remnants", key) }.getOrElse { warnMissing(key); null }
+/**
+ * One-per-combat renderer for the slipspace drive blink (created by
+ * [org.combustiblelemon.covenantremnants.systems.SlipspaceDrive.renderPlugin]). Owns every live
+ * portal (a [RuptureEffect] of kind BLINK, drawn by its own [RuptureRenderer]) and hull ripple
+ * ([BlinkRipple]) of every blinking ship. Portals draw below the ships (the ship's ghost slides
+ * over them into / out of the portal); ripples draw above the ships, over the hull.
+ */
+class SlipspaceDriveRenderPlugin : CombatLayeredRenderingPlugin {
+    private val portals = ArrayList<RuptureEffect>()
+    private val ripples = ArrayList<BlinkRipple>()
+    private val portalRenderer = RuptureRenderer()
+    private var time = 0f
 
-    private fun loadSprite(key: String): SpriteAPI? =
-        runCatching { Global.getSettings().getSprite("covenant_remnants", key) }.getOrElse { warnMissing(key); null }
+    fun addPortal(center: Vector2f, radius: Float, openDuration: Float): RuptureEffect =
+        RuptureEffect.blink(center, radius, openDuration).also { portals.add(it) }
 
-    private fun warnMissing(key: String) {
-        Global.getLogger(this.javaClass)
-            .warn("Portal sprite [covenant_remnants/$key] is not registered; rendering the slipspace drive portal as a placeholder")
+    fun addRipple(ship: ShipAPI, duration: Float): BlinkRipple =
+        BlinkRipple(ship, duration).also { ripples.add(it) }
+
+    override fun advance(amount: Float) {
+        if (Global.getCombatEngine()?.isPaused == true) return
+        time += amount
+        portalRenderer.advance(amount)
+        val portalIterator = portals.iterator()
+        while (portalIterator.hasNext()) {
+            val portal = portalIterator.next()
+            portal.advance(amount)
+            if (portal.isDone) portalIterator.remove()
+        }
+        val rippleIterator = ripples.iterator()
+        while (rippleIterator.hasNext()) {
+            val ripple = rippleIterator.next()
+            ripple.advance(amount)
+            if (ripple.isDone) rippleIterator.remove()
+        }
     }
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
-        // Visuals: placeholder until the drive art pass (planning/TODO.md "Drive portal art").
-        // TODO: APPLY DAMAGE TO NON SHIELDED SHIPS IN RADIUS
-        if (!attachedTo!!.system.isActive) {
-            return
-        }
-
-        val currentTime = Global.getCombatEngine().getTotalElapsedTime(false)
-
-        // RENDER PORTAL
-        if (!isPortalActive) {
-            startTime = currentTime
-            portalLocation = getLocationInFrontOfShip(attachedTo, portalDistance)
-            isPortalActive = true
-        } else if (startTime + portalDuration < currentTime) {
-            isPortalActive = false
-            startTime = 0f
-        }
-        if (isPortalActive) {
-            val effectLevel = attachedTo.system.effectLevel
-
-            // portal startup
-            if (startTime + startUpTime > currentTime) {
-                val radius = (60f
-                        * (effectLevel - reverseLevel))
-                GL11.glDisable(GL11.GL_TEXTURE_2D)
-                Misc.setColor(Color.white)
-                DrawUtils.drawCircle(portalLocation!!.x, portalLocation!!.y, radius, 20, true)
-                GL11.glEnable(GL11.GL_TEXTURE_2D)
-                if (counter > 9) {
-                    counter = 0
-                    Global.getCombatEngine().spawnEmpArcVisual(
-                        portalLocation, null,
-                        MathUtils.getRandomPointInCircle(portalLocation, radius * 1.1f),
-                        null, 5f, Color(139, 130, 251), Color.white
-                    )
-                } else {
-                    counter++
-                }
-                if (!reverse && startTime + startUpTime / 2 > currentTime) {
-                    reverse = true
-                    reverseLevel = effectLevel
-                }
-            } else {
-                if (effectLevelExtra == 0f) {
-                    effectLevelExtra = effectLevel
-                }
-                renderPortal(((effectLevel - effectLevelExtra).coerceAtLeast(0f) * 3).coerceAtMost(1f))
+        when (layer) {
+            CombatEngineLayers.BELOW_SHIPS_LAYER -> {
+                if (portals.isEmpty()) return
+                portalRenderer.effects.clear()
+                portalRenderer.effects.addAll(portals)
+                portalRenderer.render(viewport)
             }
+            CombatEngineLayers.ABOVE_SHIPS_LAYER -> BlinkRenderer.drawRipples(ripples, viewport, time)
+            else -> {}
         }
     }
 
-    private fun renderPortal(radiusMultiplier: Float) {
-        val radius = portalRadius * cubicFunction.getTime(radiusMultiplier.coerceAtMost(1f))
-        val innerRadius = radius * 0.95f
-        val noiseRadius = (innerRadius - 10).coerceAtLeast(0f)
+    override fun getActiveLayers(): EnumSet<CombatEngineLayers> =
+        EnumSet.of(CombatEngineLayers.BELOW_SHIPS_LAYER, CombatEngineLayers.ABOVE_SHIPS_LAYER)
 
-        // Render the outer white ring
-        outerRingRenderer?.render(portalLocation, radius, radius * 0.9f, Color.white, false, 1f, 1f)
-        // Render the inner purple-black ring
-        innerRingRenderer?.render(portalLocation, innerRadius, radius * 0.88f, Color.white, false, 1f, 1f)
+    override fun getRenderRadius(): Float = Float.MAX_VALUE
 
-        // Fill the inner ring with color
-        GL11.glDisable(GL11.GL_TEXTURE_2D)
-        Misc.setColor(Color(20, 23, 34))
-        DrawUtils.drawCircle(portalLocation!!.x, portalLocation!!.y, radius * 0.9f, 50, true)
-        GL11.glEnable(GL11.GL_TEXTURE_2D)
+    override fun init(entity: CombatEntityAPI) {}
 
-        // Get points so we can map the noise texture
-        val points = MathUtils.getPointsAlongCircumference(portalLocation, noiseRadius, 40, 0f).toTypedArray<Vector2f>()
-        val noise = noiseSprite
-        if (noise == null) {
-            // Placeholder: flat disc, no texture.
-            GL11.glDisable(GL11.GL_TEXTURE_2D)
-            Misc.setColor(Color(139, 130, 251))
-            DrawUtils.drawCircle(portalLocation!!.x, portalLocation!!.y, noiseRadius, 40, true)
-            GL11.glEnable(GL11.GL_TEXTURE_2D)
-            return
-        }
-        noise.bindTexture()
-        Misc.setColor(Color(139, 130, 251))
-        GL11.glBegin(GL11.GL_POLYGON)
-        GL11.glEnable(GL11.GL_BLEND)
-        GL14.glBlendEquation(GL14.GL_FUNC_ADD)
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-        for (i in points.indices) {
-            // use stencil mask?
-            GL11.glTexCoord2f(texturePoints[i].x, texturePoints[i].y)
-            GL11.glVertex2f(points[i].x, points[i].y)
-
-            // Walk the texture
-            if (!Global.getCombatEngine().isPaused) {
-                texturePoints[i] = Vector2f((texturePoints[i].x + 0.004).toFloat(), texturePoints[i].y)
-            }
-        }
-        GL11.glEnd()
+    override fun cleanup() {
+        portalRenderer.cleanup()
     }
 
-    // if performance is an issue look at the code below
-    // stencil
-    //reset the whole stencil mask to 0s
-    //        glClearStencil(0);
-    //        glStencilMask(0xff);
-    //        //set everything to 0
-    //        glClear(GL_STENCIL_BUFFER_BIT);
-    //
-    //        //disable drawing colour, enable stencil testing
-    //        glColorMask(false, false, false, false); //disable colour
-    //        glEnable(GL_STENCIL_TEST); //enable stencil
-    //
-    //        // ... here you render the part of the scene you want masked, this may be a simple triangle or square, or for example a monitor on a computer in your spaceship ...
-    //        //begin masking
-    //        //put 1s where I want to draw
-    //        glStencilFunc(GL_ALWAYS, 1, 0xff); // Do not test the current value in the stencil buffer, always accept any value on there for drawing
-    //        glStencilMask(0xff);
-    //        glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // Make every test succeed
-    //
-    //        <draw a quad that dictates you want the boundaries of the panel to be>
-    //
-    //        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Make sure you will no longer (over)write stencil values, even if any test succeeds
-    //        glColorMask(true, true, true, true); // Make sure we draw on the backbuffer again.
-    //        glStencilFunc(GL_EQUAL, 1, 0xFF); // Now we will only draw pixels where the corresponding stencil buffer value equals 1
-    //
-    //        <draw the lines>
-    //
-    //                glDisable(GL_STENCIL_TEST);
-    override fun advance(amount: Float) {}
-    override fun cleanup() {}
-    override fun getActiveLayers(): EnumSet<CombatEngineLayers> {
-        return EnumSet.of(layer)
-    }
-
-    override fun getRenderRadius(): Float {
-        return Float.MAX_VALUE
-    }
-
-    override fun init(entity: CombatEntityAPI) {
-        this.entity = entity
-    }
-
-    override fun isExpired(): Boolean {
-        return false
-    }
+    override fun isExpired(): Boolean = false
 }

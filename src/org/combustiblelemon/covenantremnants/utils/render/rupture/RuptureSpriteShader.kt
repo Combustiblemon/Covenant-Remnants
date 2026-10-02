@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils.render.rupture
 
+import org.combustiblelemon.covenantremnants.utils.render.PlainProgram
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL11.GL_BLEND
 import org.lwjgl.opengl.GL11.GL_FLOAT
@@ -56,7 +57,7 @@ internal class RuptureSpriteShader {
         val CORNER_Y = floatArrayOf(-1f, -1f, 1f, -1f, 1f, 1f)
     }
 
-    private val program = RuptureProgram(VERTEX_FILE, FRAGMENT_FILE)
+    private val program = PlainProgram(VERTEX_FILE, FRAGMENT_FILE)
     private val vao: Int = glGenVertexArrays()
     private val vbo: Int = glGenBuffers()
     private var capacitySprites = 0

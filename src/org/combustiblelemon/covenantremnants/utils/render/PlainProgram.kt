@@ -1,4 +1,4 @@
-package org.combustiblelemon.covenantremnants.utils.render.rupture
+package org.combustiblelemon.covenantremnants.utils.render
 
 import com.fs.starfarer.api.Global
 import org.combustiblelemon.lemonlib.render.getShaderCode
@@ -21,8 +21,11 @@ import org.lwjgl.opengl.GL20.glGetUniformLocation
 import org.lwjgl.opengl.GL20.glLinkProgram
 import org.lwjgl.opengl.GL20.glShaderSource
 
-/** A plain vertex + fragment program with cached uniform locations. Build on the GL thread. */
-internal class RuptureProgram(vertexFile: String, fragmentFile: String) {
+/**
+ * A plain vertex + fragment program with cached uniform locations. Build on the GL thread.
+ * Shared by the rupture (fleet jump) and blink (slipspace drive) renderers.
+ */
+internal class PlainProgram(vertexFile: String, fragmentFile: String) {
     val id: Int
     private val locations = HashMap<String, Int>()
 
@@ -34,7 +37,7 @@ internal class RuptureProgram(vertexFile: String, fragmentFile: String) {
         glAttachShader(id, fragment)
         glLinkProgram(id)
         if (glGetProgrami(id, GL_LINK_STATUS) == GL_FALSE) {
-            Global.getLogger(RuptureProgram::class.java)
+            Global.getLogger(PlainProgram::class.java)
                 .error("Linking $vertexFile + $fragmentFile failed: ${glGetProgramInfoLog(id, 4096)}")
         }
         glDeleteShader(vertex)
@@ -52,7 +55,7 @@ internal class RuptureProgram(vertexFile: String, fragmentFile: String) {
         glShaderSource(shader, getShaderCode(file))
         glCompileShader(shader)
         if (glGetShaderi(shader, GL_COMPILE_STATUS) == GL_FALSE) {
-            Global.getLogger(RuptureProgram::class.java)
+            Global.getLogger(PlainProgram::class.java)
                 .error("Compiling $file failed: ${glGetShaderInfoLog(shader, 4096)}")
         }
         return shader

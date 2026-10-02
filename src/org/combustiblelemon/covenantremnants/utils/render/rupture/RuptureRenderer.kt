@@ -51,7 +51,7 @@ import java.nio.ByteBuffer
  *
  * Order: heat haze (all ruptures, over a fresh screen copy); then per rupture back to front:
  * light glows and burst shells, glow sphere, black body, web, ring, additive sprites, lens flares,
- * twinkles. Programs are built lazily on the GL thread.
+ * twinkles. The programs are shared ([RupturePrograms], compiled at game start).
  */
 class RuptureRenderer : Shader {
     private companion object {
@@ -68,8 +68,6 @@ class RuptureRenderer : Shader {
     /** Effects to draw on the next [render]; the owner keeps the list current. */
     val effects = ArrayList<RuptureEffect>()
 
-    private var sphereShader: RuptureSphereShader? = null
-    private var spriteShader: RuptureSpriteShader? = null
     private var time = 0f
 
     private var screenCopy = 0
@@ -100,8 +98,8 @@ class RuptureRenderer : Shader {
         }
 
         try {
-            val spheres = sphereShader ?: RuptureSphereShader().also { sphereShader = it }
-            val sprites = spriteShader ?: RuptureSpriteShader().also { spriteShader = it }
+            val spheres = RupturePrograms.spheres()
+            val sprites = RupturePrograms.sprites()
 
             glDisable(GL_DEPTH_TEST)
             glDisable(GL_CULL_FACE)
@@ -161,15 +159,12 @@ class RuptureRenderer : Shader {
     }
 
     override fun cleanup() {
+        // The programs are shared and live for the whole game; only the screen copy is ours.
         try {
-            sphereShader?.dispose()
-            spriteShader?.dispose()
             if (screenCopy != 0) glDeleteTextures(screenCopy)
         } catch (e: Exception) {
             Global.getLogger(this.javaClass).error("Error during cleanup: ${e.message}")
         }
-        sphereShader = null
-        spriteShader = null
         screenCopy = 0
         screenCopyWidth = 0
         screenCopyHeight = 0

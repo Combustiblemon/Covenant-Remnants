@@ -5,6 +5,8 @@ import com.fs.starfarer.api.Global
 import org.combustiblelemon.covenantremnants.campaign.systems.generateSlipspaceSystem
 import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilities
 import org.combustiblelemon.covenantremnants.utils.initShieldData
+import org.combustiblelemon.covenantremnants.utils.render.blink.BlinkRenderer
+import org.combustiblelemon.covenantremnants.utils.render.rupture.RupturePrograms
 import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldProgram
 import org.combustiblelemon.lemonlib.hullmods.HullmodIncompatibilityInstaller
 
@@ -40,6 +42,9 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         // first shield activation in combat (developer request 2026-10-02: ~250 ms per compile
         // stacked into a multi-second hitch when a fleet raised shields).
         ShieldProgram.warmUp()
+        // Same for the rupture (fleet jump + blink portals) and the blink hull ripple.
+        RupturePrograms.warmUp()
+        BlinkRenderer.warmUp()
     }
 
     override fun onGameLoad(newGame: Boolean) {

@@ -65,6 +65,33 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Fleet Slipspace Jump — exit check vs. stations** — the AI never anchors on friendly
       stations and the strength model ignores them; decide whether a friendly station should count
       as a pull-home cluster.
+- [x] **Slipspace Drive blink** — rebuilt 2026-10-02 as a Wolf-style blink: engine `TELEPORTER`
+      toward the cursor / AI target, 500 su, 3 charges (1 per 10 s), 1.5 s in / 0.5 s out, no
+      restrictions, `PHASE_TELEPORTER_2` AI; ODST-style visuals (hull ripple bow→stern + portal
+      ahead, ghost slides in; exit portal at the landing point, ghost slides out). Slipspace Tuning
+      → +30 % charge regen. See [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md).
+- [ ] **Slipspace Drive blink — in-game test** — developer: run the checklist in
+      [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md)
+      (ripple on the hull at every facing/zoom — flip `CORNER_Y` if mirrored, portals, ghost slide,
+      charges, AI use, no `OpenGL error`).
+- [x] **Slipspace Drive blink — portal + ripple from ODST data** — done 2026-10-02 from the
+      `H3ODSTEK` tags (`c100_intro` slipspace_jump effects; ManagedBlam unusable there, tags read via
+      `tool print-tag-to-xml`): portal = rupture `BLINK` kind with the ODST build (blue glow sphere,
+      origin core, plasma web white→blue, soft light, blue flare, linear growth, shrink-close);
+      ripple = plasma puffs + outward spark streaks + bow flash. ODST bitmaps are not exportable
+      (resource data missing) — Reach textures + analytic glows instead. Data under
+      `assets/reference/odst-carrier-jump/odst-data/`.
+- [ ] **Slipspace Drive blink — tuning** — every number is a placeholder (timings split, portal
+      size/offset, `BLINK_*` intensities in `RuptureEffect`, ripple width/tail/spark grid/colours,
+      jitter); bespoke sound (vanilla `system_phase_teleporter` for now).
+- [x] **Slipspace Drive AI** — `PHASE_TELEPORTER_2` (developer ruling 2026-10-02).
+- [x] **Slipspace Drive rupture damage** — moot for the blink (no rupture). Open question: should
+      the blink portals harm anything? Not asked yet.
+- [x] **Slipspace Drive portal after the first battle** — per-combat reset added 2026-10-02
+      (cleanup batch), carried into the blink rewrite (script state + the one-per-combat render
+      plugin both reset on engine change).
+- [x] **Drive portal art** — superseded 2026-10-02: the drive is now the blink (below); the old
+      portal plugin and its missing `portal_*` sprite ids are gone.
 - [ ] **Slipspace Drive AI** — the drive's `.system` has `aiType: NONE`, so AI-piloted frigate1,
       frigate3 and destroyer2 never jump. Decide whether they should. (supercap1 no longer carries
       the drive.)
@@ -107,6 +134,7 @@ Keep this file current — tick items off and add new ones as work lands.
       bonuses only on drive-system ships. Verified in-game 2026-10-01.
 - [ ] **Slipspace Tuning campaign bonus** — on ships without the drive system the mod has no effect
       yet; give it a bonus to the planned campaign slipspace-jump ability when that is built.
+      (Combat effect since 2026-10-02: +30 % blink charge regen; the flux-gate line is gone.)
 - [x] **frigate3 builtInMods** — `covenant_remnants_slipspace_drive` now present on
       `covenant_remnants_frigate3.ship` (added in the ship-editor bounds pass); all 16 combat hulls match.
 - [ ] **Tune hullmod numbers** — OP costs and all new-mod values are vanilla-anchored placeholders.

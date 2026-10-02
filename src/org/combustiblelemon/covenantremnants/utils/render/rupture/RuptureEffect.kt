@@ -40,12 +40,18 @@ import kotlin.math.sqrt
  * - FLASH (at the jump): the glow sphere bursts to the grab radius and fades over DISSOLVE, with
  *   twinkles and a star flare; no black sphere (developer decision).
  *
+ * Blink portal ([Kind.BLINK], the Slipspace Drive): the Halo 3: ODST carrier-jump portal
+ * (c100_intro `slipspace_sphere.effect`, build event only): a deep-blue glow sphere with a bright
+ * blue-white origin core, the outer plasma web tinted white to blue, a soft blue light and the
+ * blue build lens flare, all growing linearly over the build; [close] shrinks it away. No collapse,
+ * no explosion (developer rulings 2026-10-02). See planning/implementations/slipspace-drive-blink.md.
+ *
  * [abort] fades whatever is showing out through [master].
  */
 class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val radiusWorld: Float) {
-    enum class Kind { ENTRY, EXIT }
+    enum class Kind { ENTRY, EXIT, BLINK }
 
-    enum class Phase { CHARGE, OPEN, COLLAPSE, SEED, FLASH, ABORTING, DONE }
+    enum class Phase { CHARGE, OPEN, COLLAPSE, SEED, FLASH, BUILD, CLOSING, ABORTING, DONE }
 
     companion object {
         private var seedCounter = 0
@@ -131,6 +137,33 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         fun exit(center: Vector2f, radiusWorld: Float): RuptureEffect =
             RuptureEffect(Kind.EXIT, center, radiusWorld).also { it.phase = Phase.SEED }
 
+        /** A blink portal of radius [radiusWorld] opening over [buildDuration] seconds. */
+        fun blink(center: Vector2f, radiusWorld: Float, buildDuration: Float): RuptureEffect =
+            RuptureEffect(Kind.BLINK, center, radiusWorld).also {
+                it.phase = Phase.BUILD
+                it.blinkBuild = buildDuration
+            }
+
+        // --- Blink portal (ODST c100_intro slipspace_sphere, build event). Colours from the tags;
+        // intensities and proportions are placeholders (ODST values are HDR for its own tone map).
+        private val WHITE = floatArrayOf(1f, 1f, 1f)
+        private val ODST_GLOW_COLOR = floatArrayOf(0.055f, 0.192f, 0.976f)     // slipspace_sphere_glow #0e31f9
+        private val ODST_ORIGIN_COLOR = floatArrayOf(0.180f, 0.188f, 1f)       // slipspace_sphere_origin #2e30ff
+        private val ODST_PLASMA_TINT = floatArrayOf(0.176f, 0.278f, 0.859f)    // outer plasma tint end #2d47db
+        private val ODST_SOFT_GLOW = floatArrayOf(0.141f, 0.227f, 0.835f)      // glow_soft tint #243ad5
+        private val ODST_FLARE_COLOR = floatArrayOf(0.2745f, 0.3608f, 0.9804f) // slipspace_build.lens_flare
+        private const val BLINK_CLOSE = 0.3f
+        private const val BLINK_GLOW_INTENSITY = 2.5f
+        private const val BLINK_GLOW_HALO = 0.6f
+        private const val BLINK_GLOW_HALO_WIDTH = 0.15f
+        private const val BLINK_ORIGIN_RADIUS = 0.35f      // in portal radii
+        private const val BLINK_ORIGIN_INTENSITY = 6f
+        private const val BLINK_PLASMA_RADIUS = 1.12f      // outer plasma web, in portal radii
+        private const val BLINK_LIGHT_RADIUS = 2.2f        // soft glow reach, in portal radii
+        private const val BLINK_LIGHT_INTENSITY = 0.9f
+        private const val BLINK_FLARE_RADIUS = 1.6f        // lens flare at full size, in portal radii (700 -> 200 in ODST)
+        private const val BLINK_FLARE_BRIGHTNESS = 2.5f
+
         private fun ramp(t: Float, start: Float, end: Float): Float =
             if (end <= start) (if (t >= end) 1f else 0f) else ((t - start) / (end - start)).coerceIn(0f, 1f)
 
@@ -171,6 +204,11 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     /** CHARGE / SEED input 0..1, set by the jump session every frame. */
     var chargeLevel = 0f
 
+    /** BLINK: build duration (s) and current size as a fraction of the full radius. */
+    private var blinkBuild = 1f
+    var openness = 0f
+        private set
+
     /** Whole-effect opacity: 1 normally, fades to 0 when aborted. */
     var master = 1f
         private set
@@ -194,6 +232,8 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         uOffset = SHELL_U_OFFSET
     }
     internal val glow = SphereDraw(SphereMode.GLOW)
+    /** Blink portal only: the bright origin core over the glow body. */
+    internal val origin = SphereDraw(SphereMode.GLOW)
     internal val black = SphereDraw(SphereMode.BLACK)
     internal val web = SphereDraw(SphereMode.WEB).apply {
         noiseA = RuptureTexture.SPHERE_NOISE_A
@@ -206,8 +246,8 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     }
     internal val ring = SphereDraw(SphereMode.RING).apply { RING_VIOLET.copyInto(color) }
 
-    /** Back to front: lights and shells, glow, black body, web, ring. */
-    internal val spheres = listOf(light, shell, plasmaShell, glow, black, web, ring)
+    /** Back to front: lights and shells, glow, origin core, black body, web, ring. */
+    internal val spheres = listOf(light, shell, plasmaShell, glow, origin, black, web, ring)
 
     internal val starFlare = FlareDraw(SpriteMaterial.FLARE_STAR)
     internal val collapseFlare = FlareDraw(SpriteMaterial.FLARE_GLOW)
@@ -248,6 +288,11 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         if (phase != Phase.DONE && phase != Phase.ABORTING) switchTo(Phase.ABORTING)
     }
 
+    /** BLINK: shrink the portal away (from wherever the build is). */
+    fun close() {
+        if (phase == Phase.BUILD) switchTo(Phase.CLOSING)
+    }
+
     private fun switchTo(next: Phase) {
         phase = next
         phaseTime = 0f
@@ -269,6 +314,8 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
             Phase.OPEN -> open()
             Phase.COLLAPSE -> collapse(deltaTime)
             Phase.FLASH -> flash(deltaTime)
+            Phase.BUILD -> build()
+            Phase.CLOSING -> closing()
             Phase.ABORTING -> aborting()
             Phase.DONE -> {}
         }
@@ -511,6 +558,66 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         }
 
         if (phaseTime >= EXIT_EXPAND + dissolve && sprites.isEmpty()) switchTo(Phase.DONE)
+    }
+
+    // --- Blink portal (ODST slipspace_sphere build) -------------------------------------------
+
+    /** The build: every part scales linearly with age, as the ODST particles do over their life. */
+    private fun build() {
+        openness = ramp(phaseTime, 0f, blinkBuild)
+        blinkSpheres(openness, 1f)
+    }
+
+    private fun closing() {
+        val t = ramp(phaseTime, 0f, BLINK_CLOSE)
+        val shrink = (1f - t) * (1f - t)
+        blinkSpheres(openness * shrink, 1f - t)
+        if (t >= 1f) switchTo(Phase.DONE)
+    }
+
+    private fun blinkSpheres(scale: Float, fade: Float) {
+        if (scale <= 0.001f || fade <= 0f) return
+        val r = radiusWorld * scale
+
+        // glow_soft (tint #243ad5, intensity 1..4) as a soft light around the portal
+        light.active = true
+        light.radius = r * BLINK_LIGHT_RADIUS
+        light.lightStart = 0.3f
+        ODST_SOFT_GLOW.copyInto(light.color)
+        light.intensity = BLINK_LIGHT_INTENSITY * (0.85f + 0.15f * noise(time * 5f, salt + 3))
+        light.alpha = fade
+
+        // slipspace_sphere + slipspace_sphere_glow (#0e31f9, in front of and behind the white core)
+        glow.active = true
+        glow.radius = r
+        lerpColor(glow.color, ODST_GLOW_COLOR, WHITE, 0.2f)
+        glow.intensity = BLINK_GLOW_INTENSITY
+        glow.alpha = fade
+        glow.halo = BLINK_GLOW_HALO
+        glow.haloWidth = BLINK_GLOW_HALO_WIDTH
+
+        // slipspace_sphere_origin (#2e30ff): the bright centre
+        origin.active = true
+        origin.radius = r * BLINK_ORIGIN_RADIUS
+        lerpColor(origin.color, ODST_ORIGIN_COLOR, WHITE, 0.5f)
+        origin.intensity = BLINK_ORIGIN_INTENSITY
+        origin.alpha = fade
+        origin.halo = 0.8f
+        origin.haloWidth = 0.5f
+
+        // slipspace_sphere_outer_plasma: plasma_clouds01/02 through the plasma palette on the outer
+        // sphere (the web look), tinted white -> blue over the build, intensity 1 -> 3
+        web.active = true
+        web.radius = r * BLINK_PLASMA_RADIUS
+        lerpColor(web.color, WHITE, ODST_PLASMA_TINT, scale)
+        web.intensity = 1f + 2f * scale
+        web.alpha = fade
+
+        // slipspace_build.lens_flare: blue, 700 -> 200 radius over the build
+        starFlare.active = true
+        starFlare.radius = r * lerp(BLINK_FLARE_RADIUS * 1.5f, BLINK_FLARE_RADIUS, scale)
+        ODST_FLARE_COLOR.copyInto(starFlare.color)
+        starFlare.brightness = BLINK_FLARE_BRIGHTNESS * fade * (0.85f + 0.15f * noise(time * 6f, salt))
     }
 
     private fun aborting() {

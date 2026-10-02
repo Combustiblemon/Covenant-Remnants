@@ -13,8 +13,12 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   damage). Regen is frozen while it's on, it only works with the shield up, a custom
   incoming-damage AI drives it, and a fortress shader layer shows it. See
   [implementations/fortress-shield.md](implementations/fortress-shield.md).
-- **Slipspace travel** — jump ability, portal entity, generated slipspace system, drive + shader,
+- **Slipspace travel** — jump ability, portal entity, generated slipspace system,
   regen/debug console commands.
+- **Slipspace Drive blink (frigate1 / frigate3 / destroyer2)** — Wolf-style short-range blink
+  (engine teleporter, 500 su toward the cursor, 3 charges) with ODST-style hull ripple + portals.
+  Placeholder portal until the ODST kit data is pulled. See
+  [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md).
 - **Fleet Slipspace Jump (supercap1)** — the CAS's unique radius mass-jump: grabs everything
   around the carrier (ships of any side, fighters, shots, hulks, asteroids) and jumps it together,
   with rupture damage to unshielded ships, a pull-home / strand / regroup AI, a rupture remade from

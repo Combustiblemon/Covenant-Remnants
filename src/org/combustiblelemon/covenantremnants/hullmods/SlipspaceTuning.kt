@@ -8,11 +8,11 @@ import org.combustiblelemon.lemonlib.geometry.getPercentage
 /**
  * Slipspace Tuning — tunes the Covenant slipspace drive.
  *
- *  - Reduces the drive's ship-system cooldown (engine-applied via systemCooldownBonus).
- *  - Loosens the flux ceiling required to jump (read by [org.combustiblelemon.covenantremnants.systems.SlipspaceDrive]).
+ *  - Speeds up the drive's charge regeneration (engine-applied via systemRegenBonus; the blink
+ *    stores charges and has no cooldown, so a cooldown cut would do nothing).
  *
  * Installable on any ship carrying the Slipspace Drive hullmod ([SlipspaceDriveHullmod]), built-in
- * or not. Both combat effects apply only when the ship's system is the slipspace drive; on other
+ * or not. The combat effect applies only when the ship's system is the slipspace drive; on other
  * ships the mod has no combat effect (a campaign slipspace-jump bonus is planned — see TODO.md).
  */
 class SlipspaceTuning : BaseHullMod() {
@@ -21,11 +21,8 @@ class SlipspaceTuning : BaseHullMod() {
 
         private const val SLIPSPACE_SYSTEM_ID = "covenant_remnants_slipspacedrive"
 
-        // System cooldown multiplier (<1 shortens cooldown). 0.7f == -30%.
-        const val SYSTEM_COOLDOWN_MULT = 0.7f
-
-        // Max flux fraction at which the drive may still fire. Base gate is 0.7; this raises it.
-        const val FLUX_GATE = 0.85f
+        // Charge regeneration multiplier (>1 faster). 1.3f == +30%: a charge every ~7.7 s instead of 10 s.
+        const val SYSTEM_REGEN_MULT = 1.3f
     }
 
     override fun getUnapplicableReason(ship: ShipAPI?): String? {
@@ -46,11 +43,11 @@ class SlipspaceTuning : BaseHullMod() {
         if (stats == null) {
             return
         }
-        // Cooldown cut targets the drive only — never another ship system
+        // Regen boost targets the drive only — never another ship system
         if (stats.variant?.hullSpec?.shipSystemId != SLIPSPACE_SYSTEM_ID) {
             return
         }
-        stats.systemCooldownBonus.modifyMult(id, SYSTEM_COOLDOWN_MULT)
+        stats.systemRegenBonus.modifyMult(id, SYSTEM_REGEN_MULT)
     }
 
     private fun hasSlipspaceDrive(ship: ShipAPI): Boolean {
@@ -59,8 +56,7 @@ class SlipspaceTuning : BaseHullMod() {
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {
         return when (index) {
-            0 -> "${getPercentage(SYSTEM_COOLDOWN_MULT)}%"
-            1 -> "${(FLUX_GATE * 100).toInt()}%"
+            0 -> "${getPercentage(SYSTEM_REGEN_MULT)}%"
             else -> null
         }
     }

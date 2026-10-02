@@ -26,8 +26,7 @@ Huragok Crew,covenant_remnants_huragok_crew,,,Covenant,"no_drop, no_drop_salvage
 Increase repair rate by %s 
 
 Counteracts negative effects of %s hullmod if present.",,,
-Slipspace Tuning,covenant_remnants_slipspace_tuning,,,Covenant,"req_spaceport, no_drop, no_drop_salvage","Requires Dock",,FALSE,FALSE,,4,8,12,20,org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning,"Reduces slipspace drive cooldown by %s.
-Allows the drive to jump at up to %s flux.
+Slipspace Tuning,covenant_remnants_slipspace_tuning,,,Covenant,"req_spaceport, no_drop, no_drop_salvage","Requires Dock",,FALSE,FALSE,,4,8,12,20,org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning,"Increases slipspace drive charge regeneration by %s.
 
 Only installable on ships with a slipspace drive.",,,
 Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"req_spaceport, no_drop, no_drop_salvage","Requires Dock",,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.PlasmaCapacitors,"Increases maximum flux capacity by %s.

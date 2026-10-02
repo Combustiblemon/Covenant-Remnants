@@ -85,12 +85,33 @@ vanilla one:
 - Ability: `campaign/abilities/SlipspaceJump.kt` — declared in `data/campaign/abilities.csv` as
   `covenant_remnants_slipspace_jump` (a Transverse-Jump analog); helper `utils/abilities/Slipspace.kt`.
 - World: `campaign/systems/SlipspaceSystem.kt` (+ `scripts/SlipspaceSystemEFS.kt`),
-  entity `campaign/entities/SlipspacePortalEntity.kt`, drive `systems/SlipspaceDrive.kt`
-  (single-ship combat jump, `covenant_remnants_slipspacedrive`, on frigate1/frigate3/destroyer2).
-- Render: `plugins/SlipspaceDriveRenderPlugin.kt` (combat portal; its three sprite ids —
-  `portal_outer_loop`, `portal_inner_loop`, `portal_noise_long` — are currently unregistered, so it
-  resolves them defensively and draws an untextured placeholder; art pass pending),
-  `utils/render/SlipspacePortalEntityShader.kt` (`data/shaders/slipspacePortalEntityShader.frag`/`.vert`).
+  entity `campaign/entities/SlipspacePortalEntity.kt`.
+- Render (campaign): `utils/render/SlipspacePortalEntityShader.kt`
+  (`data/shaders/slipspacePortalEntityShader.frag`/`.vert`).
+
+### Slipspace Drive blink (frigate1 / frigate3 / destroyer2)
+
+`covenant_remnants_slipspacedrive` (`data/shipsystems/`): the engine's `TELEPORTER` type with
+`PHASE_TELEPORTER_2` AI — 500 su toward the cursor / AI target, 3 charges, 1.5 s in / 0.5 s out.
+The jump is the engine's; the mod only draws it (Halo 3: ODST carrier-jump look).
+
+- `systems/SlipspaceDrive.kt` — stats script: entry portal off the bow + hull ripple during the
+  first ⅔ of the chargeup, then the ghost (`setCopyLocation`) slides into the portal nose first;
+  exit portal at the landing point, ghost slides out nose first during the chargedown. Registers the one-per-combat renderer.
+- `plugins/SlipspaceDriveRenderPlugin.kt` — one per combat; portals at `BELOW_SHIPS_LAYER`,
+  ripples at `ABOVE_SHIPS_LAYER`.
+- Portals: `utils/render/rupture/RuptureEffect.kt` kind `BLINK` (the Halo 3: ODST carrier-jump
+  portal build: blue glow sphere, origin core, plasma web, soft light, blue flare; `close()` shrinks
+  it), drawn by the plugin's own `RuptureRenderer`.
+- `utils/render/blink/` — `BlinkEffects.kt` (`BlinkRipple` timeline incl. the bow flash),
+  `BlinkRenderer.kt` (ripple program, compiled at game start, GL state wrap),
+  `BlinkRippleShader.kt` ↔ `data/shaders/blink/blinkRipple.*` (ODST ripple over the ship sprite:
+  plasma puffs, outward spark streaks, bow flash).
+- `utils/render/rupture/RupturePrograms.kt` — the rupture sphere + sprite programs, shared by the
+  fleet jump and the blink, compiled at game start. `utils/render/PlainProgram.kt` — plain
+  vertex+fragment program helper shared by the rupture and blink renderers.
+- `hullmods/SlipspaceTuning.kt` — +30 % charge regen on drive-system ships.
+- See [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md).
 - Console commands: `commands/RegenerateSlipspace.kt`, `commands/DebugHook.kt`,
   `commands/CovenantGiveAll.kt`, `commands/FleetJumpTune.kt` (registered in
   `data/console/commands.csv`). `ShaderLayers` lives in LemonLib and is registered by LemonLib's
