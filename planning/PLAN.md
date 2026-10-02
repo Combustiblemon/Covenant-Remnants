@@ -22,7 +22,7 @@ in-progress work and unresolved questions, not settled decisions (those live in 
 - **Fleet Slipspace Jump (supercap1)** — the CAS's unique radius mass-jump: opens a rupture off
   the bow, lurches into it, and grabs everything around the portal (ships of any side, fighters,
   shots, hulks, asteroids) and jumps it together,
-  with rupture damage to unshielded ships, a pull-home / strand / regroup AI, a rupture remade from
+  with rupture damage to unshielded ships, a pull-home / strand / reinforce / hunt / regroup AI, a rupture remade from
   Halo: Reach's own Long Night of Solace slipspace bomb data, and live console tuning
   (`FleetJumpTune`). See [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
   Awaiting in-game test and tuning.
@@ -43,7 +43,8 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   [CLAUDE.md](../CLAUDE.md)) and the next major area of work.
 - **Balance TODOs** (originally from the old root `balance.txt`, no longer in the repo):
   - Make the energy projector a **ship system**; nerf it for anything other than the CAS.
-  - Add a hullmod that buffs the weapons, and nerf the weapons themselves to compensate.
+  - ~~Add a hullmod that buffs the weapons, and nerf the weapons themselves to compensate.~~
+    Scrapped for now (developer 2026-10-02).
   - Add 3 PD frigates — stinger proximity mine.
 
 ## Planned scope

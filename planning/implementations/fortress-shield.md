@@ -60,6 +60,8 @@ design: every source damages the Covenant shield equally (developer ruling 2026-
 - **Regen freeze:** no regen while `FortressShield.effectLevel(ship) > 0`.
 - **Full rate after:** on the transition to 0, `lastShieldDamageTime = -inf`, so `regenMult()` returns
   1 straight away. Edge-tracked with `wasFortressActive`, reset per combat.
+- **Status line (2026-10-02):** the player sees "Shield regen — frozen by Fortress Shield" while
+  it's active — see [shield-regen-status.md](shield-regen-status.md).
 
 ### Helper: `systems/FortressShield.kt` (new)
 

@@ -41,22 +41,24 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **Per-type shield-damage stats** — decided: not honoured. The Covenant shield takes the same
       damage from all sources: no damage-type multipliers, no per-type `*ShieldDamageTakenMult`.
       Only the general `shieldDamageTakenMult` applies (developer ruling 2026-10-01, "for now").
-- [ ] **UI cue for frozen regen under Fortress** — optional; nothing tells the player that regen
-      is frozen.
+- [x] **UI cue for frozen regen under Fortress** — built 2026-10-02: player status line "Shield
+      regen — frozen by Fortress Shield". See
+      [implementations/shield-regen-status.md](implementations/shield-regen-status.md). In-game
+      check below.
 - [x] **Mass slipspace jump (supercap1)** — built as **Fleet Slipspace Jump**
       (`covenant_remnants_fleet_slipspace_jump`), the CAS's unique system: grabs everything in a
       1000 su radius (ships of any side, fighters, shots, hulks, asteroids) and jumps it together,
       min range 2000, 60 s cooldown, 10% max-hull rupture damage to unshielded ships, pull-home /
-      strand / regroup AI, rupture remade from Halo: Reach data, `FleetJumpTune` live tuning. Designed with the
+      strand / reinforce / hunt / regroup AI, rupture remade from Halo: Reach data, `FleetJumpTune` live tuning. Designed with the
       developer 2026-10-01. See
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
 - [x] **Fleet Slipspace Jump visual-only mode — turn off** — the developer set `VISUAL_ONLY`'s
       default to 0 on 2026-10-01 (full jump); the mode stays as a dev toggle.
-- [ ] **Fleet Slipspace Jump activation flow in-game** — new 2026-10-01: system key primes (aiming
+- [x] **Fleet Slipspace Jump activation flow in-game** — developer OK 2026-10-02. New 2026-10-01: system key primes (aiming
       circles at the cursor), left click confirms, right click cancels, works while paused
       (`plugins/FleetSlipspaceJumpTargetingPlugin.kt`). Check item 1 of the checklist in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
-- [ ] **Fleet Slipspace Jump — portal off the bow (in-game check)** — built 2026-10-02: the rupture
+- [x] **Fleet Slipspace Jump — portal off the bow (in-game check)** — developer OK 2026-10-02. Built 2026-10-02: the rupture
       and grab circle sit one ship length off the bow (`PORTAL_AHEAD` 2), the CAS lurches into the
       portal during the fade and lands at the exit centre; entry ring in the aiming preview; AI
       counts the circle off its current bow. Check items 1–4 and 9 of the checklist in
@@ -75,21 +77,26 @@ Keep this file current — tick items off and add new ones as work lands.
       blue → black; and the black now trails the white by `BLACK_DELAY` 0.3 s (same curves, so a
       white ball shows first and the dark grows out from the centre). Checklist item 3 in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
-- [ ] **Fleet Slipspace Jump in-game test** — developer: run the checklist in
-      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md) (mechanics,
-      damage, abort paths, AI, visuals).
-- [ ] **Fleet Slipspace Jump tuning** — every number is a placeholder (radius, range, costs, AI
+- [x] **Fleet Slipspace Jump in-game test** — developer 2026-10-02: "all good" (checklist in
+      [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md)).
+- [ ] **Fleet Slipspace Jump — warp-in + stations AI (in-game check)** — built 2026-10-02: only
+      live ships block the CAS's exit; hulks under it are shoved aside, asteroids under any arrival
+      explode (vanilla death); the AI counts friendly stations as allies and enemy stations
+      against a group, weighs flux/hull on both sides, and has two new plans — Reinforce (losing
+      allied group; pincer if survivable, else beside the allies) and Hunt (weakened / crippled enemy
+      groups). Checklist items 1, 4 and 9.
+- [ ] **Fleet Slipspace Jump tuning** — after all gameplay systems are done (developer
+      2026-10-02). Every number is a placeholder (radius, range, costs, AI
       thresholds, visual timings/colours). Tune live with `FleetJumpTune`, then bake the values into
       `systems/FleetSlipspaceJump.kt` / the layer classes.
-- [ ] **Fleet Slipspace Jump — exit check vs. stations** — the AI never anchors on friendly
-      stations and the strength model ignores them; decide whether a friendly station should count
-      as a pull-home cluster.
+- [x] **Fleet Slipspace Jump — exit check vs. stations** — developer 2026-10-02: friendly
+      stations count (anchors + cluster strength); arrivals keep nudging around stations. Built.
 - [x] **Slipspace Drive blink** — rebuilt 2026-10-02 as a Wolf-style blink: engine `TELEPORTER`
       toward the cursor / AI target, 500 su, 3 charges (1 per 10 s), 1.5 s in / 0.5 s out, no
       restrictions, `PHASE_TELEPORTER_2` AI; ODST-style visuals (hull ripple bow→stern + portal
       ahead, ghost slides in; exit portal at the landing point, ghost slides out). Slipspace Tuning
       → +30 % charge regen. See [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md).
-- [ ] **Slipspace Drive blink — in-game test** — developer: run the checklist in
+- [x] **Slipspace Drive blink — in-game test** — developer 2026-10-02: "all good". Checklist in
       [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md)
       (ripple on the hull at every facing/zoom — flip `CORNER_Y` if mirrored, portals, ghost slide,
       charges, AI use, no `OpenGL error`).
@@ -100,26 +107,18 @@ Keep this file current — tick items off and add new ones as work lands.
       ripple = plasma puffs + outward spark streaks + bow flash. ODST bitmaps are not exportable
       (resource data missing) — Reach textures + analytic glows instead. Data under
       `assets/reference/odst-carrier-jump/odst-data/`.
-- [ ] **Slipspace Drive blink — tuning** — every number is a placeholder (timings split, portal
+- [ ] **Slipspace Drive blink — tuning** — after all gameplay systems are done (developer
+      2026-10-02). Every number is a placeholder (timings split, portal
       size/offset, `BLINK_*` intensities in `RuptureEffect`, ripple width/tail/spark grid/colours,
       jitter); bespoke sound (vanilla `system_phase_teleporter` for now).
 - [x] **Slipspace Drive AI** — `PHASE_TELEPORTER_2` (developer ruling 2026-10-02).
-- [x] **Slipspace Drive rupture damage** — moot for the blink (no rupture). Open question: should
-      the blink portals harm anything? Not asked yet.
+- [x] **Slipspace Drive rupture damage** — no damage (developer 2026-10-02): the blink portals
+      harm nothing.
 - [x] **Slipspace Drive portal after the first battle** — per-combat reset added 2026-10-02
       (cleanup batch), carried into the blink rewrite (script state + the one-per-combat render
       plugin both reset on engine change).
 - [x] **Drive portal art** — superseded 2026-10-02: the drive is now the blink (below); the old
       portal plugin and its missing `portal_*` sprite ids are gone.
-- [x] **Slipspace Drive AI** — decided with the blink (developer 2026-10-02): `aiType:
-      PHASE_TELEPORTER_2`, so AI-piloted frigate1, frigate3 and destroyer2 now use the drive.
-- [ ] **Slipspace Drive rupture damage** — the drive renderer's "apply damage to non-shielded ships
-      in radius" TODO is still open; the Fleet Jump's rupture damage
-      (`FleetSlipspaceJumpSession.applyRuptureDamage`) is a ready model if the drive should get it too.
-- [x] **Slipspace Drive portal after the first battle** — `SlipspaceDrive` now drops its render
-      plugin + phase flags whenever the combat engine changes (same pattern as
-      `CovenantShieldsStats`). 2026-10-02. In-game check still pending (second battle, same
-      session). See [implementations/cleanup-batch-2026-10-02.md](implementations/cleanup-batch-2026-10-02.md).
 - [x] **Verify shield stats-script sharing** — verified 2026-10-01: with 2+ Covenant ships only the
       hit ship's shield drops; state is per-ship, no refactor needed.
 
@@ -145,18 +144,19 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **Slipspace Tuning eligibility** — now any ship with the Slipspace Drive hullmod; combat
       bonuses only on drive-system ships. Verified in-game 2026-10-01.
 - [ ] **Slipspace Tuning campaign bonus** — on ships without the drive system the mod has no effect
-      yet; give it a bonus to the planned campaign slipspace-jump ability when that is built.
+      yet; give it a bonus to the planned campaign slipspace-jump ability when that is built
+      (developer 2026-10-02: the campaign slipspace-jump ability is next, in a few days).
       (Combat effect since 2026-10-02: +30 % blink charge regen; the flux-gate line is gone.)
 - [x] **frigate3 builtInMods** — `covenant_remnants_slipspace_drive` now present on
       `covenant_remnants_frigate3.ship` (added in the ship-editor bounds pass); all 16 combat hulls match.
-- [ ] **Tune hullmod numbers** — OP costs and all new-mod values are vanilla-anchored placeholders.
-- [ ] **Weapon-buff hullmod** (from PLAN) — still unbuilt: buff plasma/energy weapons, nerf the weapons
-      themselves to compensate. Deferred from this pass.
+- [ ] **Tune hullmod numbers** — after all gameplay systems are done (developer 2026-10-02). OP costs and all new-mod values are vanilla-anchored placeholders.
+- [x] **Weapon-buff hullmod** (from PLAN) — scrapped for now (developer 2026-10-02). Was: buff
+      plasma/energy weapons, nerf the weapons themselves to compensate.
 
 ## Balance
 
 - [ ] **Tune all numbers** — every ship, weapon, shield, and system value is a vanilla-anchored
-      placeholder. Pass over stats once content is playable in-sim.
+      placeholder. Developer 2026-10-02: tuning waits until all gameplay systems are finished.
 - [x] **Supercap mobility** — CAS + CVS base speed 15→30, accel 10→15, decel 8→12 (effective 36
       at-flux with Nanolaminate, just above Invictus). See
       [implementations/supercap-speed-tune.md](implementations/supercap-speed-tune.md). In-game
@@ -169,9 +169,12 @@ Keep this file current — tick items off and add new ones as work lands.
       pauses regen for the hull's `shield regen delay`, then 50% for 3 s, then full. Verified
       in-game 2026-10-01. See
       [implementations/in-game-test-pass-2026-10-01.md](implementations/in-game-test-pass-2026-10-01.md).
-- [ ] **UI indicator for paused/slowed shield regen** — optional follow-up; the pause shows in the
-      HP bar, but nothing tells the player which phase (paused / 50% / full) is active. The
-      recharge wave (2026-10-02) now marks the moment regen resumes.
+- [x] **UI indicator for paused/slowed shield regen** — built 2026-10-02: player status line
+      "Shield regen — paused / 50% rate / full rate" while the shield is below full. See
+      [implementations/shield-regen-status.md](implementations/shield-regen-status.md).
+- [ ] **Shield regen status line (in-game check)** — player Covenant ship: take shield hits, watch
+      the top-left status list go paused → 50% rate → full rate, gone at full shield and while
+      broken; capital1 with Fortress on shows "frozen by Fortress Shield".
 - [x] Decide Suppressor Beam damage type — **ENERGY** (developer ruling 2026-10-01; no change).
 
 ## Rendering / shaders
@@ -230,7 +233,7 @@ Keep this file current — tick items off and add new ones as work lands.
       Replaces the composed procedural rupture shader (passes 1–2, removed). Extracted data and
       tools: `assets/reference/long-night-of-solace/reach-data/`. See
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
-- [ ] **Rupture in-game look** — first in-game look at the Reach remake: texture row order (flame
+- [x] **Rupture in-game look** — developer 2026-10-02: Fleet Jump "all good". First in-game look at the Reach remake: texture row order (flame
       direction), `EXPOSURE`, `SPRITE_SCALE` (charge core, twinkles), heat-haze strength, frame rate
       during the burst (~2000 sprites). Tune with `FleetJumpTune`.
 - [x] **Unregistered noise sprites** — `shield_noise` went with `PolygonShader` (deleted);

@@ -132,7 +132,7 @@ at 0.3 × 130 × 35 = 1365 (≈ **2.2×**; the 3.6× quoted before the fit was w
 | Radius | 1000 su from the carrier's center; easy to fine-tune. |
 | Flow | Carrier locked through charge-up; the rupture grows around it. The grab is decided at the jump: during the fade everything inside is phased, faded and jittered under the opaque rupture, then lands at the exit in one frame keeping offset, velocity, facing and targets. No forward launch. |
 | Range | Destination = mouse target (player) / AI-chosen point. Min 2000 su (2× radius), **no max**. |
-| Exit | Activation needs the CAS's landing spot clear of ships that aren't coming along, and inside the map. At the jump anything blocked or off-map (CAS included) nudges to the nearest free spot. |
+| Exit | Activation needs the CAS's landing spot clear of ships that aren't coming along, and inside the map. At the jump anything blocked or off-map (CAS included) nudges to the nearest free spot. (Narrowed 2026-10-02: only live ships block; see "Warp-in through small stuff".) |
 | Costs | Drive locks (noFiring, noTurning, noStrafing, noAccel, noVent) but **the shield stays up** (noShield off). Flux gate < 70%; carrier flux → 80% at the jump; cargo pays nothing. **Cooldown 60 s.** Charge 8 s, **fade 2 s**, arrival 3 s (placeholders). |
 | Damage | Every grabbed ship without a shield up (vanilla shield on / Covenant shield up — nothing else counts), any side, fighters and the CAS included: **10% of max hull, ignoring armor**; can kill. |
 | Tuning | All constants in one helper object + live console command; reset on restart. |
@@ -147,6 +147,10 @@ at 0.3 × 130 × 35 = 1365 (≈ **2.2×**; the 3.6× quoted before the fit was w
 | Black body inside the white (2026-10-02) | Developer: in Reach the white ball grows and the darkness comes in *inside* it; ours grew a dark disc with the white only arriving later. Cause: the remake missed the multiply sphere's **angle fade** (range 25°, cutoff 10°), so the black covered the glow edge to edge until the glow's 10 % oversize at 1.1–1.4 s. Now ported (shader `BLACK` mode): the black fades out toward the limb, the glow stays a white rim around it from the first frame. |
 | Burst stays white (2026-10-02) | Developer: the opening's white burst read off-purple. Cause: the black was alpha-blended *after* tone mapping, so 20–40 % black already dimmed the white to grey (purple under the web). Reach's multiply works on the HDR glow (intensity 10 → 5) before tone mapping, so the glow stays white while the black is thin. Now: `BLACK` multiplies (blend `ZERO, SRC_COLOR`) by `tonemap(glow × (1 − k)) / tonemap(glow)` over the glow, `1 − k` outside it. Expected: white ball (~0.1 s), light lavender (~0.2 s), lavender-blue (~0.3 s), blue-violet (~0.4 s), black by ~0.7 s; the collapse's shrinking core also comes back brighter as the black thins. |
 | Black trails the white (2026-10-02) | Developer: the white burst should stay white; the real issue was the black ball growing as fast as the white (Reach: same scale curve), so the darkness covered the white from the start. Now the black body runs the **same scale and alpha curves delayed by `BLACK_DELAY` (0.3 s, placeholder)**: a white ball first, then the dark grows out from the centre inside it, fading in (Reach alpha, HDR multiply: lavender → blue → black inside the black only); the white keeps Reach's tint. At the collapse the black shrinks on the normal timeline (min of both curves), so it never outgrows the white. |
+| Warp-in through small stuff (2026-10-02) | After the in-game test ("all good"): the CAS's exit is blocked only by **live ships** (stations and their modules included). **Fighters, missiles, hulks and asteroids never block**: at the warp-in, **hulks under the CAS are shoved** straight out from it to the nearest free spot (the rest of the cargo still nudges around hulks), and **asteroids under any arrival** (CAS and cargo, fighters and hulks included) **are destroyed** with vanilla's own death (engine damage path: explosion, removed). Arrivals no longer nudge around asteroids. |
+| Friendly stations in the AI (2026-10-02) | A friendly station (the station itself, not its modules) counts as an ally: an anchor for pull-home, reinforce and regroup, and strength in a group (supplies to recover × hull level: 50 / 75 / 100 for vanilla small / medium / large; modules 0). Never carried, so it counts even inside the grab circle. |
+| Enemy stations in the AI (2026-10-02) | "No-no for jumping next to, unless the allies around would have overwhelming presence": an enemy station counts against any group it sits in, like enemy ships, so the usual `PULL_MARGIN` test only passes next to one when the allies there overwhelm it. Its modules' weapons count in the survival test. |
+| Flux/hull-aware AI: Reinforce + Hunt (2026-10-02) | Strength on **both sides** = supplies × hull level × (1 − flux × `FLUX_PRESSURE`); **overload/venting counts as no flux** (it is over by the time the jump lands). Two new plans after Strand, only when no enemy ships are in the grab circle: **Reinforce** — an allied group losing (allied/hostile < `REINFORCE_NEED` 1, hostiles ≥ `REINFORCE_MIN_THREAT`) that our arrival turns (`PULL_MARGIN`); most desperate first; lands **pincer** on the hostiles' far side if the CAS survives the hostiles around that spot (strand survival test), else **beside the allies facing the hostiles** to draw fire and score kills. **Hunt** — an enemy group weakened (≥ `HUNT_MIN_WEAKNESS` 0.25 of full strength lost) or holding a crippled ship (hull ≤ `HUNT_CRIPPLED_HULL` 0.3 or flux ≥ `HUNT_CRIPPLED_FLUX` 0.8, overload/vent not counted), worth ≥ `HUNT_MIN_VALUE` 15, beatable at `PULL_MARGIN`; score = full strength × (weakness + `HUNT_CRIPPLED_BONUS` 0.25 per crippled ship); lands beside the target away from the rest of its group. All placeholders. |
 | Reach remake | **Faithful**: real particle systems and the three spheres, with Reach's textures, curves and timings (supersedes pass 2's procedural look; its *intent* carries over — charging sphere building over the whole charge, thin violet ring at R, expansion to R, white rim, web over black, exit mirrors the entry's charge). **Exit**: the same charge stream at the destination, then at the jump the glow sphere bursts to R as a white-violet flash and fades, with twinkles and a star flare; **no black sphere** at the exit. **Body pure black** (not Reach's near-black multiply palette). **Extras**: heat-distortion ring during the charge — yes; full-screen violet exposure flash — no (local only); debris meshes — no; remnant **capped near 1.3 R** (not Reach's ~2.2 R). |
 
 Implementation calls made while building (in the approved plan): fighters never block a landing
@@ -175,7 +179,8 @@ inside the opaque sphere would only matter for shots flying out of it).
   per-combat state (engine identity reset): AI→script `pendingDestination` (2 s lifetime), the
   `inTransit` identity set (two carriers never grab the same entity), the one render plugin. Shared
   helpers: `isGrabbableShip` (no stations, no modules, alive or hulk), `isCombatant`, `hasShieldUp`,
-  `isInsideMap` / `clampIntoMap`, `isSpotBlocked` (fighters ignored), `portalCenter` (the
+  `isInsideMap` / `clampIntoMap`, `isSpotBlocked` (live ships only — fighters, missiles, hulks
+  and asteroids ignored since 2026-10-02), `portalCenter` (the
   portal off the bow: `PORTAL_AHEAD` collision radii along the facing; 2026-10-02), `currentCargo`
   (around the portal, plus the carrier), `destinationProblem` → `TOO CLOSE` (portal centre →
   destination < `MIN_RANGE`) / `OFF MAP` / `EXIT BLOCKED`.
@@ -202,10 +207,13 @@ inside the opaque sphere would only matter for shots flying out of it).
   - First OUT frame (triggered by the stats script's `apply(OUT)`; the session's own state check is
     the backup) — the jump: the carrier is snapped to the portal centre (= origin); cargo = the
     carrier plus grabbable ships, `engine.projectiles` (missiles included) and asteroids inside the
-    radius. Obstacles = everything staying behind except fighters, plus cargo as it lands. Carrier
+    radius. Obstacles = live ships staying behind (no fighters), plus cargo as it lands. Carrier
     lands first (`findFreeSpot`: target if free and in-map, else rings × directions, else clamped
-    into the map); `delta` = carrier's actual landing − portal centre. Then ships
-    (alive largest-first, fighters clamped only, hulks), asteroids, then shots translated by `delta`
+    into the map); `delta` = carrier's actual landing − portal centre. `shoveHulks`: hulks staying
+    behind that overlap the carrier are pushed straight out from it to the nearest free spot; all
+    staying hulks then become obstacles. Then ships (alive largest-first, fighters clamped only,
+    hulks), asteroids, `destroyAsteroidsUnder` (asteroids staying behind under any arrival:
+    `engine.applyDamage` lethal → vanilla explosion + removal), then shots translated by `delta`
     (`interruptContrail` around missile moves). Child modules move with their parent. Rupture damage,
     flux → max(current, 80%), everything released, jump sound, visual transitions.
   - Rest of OUT: arrival jitter on the cargo, then the session ends.
@@ -217,8 +225,10 @@ inside the opaque sphere would only matter for shots flying out of it).
     rating + 10), OTHER, bypassShields, source = carrier)` so the kill is credited; the engine
     reports that hit itself. The CAS and fighters are included (developer decision).
 - **`ai/FleetSlipspaceJumpAI.kt`** (new, `ShipSystemAIScript`), every `AI_INTERVAL` while ready, not
-  overloaded/venting, flux below the gate. Strength = `suppliesToRecover × hullLevel`; fighters
-  `FIGHTER_STRENGTH`. "Inside the radius" = inside the circle around the portal off the current
+  overloaded/venting, flux below the gate. Strength = `suppliesToRecover × hullLevel × (1 − flux
+  × FLUX_PRESSURE)` for both sides, overload/venting counted as no flux (2026-10-02; before, only
+  allied groups had the flux discount); fighters `FIGHTER_STRENGTH`. Groups count ships and
+  stations within `CLUSTER_RADIUS` that are not coming along; enemy stations count against them. "Inside the radius" = inside the circle around the portal off the current
   bow (2026-10-02; the AI does not turn to aim it); the regroup distance is measured from the
   carrier itself.
   1. **Pull home**: enemy strength in radius ≥ `PULL_MIN_THREAT`; for each allied non-fighter anchor
@@ -235,8 +245,23 @@ inside the opaque sphere would only matter for shots flying out of it).
      everyone staying behind.
   3. **After a strand**: `BACK_OFF` + `DO_NOT_PURSUE` while enemy ships are within 1.5× radius;
      the stranded flag clears once none are within 2× radius; no second strand before that.
-  4. **Regroup**: no enemy ships inside; nearest allied anchor > `REGROUP_DISTANCE`; nearest anchor
+  4. **Reinforce** (2026-10-02): no enemy ships inside; allied anchors ≥ `MIN_RANGE` away whose
+     group is losing (allied / hostile < `REINFORCE_NEED`, hostile ≥ `REINFORCE_MIN_THREAT`) and
+     passes the surplus test with what we carry; lowest ratio wins. Landing: pincer — `radius + 100`
+     beyond the hostiles' centroid along allies → hostiles (±30°, ±60° tried), valid and survivable
+     (strand survival test vs. hostiles within `CLUSTER_RADIUS` of the spot); else beside the anchor
+     facing the hostiles (8 bearings).
+  5. **Hunt** (2026-10-02): no enemy ships inside; each non-fighter enemy ≥ `MIN_RANGE` away seeds
+     a group (hostiles within `CLUSTER_RADIUS`); full ≥ `HUNT_MIN_VALUE`; weakness = 1 − strength /
+     full ≥ `HUNT_MIN_WEAKNESS`, or a crippled ship in it (hull ≤ `HUNT_CRIPPLED_HULL`, or flux ≥
+     `HUNT_CRIPPLED_FLUX` while not overloaded/venting); passes the surplus test; best score = full ×
+     (weakness + `HUNT_CRIPPLED_BONUS` × crippled). Lands beside the target, away from the rest of
+     its group.
+  6. **Regroup**: no enemy ships inside; nearest allied anchor > `REGROUP_DISTANCE`; nearest anchor
      whose cluster passes the surplus test (carried enemies = fighters only) → land beside it.
+  - Anchors and group strength include **friendly stations** (2026-10-02): the station itself
+    (`isStation`, no `parentStation`), never carried. **Enemy stations** count against any group.
+  - The survival test counts child modules' weapons (station modules, modular ships).
 - **`commands/FleetJumpTune.kt`** (new, Console Commands; stays isolated in `commands/`):
   `FleetJumpTune` lists `name = value (default) - description`, `FleetJumpTune <name> <value>`,
   `FleetJumpTune reset [<name>]`.
@@ -407,7 +432,8 @@ Mechanics: `GRAB_RADIUS 1000`, `PORTAL_AHEAD 2` (collision radii; ≈ 660 su on 
 AI: `AI_INTERVAL 0.75`, `FIGHTER_STRENGTH 1`, `PULL_MIN_THREAT 15`, `CLUSTER_RADIUS 1500`,
 `PULL_MARGIN 1.5`, `FLUX_PRESSURE 0.5`, `STRAND_MAX_SPEED 60`, `STRAND_MIN_STRENGTH 15`,
 `HIT_FRACTION 0.5`, `MIN_HULL_AFTER 0.4`, `SURVIVAL_SAFETY 1.25`, `ARMOR_FACTOR 1`, `REGEN_SHARE 0.5`,
-`REGROUP_DISTANCE 4000`.
+`REGROUP_DISTANCE 4000`, `REINFORCE_MIN_THREAT 15`, `REINFORCE_NEED 1`, `HUNT_MIN_VALUE 15`,
+`HUNT_MIN_WEAKNESS 0.25`, `HUNT_CRIPPLED_HULL 0.3`, `HUNT_CRIPPLED_FLUX 0.8`, `HUNT_CRIPPLED_BONUS 0.25`.
 Visual (timings, sizes and colours come from Reach; these scale or bridge it): `EXIT_SEED_LEAD 2`,
 `CHARGE_RING 0`,
 `DISSOLVE 0.6`, `REMNANT_SCALE 0.6` (burst shell ends ≈ 1.3 R; 1 = Reach's ≈ 2.2 R),
@@ -466,8 +492,9 @@ only the animation (items 1–3 and the look in 4).
 1. **Activation.** Player CAS idle: widget shows `READY` (or `FLUX TOO HIGH` above 70% flux); no
    circles. System key → aiming circles (grab radius + carrier footprint) at the cursor, plus the
    entry grab ring one ship length off the bow (turns with the ship), green/red;
-   widget shows `TOO CLOSE` near the ship, `OFF MAP` past the border, `EXIT BLOCKED` over a ship
-   that isn't inside your 1000 su ring. Left click on red: nothing. Left click on green: the jump
+   widget shows `TOO CLOSE` near the ship, `OFF MAP` past the border, `EXIT BLOCKED` over a live
+   ship that isn't inside your 1000 su ring (wrecks, asteroids, fighters and missiles never block:
+   aim on a wreck — it gets shoved aside; on asteroids — they explode as the fleet lands). Left click on red: nothing. Left click on green: the jump
    starts toward that point, no shot fired. Right click while aiming: circles gone, shield not
    toggled. Repeat the whole thing while **paused**: aiming and confirming work; the jump starts on
    unpause. Autopilot on while aiming: aiming drops.
@@ -505,8 +532,12 @@ only the animation (items 1–3 and the look in 4).
    `DISTORTION 0` change the look from the next frame; `FleetJumpTune reset`.
 9. **AI.** AI-controlled CAS: pull-home only toward an allied cluster that can take the enemies
    (lands on the far side of the cluster); strand with slow enemy heavies when no cluster can — it
-   survives, backs off, and regroups once clear (log lines `fleet jump: PULL_HOME/STRAND/REGROUP`);
-   never strands twice in a row; never carries a cruiser+ ally on a strand.
+   survives, backs off, and regroups once clear (log lines
+   `fleet jump: PULL_HOME/STRAND/REINFORCE/HUNT/REGROUP`); never strands twice in a row; never
+   carries a cruiser+ ally on a strand. Out of a fight: jumps to an allied group that is losing
+   (pincer behind the enemies when that is survivable, else beside the allies facing them) or onto
+   a weakened enemy group (crippled / high-flux / low-hull ships), but never next to an enemy station
+   unless the allies there overwhelm it; a friendly station counts as allies.
 10. **Two CASes** (both sides, or two allied): overlapping radii — each entity jumps with one carrier
     only.
 11. **Second battle in a row** with frigate1/frigate3/destroyer2: the drive's portal still renders
@@ -529,7 +560,6 @@ only the animation (items 1–3 and the look in 4).
   near-black multiply palette (body is pure black). The secondary anamorphic/prismatic flares were
   never shown in Reach either (their event delay is 385 s).
 - In-game test + tuning pass (all numbers are placeholders; visual look vs. the reference frames).
-- Friendly stations are ignored by the AI (not anchors, not strength); decide if they should count.
 - Timing tunables (CHARGE/FADE/ARRIVAL) only apply from the next battle (engine reads overrides at
   ship creation).
 - The rupture damage model is a ready candidate for the drive's open "damage non-shielded ships"

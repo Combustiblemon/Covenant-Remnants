@@ -131,7 +131,9 @@ portal — ships of any side, fighters, shots, hulks, asteroids — to the desti
   starts a `systems/FleetSlipspaceJumpSession.kt` per activation. The session is an every-frame
   plugin: holds the carrier, phases/fades the cargo during the fade, executes the jump (carrier
   first, nudged landing spots, offsets preserved, rupture damage, flux), restores on abort.
-- AI: `ai/FleetSlipspaceJumpAI.kt` (pull the fight home → strand enemy heavies → regroup).
+- AI: `ai/FleetSlipspaceJumpAI.kt` (pull the fight home → strand enemy heavies → reinforce a
+  losing allied group → hunt weakened enemies → regroup; flux/hull-weighted strength, stations
+  counted).
 - Player activation: `plugins/FleetSlipspaceJumpTargetingPlugin.kt` (one per combat;
   `processInputPreCoreControls`, so it works paused): system key primes, left click confirms the
   cursor point, right click cancels; blocks the engine's own `USE_SYSTEM` for the player's CAS.

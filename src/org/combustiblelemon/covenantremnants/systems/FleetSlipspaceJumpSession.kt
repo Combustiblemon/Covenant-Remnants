@@ -313,14 +313,15 @@ class FleetSlipspaceJumpSession private constructor(
         cargo.addAll(asteroids)
         cargo.addAll(shots)
 
-        // What landing spots must avoid: everything staying behind (fighters never block), plus
-        // cargo as it lands.
+        // What landing spots must avoid: live ships staying behind (fighters never block), plus
+        // cargo as it lands. Hulks staying behind do not stop the carrier (any under it are shoved
+        // out) but the rest of the cargo nudges around them. Asteroids staying behind block
+        // nothing: any an arrival lands on is destroyed (developer 2026-10-02).
         val obstacles = ArrayList<CombatEntityAPI>()
+        val stayingHulks = ArrayList<ShipAPI>()
         for (ship in engine.ships) {
-            if (ship !in cargo && !ship.isFighter && (ship.isAlive || ship.isHulk)) obstacles.add(ship)
-        }
-        for (asteroid in engine.asteroids) {
-            if (asteroid !in cargo) obstacles.add(asteroid)
+            if (ship in cargo || ship.isFighter) continue
+            if (ship.isHulk) stayingHulks.add(ship) else if (ship.isAlive) obstacles.add(ship)
         }
 
         // Carrier first; every other offset is kept relative to where it actually lands.
@@ -328,6 +329,7 @@ class FleetSlipspaceJumpSession private constructor(
         val delta = Vector2f(carrierFinal.x - origin.x, carrierFinal.y - origin.y)
         moveShip(carrier, carrierFinal)
         obstacles.add(carrier)
+        shoveHulks(stayingHulks, obstacles)
 
         val order = ships.filter { it !== carrier }
             .sortedWith(compareBy<ShipAPI> { placementRank(it) }.thenByDescending { it.collisionRadius })
@@ -346,6 +348,7 @@ class FleetSlipspaceJumpSession private constructor(
             asteroid.location.set(findFreeSpot(target, asteroid.collisionRadius, obstacles))
             obstacles.add(asteroid)
         }
+        destroyAsteroidsUnder(ships, cargo)
         for (shot in shots) {
             val missile = shot as? MissileAPI
             missile?.interruptContrail()
@@ -384,6 +387,43 @@ class FleetSlipspaceJumpSession private constructor(
         val exit = exitEffect ?: renderPlugin.addEffect(RuptureEffect.exit(destination, radius)).also { exitEffect = it }
         exit.startDissolve()
         playJumpSounds(Vector2f(entryCenter), destination)
+    }
+
+    /**
+     * Hulks staying behind that overlap the carrier's landing spot are pushed straight out from it
+     * to the nearest free spot (wrecks never block the warp-in, developer 2026-10-02). All of them
+     * then count as obstacles for the rest of the cargo.
+     */
+    private fun shoveHulks(hulks: List<ShipAPI>, obstacles: MutableList<CombatEntityAPI>) {
+        val center = Vector2f(carrier.location)
+        val inTheWay = hulks.filter { Misc.getDistance(it.location, center) < carrier.collisionRadius + it.collisionRadius }
+        for (hulk in hulks) {
+            if (hulk !in inTheWay) obstacles.add(hulk)
+        }
+        for (hulk in inTheWay.sortedByDescending { it.collisionRadius }) {
+            val angle = if (Misc.getDistance(hulk.location, center) < 1f) hulk.facing else Misc.getAngleInDegrees(center, hulk.location)
+            val dir = Misc.getUnitVectorAtDegreeAngle(angle)
+            val reach = carrier.collisionRadius + hulk.collisionRadius
+            val out = Vector2f(center.x + dir.x * reach, center.y + dir.y * reach)
+            moveShip(hulk, findFreeSpot(out, hulk.collisionRadius, obstacles))
+            obstacles.add(hulk)
+        }
+    }
+
+    /**
+     * Asteroids staying behind that any arrival landed on break up with vanilla's own death (the
+     * engine's damage path: explosion, then removed). Developer 2026-10-02.
+     */
+    private fun destroyAsteroidsUnder(arrivals: List<ShipAPI>, cargo: Set<CombatEntityAPI>) {
+        for (asteroid in ArrayList(engine.asteroids)) {
+            if (asteroid in cargo) continue
+            val landedOn = arrivals.any {
+                Misc.getDistance(it.location, asteroid.location) < it.collisionRadius + asteroid.collisionRadius
+            }
+            if (!landedOn) continue
+            val lethal = asteroid.hitpoints * 10f + 1000f
+            engine.applyDamage(asteroid, asteroid.location, lethal, DamageType.ENERGY, 0f, true, false, carrier)
+        }
     }
 
     /** Alive ships first (largest first within a rank), then fighters, then hulks. */

@@ -76,7 +76,7 @@ object FleetSlipspaceJump {
     val pullMinThreat = tune("PULL_MIN_THREAT", 15f, "Pull-home: min enemy strength in the radius")
     val clusterRadius = tune("CLUSTER_RADIUS", 1500f, "Allied cluster radius around an anchor, su")
     val pullMargin = tune("PULL_MARGIN", 1.5f, "Pull-home: allied strength needed per enemy strength")
-    val fluxPressure = tune("FLUX_PRESSURE", 0.5f, "Allied strength lost per flux level")
+    val fluxPressure = tune("FLUX_PRESSURE", 0.5f, "Strength lost per flux level, both sides (overload/venting counts as no flux)")
     val strandMaxSpeed = tune("STRAND_MAX_SPEED", 60f, "Strand: max speed of an enemy heavy")
     val strandMinStrength = tune("STRAND_MIN_STRENGTH", 15f, "Strand: min enemy heavy strength in the radius")
     val hitFraction = tune("HIT_FRACTION", 0.5f, "Strand survival: fraction of enemy DPS assumed to land")
@@ -85,6 +85,14 @@ object FleetSlipspaceJump {
     val armorFactor = tune("ARMOR_FACTOR", 1f, "Strand survival: armor rating counted as HP, multiplier")
     val regenShare = tune("REGEN_SHARE", 0.5f, "Strand survival: shield regen share counted over the exposure")
     val regroupDistance = tune("REGROUP_DISTANCE", 4000f, "Regroup when the nearest allied cluster is farther than this, su")
+    // Reinforce and Hunt (developer 2026-10-02); placeholders.
+    val reinforceMinThreat = tune("REINFORCE_MIN_THREAT", 15f, "Reinforce: min hostile strength at the allied group")
+    val reinforceNeed = tune("REINFORCE_NEED", 1f, "Reinforce: a group needs help below this allied/hostile strength ratio")
+    val huntMinValue = tune("HUNT_MIN_VALUE", 15f, "Hunt: min full strength of the enemy group")
+    val huntMinWeakness = tune("HUNT_MIN_WEAKNESS", 0.25f, "Hunt: min share of the group's full strength lost to hull/flux (unless a ship is crippled)")
+    val huntCrippledHull = tune("HUNT_CRIPPLED_HULL", 0.3f, "Hunt: a ship at or below this hull level is crippled")
+    val huntCrippledFlux = tune("HUNT_CRIPPLED_FLUX", 0.8f, "Hunt: a ship at or above this flux level is crippled (not overload/venting)")
+    val huntCrippledBonus = tune("HUNT_CRIPPLED_BONUS", 0.25f, "Hunt: score bonus per crippled ship in the group")
 
     // --- Visual ------------------------------------------------------------------------------
     // The rupture's timings, sizes and colours come from the Halo: Reach slipspace bomb itself
@@ -284,17 +292,14 @@ object FleetSlipspaceJump {
     }
 
     /**
-     * Whether a circle at [point] overlaps any ship or asteroid that is not in [ignore].
-     * Fighters never block (they get out of the way).
+     * Whether a circle at [point] overlaps any live ship that is not in [ignore]. Fighters,
+     * missiles, hulks and asteroids never block (developer 2026-10-02): at the warp-in hulks under
+     * the carrier are shoved aside and asteroids under any arrival are destroyed.
      */
     fun isSpotBlocked(point: Vector2f, radius: Float, ignore: Set<CombatEntityAPI>, engine: CombatEngineAPI): Boolean {
         for (other in engine.ships) {
-            if (other in ignore || other.isFighter || !(other.isAlive || other.isHulk)) continue
+            if (other in ignore || other.isFighter || other.isHulk || !other.isAlive) continue
             if (Misc.getDistance(point, other.location) < radius + other.collisionRadius) return true
-        }
-        for (asteroid in engine.asteroids) {
-            if (asteroid in ignore) continue
-            if (Misc.getDistance(point, asteroid.location) < radius + asteroid.collisionRadius) return true
         }
         return false
     }

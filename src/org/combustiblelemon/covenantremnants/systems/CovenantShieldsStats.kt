@@ -22,6 +22,7 @@ import org.magiclib.util.MagicUI
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 class CovenantShieldsStats : BaseShipSystemScript() {
     companion object {
@@ -31,6 +32,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     }
 
     private var statusKey = Any()
+    private val regenStatusKey = Any()
     private var renderPlugin: CovenantShieldsRenderPlugin? = null
     private var UIRenderPlugin: CovenantShieldsUIRenderPlugin? = null
     private var damageListener: ShieldDamageListener? = null
@@ -179,6 +181,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             }
             parent.wasRegenActive = regenActive
 
+            parent.maintainRegenStatus(ship, fortressActive)
             parent.updateRenderers()
         }
     }
@@ -422,6 +425,24 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         this.lastShieldDamageTime = time
         this.shieldHealth -= abs(amount)
         this.lastDamageToShield = abs(amount)
+    }
+
+    /**
+     * Player ship only, while the shield is below full and not broken: a status line naming the
+     * regen state (developer 2026-10-02) - frozen under Fortress Shield, paused after a hit, the
+     * slow stage, or full rate.
+     */
+    private fun maintainRegenStatus(ship: ShipAPI, fortressActive: Boolean) {
+        val engine = Global.getCombatEngine()
+        if (ship !== engine.playerShip || breakCooldownActive || shieldHealth >= maxShieldHealth) return
+        val mult = regenMult()
+        val (state, isDebuff) = when {
+            fortressActive -> "frozen by Fortress Shield" to true
+            mult <= 0f -> "paused" to true
+            mult < 1f -> "${(mult * 100f).roundToInt()}% rate" to true
+            else -> "full rate" to false
+        }
+        engine.maintainStatusForPlayerShip(regenStatusKey, getShield(ship).specAPI.iconSpriteName, "Shield regen", state, isDebuff)
     }
 
     fun regenMult(): Float {
