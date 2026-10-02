@@ -35,10 +35,15 @@ import java.nio.FloatBuffer
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
+import kotlin.math.sqrt
+
+/** Floats per ribbon point for [RuptureSpriteShader.drawRibbon]: x, y, half width, u, r, g, b, alpha, black point. */
+internal const val RIBBON_STRIDE = 9
 
 /**
- * Draws the rupture's sprites (ruptureSprite.vert/.frag) in batches: one draw call per material
- * per effect, the quads built on the CPU each frame. Construct on the GL thread.
+ * Draws Reach particle sprites (ruptureSprite.vert/.frag) in batches: one draw call per material
+ * per sprite list, the quads built on the CPU each frame. Used by the rupture and by the plasma
+ * torpedoes ([drawSprites]). Construct on the GL thread.
  */
 internal class RuptureSpriteShader {
     private companion object {
@@ -109,8 +114,31 @@ internal class RuptureSpriteShader {
         screenCopy: Int = 0,
         viewportPx: IntArray? = null
     ) {
+        drawSprites(
+            material, effect.sprites, effect.center.x, effect.center.y, effect.master,
+            view, time, exposure, distortion, screenCopy, viewportPx
+        )
+    }
+
+    /**
+     * Draws every sprite in [sprites] that uses [material]; sprite positions are relative to
+     * ([originX], [originY]) in world units, [master] fades the whole batch.
+     */
+    fun drawSprites(
+        material: SpriteMaterial,
+        sprites: List<RuptureSprite>,
+        originX: Float,
+        originY: Float,
+        master: Float,
+        view: RuptureView,
+        time: Float,
+        exposure: Float,
+        distortion: Float = 0f,
+        screenCopy: Int = 0,
+        viewportPx: IntArray? = null
+    ) {
         var count = 0
-        for (s in effect.sprites) if (s.kind.material == material) count++
+        for (s in sprites) if (s.kind.material == material) count++
         if (count == 0) return
 
         glBindVertexArray(vao)
@@ -118,15 +146,15 @@ internal class RuptureSpriteShader {
         ensureCapacity(count)
         buffer.clear()
         var written = 0
-        for (s in effect.sprites) {
+        for (s in sprites) {
             if (s.kind.material != material) continue
-            if (writeSprite(s, material, effect, view, distortion)) written++
+            if (writeSprite(s, material, originX, originY, view, distortion)) written++
         }
         if (written == 0) return
         buffer.flip()
         glBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
 
-        begin(material, effect.master, time, exposure)
+        begin(material, master, time, exposure)
         if (material.mode == MODE_DISTORTION && viewportPx != null) {
             glActiveTexture(GL_TEXTURE0 + 4)
             glBindTexture(GL_TEXTURE_2D, screenCopy)
@@ -137,6 +165,60 @@ internal class RuptureSpriteShader {
             glActiveTexture(GL_TEXTURE0)
         }
         glDrawArrays(GL_TRIANGLES, 0, written * VERTICES_PER_SPRITE)
+    }
+
+    /**
+     * Draws a ribbon (the torpedo trail) with [material]: [points] = per point x, y (world), half
+     * width (world), u, r, g, b (colour × intensity), alpha, black point — RIBBON_STRIDE floats
+     * each, [count] points from the head back. v runs across the ribbon.
+     */
+    fun drawRibbon(
+        material: SpriteMaterial,
+        points: FloatArray,
+        count: Int,
+        master: Float,
+        view: RuptureView,
+        time: Float,
+        exposure: Float
+    ) {
+        if (count < 2) return
+        glBindVertexArray(vao)
+        glBindBuffer(GL_ARRAY_BUFFER, vbo)
+        ensureCapacity(count - 1)
+        buffer.clear()
+        for (i in 0 until count - 1) {
+            for (corner in 0 until VERTICES_PER_SPRITE) {
+                // corner x: 0 = point i, 1 = point i + 1; corner y: side of the ribbon
+                val index = if (CORNER_X[corner] < 0f) i else i + 1
+                val side = CORNER_Y[corner]
+                val o = index * RIBBON_STRIDE
+                val (nx, ny) = ribbonNormal(points, count, index)
+                val halfWidth = points[o + 2]
+                val x = points[o] + nx * side * halfWidth
+                val y = points[o + 1] + ny * side * halfWidth
+                putVertex(
+                    view.ndcX(view.screenX(x)), view.ndcY(view.screenY(y)),
+                    points[o + 3], side * 0.5f + 0.5f, 0f, side,
+                    points[o + 4], points[o + 5], points[o + 6], points[o + 7],
+                    0f, points[o + 8], 1f, 0f
+                )
+            }
+        }
+        buffer.flip()
+        glBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
+        begin(material, master, time, exposure)
+        glDrawArrays(GL_TRIANGLES, 0, (count - 1) * VERTICES_PER_SPRITE)
+    }
+
+    /** Unit normal of the ribbon at point [index] (perpendicular to the averaged direction). */
+    private fun ribbonNormal(points: FloatArray, count: Int, index: Int): Pair<Float, Float> {
+        val prev = maxOf(index - 1, 0) * RIBBON_STRIDE
+        val next = minOf(index + 1, count - 1) * RIBBON_STRIDE
+        val dx = points[next] - points[prev]
+        val dy = points[next + 1] - points[prev + 1]
+        val length = sqrt(dx * dx + dy * dy)
+        if (length < 1e-4f) return 0f to 1f
+        return -dy / length to dx / length
     }
 
     /** Draws one lens flare at the rupture center. */
@@ -192,7 +274,8 @@ internal class RuptureSpriteShader {
     private fun writeSprite(
         s: RuptureSprite,
         material: SpriteMaterial,
-        effect: RuptureEffect,
+        originX: Float,
+        originY: Float,
         view: RuptureView,
         distortion: Float
     ): Boolean {
@@ -203,8 +286,8 @@ internal class RuptureSpriteShader {
 
         val cosA = cos(s.angle)
         val sinA = sin(s.angle)
-        val worldX = effect.center.x + s.x + cosA * s.offsetAlong
-        val worldY = effect.center.y + s.y + sinA * s.offsetAlong
+        val worldX = originX + s.x + cosA * s.offsetAlong
+        val worldY = originY + s.y + sinA * s.offsetAlong
         val centerX = view.screenX(worldX)
         val centerY = view.screenY(worldY)
         if (view.isOffscreen(centerX, centerY, max(halfLength, halfWidth))) return false

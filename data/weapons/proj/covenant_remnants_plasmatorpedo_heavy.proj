@@ -1,0 +1,20 @@
+{
+	"id":"covenant_remnants_plasmatorpedo_heavy",
+	"specClass":"missile",
+	"missileType":"MISSILE",
+	# Invisible: the Reach space Phantom torpedo look is drawn by utils/render/torpedo/TorpedoRenderer.
+	"sprite":"graphics/missiles/covenant_remnants_plasma_torpedo.png",
+	"size":[8,16],
+	"center":[4,8],
+	"collisionRadius":16,
+	"collisionClass":"MISSILE_NO_FF",
+	# No vanilla explosion: the Reach impact is drawn instead.
+	"explosionColor":[0,0,0,0],
+	"explosionRadius":0,
+	# Movement from vanilla type_1_mirv (the missile this weapon used before 2026-10-02).
+	"engineSpec":{"turnAcc":600,
+				  "turnRate":150,
+				  "acc":250,
+				  "dec":200},
+	"engineSlots":[]
+}

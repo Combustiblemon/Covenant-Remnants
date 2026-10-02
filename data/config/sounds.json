@@ -26,5 +26,23 @@
 		{"file":"sounds/covenant_shield/pop_1.ogg","pitch":1,"volume":1},
 		{"file":"sounds/covenant_shield/pop_2.ogg","pitch":1,"volume":1},
 		{"file":"sounds/covenant_shield/pop_3.ogg","pitch":1,"volume":1}
+	],
+
+	# Plasma torpedoes. The Halo: Reach space Phantom torpedo (m45; FMOD bank sounds
+	# space_phantom_missile_fire / _lp / _expl). Reach mixes the fire and explosion at -6 dB and the
+	# in-flight hum at -18 dB, pitched +5 semitones; the explosion's 0 to -2 semitone pitch drop is
+	# randomised in TorpedoRenderPlugin. See planning/implementations/plasma-torpedo-reach.md.
+	"covenant_remnants_plasma_torpedo_fire":[
+		{"file":"sounds/plasma_torpedo/fire_1.ogg","pitch":1,"volume":1},
+		{"file":"sounds/plasma_torpedo/fire_2.ogg","pitch":1,"volume":1},
+		{"file":"sounds/plasma_torpedo/fire_3.ogg","pitch":1,"volume":1}
+	],
+	"covenant_remnants_plasma_torpedo_loop":[
+		{"file":"sounds/plasma_torpedo/loop.ogg","pitch":1.335,"volume":0.25}
+	],
+	"covenant_remnants_plasma_torpedo_impact":[
+		{"file":"sounds/plasma_torpedo/impact_1.ogg","pitch":1,"volume":1},
+		{"file":"sounds/plasma_torpedo/impact_2.ogg","pitch":1,"volume":1},
+		{"file":"sounds/plasma_torpedo/impact_3.ogg","pitch":1,"volume":1}
 	]
 }

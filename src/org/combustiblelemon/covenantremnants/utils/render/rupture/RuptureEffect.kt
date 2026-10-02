@@ -883,6 +883,8 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
                     s.alpha = HAZE_ALPHA
                     s.blackPoint = 0f
                 }
+                // Torpedo sprites (utils/render/torpedo) never live in a rupture
+                else -> {}
             }
         }
     }

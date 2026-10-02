@@ -13,9 +13,10 @@ import org.lwjgl.opengl.GL11.glTexParameteri
 import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 
 /**
- * The Halo: Reach bitmaps the rupture is drawn with, exported from the official Reach editing kit
- * (`graphics/fx/slipspace_rupture/`, registered in `data/config/settings.json` under
- * [CATEGORY]). Noise maps and sphere-wrapped maps tile; palettes and sprite shapes clamp.
+ * The Halo: Reach bitmaps the rupture and the plasma torpedoes are drawn with, exported from the
+ * official Reach editing kit (`graphics/fx/slipspace_rupture/`, `graphics/fx/plasma_torpedo/`,
+ * registered in `data/config/settings.json` under [CATEGORY]). Noise maps and sphere-wrapped maps
+ * tile; palettes and sprite shapes clamp.
  */
 internal enum class RuptureTexture(private val spriteId: String, private val tiles: Boolean) {
     /** fx\particles\models\mesh_fx\slipspace_sphere\bitmaps\plasma_clouds01 */
@@ -79,7 +80,51 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     GLOW("rupture_light_volume_glow", false),
 
     /** fx\bitmaps\distortion\distortion_ring: RG = screen offset, 0.5 = none */
-    DISTORTION_RING("rupture_distortion_ring", false);
+    DISTORTION_RING("rupture_distortion_ring", false),
+
+    // --- Plasma torpedo (m45 space Phantom torpedo) ---
+
+    /** fx\bitmaps\contrails\hunter_beam: band along u (the trail's length) */
+    TORPEDO_TRAIL("torpedo_hunter_beam", true),
+
+    /** fx\bitmaps\weapon_fire\muzzle_flash_round_fiery: 2 frames, repacked as a 2x2 atlas */
+    TORPEDO_MUZZLE_ROUND("torpedo_muzzle_flash_round", false),
+
+    /** fx\bitmaps\weapon_fire\gradients\muzzle_flare_phantom_turret: violet to white */
+    TORPEDO_MUZZLE_PALETTE("torpedo_muzzle_flare_phantom_turret", false),
+
+    /** fx\bitmaps\flash\flash_large */
+    TORPEDO_FLASH("torpedo_flash_large", false),
+
+    /** fx\bitmaps\atmospheric_rolling\fireball_plate: the fireball's palette index */
+    TORPEDO_FIREBALL_PLATE("torpedo_fireball_plate", true),
+
+    /** fx\particles\_gradients\fireball_covenant: rows animate over the fireball's life */
+    TORPEDO_FIREBALL_PALETTE("torpedo_fireball_covenant", false),
+
+    /** fx\bitmaps\atmospheric_rolling\fireball_mask (shape moved into alpha) */
+    TORPEDO_FIREBALL_MASK("torpedo_fireball_mask", false),
+
+    /** fx\bitmaps\plasma\plasma_clouds_256_b */
+    TORPEDO_NOISE_256_B("torpedo_plasma_clouds_256_b", true),
+
+    /** fx\particles\plasma\gradients\blue_plasma */
+    TORPEDO_PLASMA_PALETTE("torpedo_blue_plasma", false),
+
+    /** fx\bitmaps\atmospheric\smoke_fiery_small: the impact plasma's shape */
+    TORPEDO_SMOKE_SMALL("torpedo_smoke_fiery_small", false),
+
+    /** fx\bitmaps\atmospheric\soft_smoke_large */
+    TORPEDO_SMOKE_LARGE("torpedo_soft_smoke_large", false),
+
+    /** fx\bitmaps\newticles\spark_long_round: the impact's cheap-particle sparks */
+    TORPEDO_SPARK("torpedo_spark_long_round", false),
+
+    /** fx\bitmaps\lens_flares\simple_flare */
+    TORPEDO_FLARE_SIMPLE("torpedo_simple_flare", false),
+
+    /** fx\bitmaps\lens_flares\anamorphic_flare: a streak along v */
+    TORPEDO_FLARE_ANAMORPHIC("torpedo_anamorphic_flare", false);
 
     private var textureId = -1
     private var configured = false

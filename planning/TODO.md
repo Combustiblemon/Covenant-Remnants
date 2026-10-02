@@ -15,8 +15,18 @@ Keep this file current — tick items off and add new ones as work lands.
       Re-check `builtInMods` after every editor save.
 - [ ] **Bespoke weapon art** — the 13 weapons use vanilla-analog sprites recolored purple; make real
       Covenant turret/hardpoint sprites. See [implementations/weapons-arsenal.md](implementations/weapons-arsenal.md).
-- [ ] **Projectile / missile recolor** — bolts and torpedoes reference vanilla `projectileSpecId`,
-      so they render in vanilla colours; author Covenant `.proj` (purple) when art is ready.
+- [ ] **Projectile / missile recolor** — the energy bolts still reference vanilla `projectileSpecId`,
+      so they render in vanilla colours; author Covenant `.proj` (purple) when art is ready. The
+      three plasma torpedoes are done (Reach look, 2026-10-02, below).
+- [x] **Plasma torpedoes — Halo: Reach look** — built 2026-10-02: the m45 space Phantom torpedo
+      (muzzle flash, light-volume body, star flare, lightning ribbon trail, fireball / plasma / smoke /
+      sparks / lens-flare impact, Reach fire / hum / explosion sounds) on all three torpedoes, scaled
+      by size; all three are now plain homing torpedoes with their own `.proj` (no Sabot / MIRV
+      splits). See [implementations/plasma-torpedo-reach.md](implementations/plasma-torpedo-reach.md).
+- [ ] **Plasma torpedoes — in-game check** — run the checklist in
+      [implementations/plasma-torpedo-reach.md](implementations/plasma-torpedo-reach.md). Note: the
+      heavy now does one 500 hit instead of 7 × 500 MIRV warheads, the light one 100 hit instead of
+      5 × 200 kinetic darts (numbers unchanged; tuning later).
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance). The beam
       itself, including the pierce segment, now renders from the `.wpn` beam spec, so it inherits
       whatever beam colours/texture that spec defines.

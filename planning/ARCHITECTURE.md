@@ -108,10 +108,18 @@ The jump is the engine's; the mod only draws it (Halo 3: ODST carrier-jump look)
   `BlinkRippleShader.kt` ↔ `data/shaders/blink/blinkRipple.*` (ODST ripple over the ship sprite:
   plasma puffs, outward spark streaks, bow flash).
 - `utils/render/rupture/RupturePrograms.kt` — the rupture sphere + sprite programs, shared by the
-  fleet jump and the blink, compiled at game start. `utils/render/PlainProgram.kt` — plain
+  fleet jump, the blink and the plasma torpedoes, compiled at game start. `utils/render/PlainProgram.kt` — plain
   vertex+fragment program helper shared by the rupture and blink renderers.
 - `hullmods/SlipspaceTuning.kt` — +30 % charge regen on drive-system ships.
 - See [implementations/slipspace-drive-blink.md](implementations/slipspace-drive-blink.md).
+
+**Plasma torpedoes** (2026-10-02) — the Halo: Reach space Phantom torpedo look on the three
+torpedoes. `data/weapons/proj/covenant_remnants_plasmatorpedo*.proj` (plain guided missiles,
+invisible sprite); the `.wpn` `onFireEffect` `weapons/PlasmaTorpedoOnFire.kt` hands each one to
+`plugins/TorpedoRenderPlugin.kt` (one per combat: muzzle, flight, impact, sounds), which draws
+through `utils/render/torpedo/` (`TorpedoCurves`, `TorpedoEffects`, `TorpedoRenderer`) with the
+shared Reach sprite program (`RuptureSpriteShader.drawSprites` / `drawRibbon`). See
+[implementations/plasma-torpedo-reach.md](implementations/plasma-torpedo-reach.md).
 - Console commands: `commands/RegenerateSlipspace.kt`, `commands/DebugHook.kt`,
   `commands/CovenantGiveAll.kt`, `commands/FleetJumpTune.kt` (registered in
   `data/console/commands.csv`). `ShaderLayers` lives in LemonLib and is registered by LemonLib's

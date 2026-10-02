@@ -26,7 +26,9 @@ arsenal is usable in-game now.
 
 - Beams recolored purple via `.wpn` colors. Projectiles/missiles reference the **vanilla
   `projectileSpecId`** directly (e.g. `heavyblaster_shot`, `sabot_srm`) — guaranteed load, but the
-  bolt/missile visual is vanilla-colored for now.
+  bolt/missile visual is vanilla-colored for now. **Exception (2026-10-02):** the three plasma
+  torpedoes have their own `.proj` (plain homing torpedoes, no Sabot/MIRV splits) and the Halo:
+  Reach space Phantom torpedo look — see [plasma-torpedo-reach.md](plasma-torpedo-reach.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

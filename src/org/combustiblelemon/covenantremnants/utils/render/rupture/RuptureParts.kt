@@ -77,7 +77,51 @@ internal enum class SpriteMaterial(
     FLARE_GLOW(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.GLOW),
 
     /** distortion_ring.particle: heat-haze ring over a copy of the screen. */
-    DISTORTION(MODE_DISTORTION, Blend.ALPHA, RuptureTexture.DISTORTION_RING);
+    DISTORTION(MODE_DISTORTION, Blend.ALPHA, RuptureTexture.DISTORTION_RING),
+
+    // --- Plasma torpedo (m45 space Phantom torpedo, see utils/render/torpedo) ---
+
+    /** projectile.light_volume_system hot_core: light_volume_glow glows along the body. */
+    TORPEDO_BODY(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.GLOW),
+
+    /** projectile.lens_flare: star_flare. */
+    TORPEDO_STAR(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.STAR_FLARE),
+
+    /** projectile.contrail_system: hunter_beam ribbon, black point. */
+    TORPEDO_TRAIL(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_TRAIL),
+
+    /** muzzle_flash_round.particle: palettized_plus_sprite_alpha, 2 frames. */
+    TORPEDO_MUZZLE_ROUND(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_MUZZLE_ROUND,
+        palette = RuptureTexture.TORPEDO_MUZZLE_PALETTE, atlasCells = 2
+    ),
+
+    /** flash_large.particle: diffuse_only flash. */
+    TORPEDO_FLASH(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLASH),
+
+    /** fireball_space_covenant.particle: palettized_plus_billboard_alpha, sphere warp 0.8. */
+    TORPEDO_FIREBALL(
+        MODE_PALETTE_ALPHA, Blend.ALPHA, RuptureTexture.TORPEDO_FIREBALL_PLATE,
+        palette = RuptureTexture.TORPEDO_FIREBALL_PALETTE, alphaMap = RuptureTexture.TORPEDO_FIREBALL_MASK,
+        warp = 0.8f
+    ),
+
+    /** plasma_blue_space_large.particle: palettized_2d_plasma, sphere warp 0.45. */
+    TORPEDO_PLASMA(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_256_A, RuptureTexture.TORPEDO_NOISE_256_B,
+        RuptureTexture.TORPEDO_PLASMA_PALETTE, RuptureTexture.TORPEDO_SMOKE_SMALL,
+        NoiseTransform(1.8f, 5f, 1f, 4f, 1f), NoiseTransform(1.5f, 2f, -1f, 3f, 1f), warp = 0.45f
+    ),
+
+    /** fireball_smoke.particle: dark smoke, pre-multiplied alpha (drawn alpha-blended). */
+    TORPEDO_SMOKE(MODE_TEXTURE_ALPHA, Blend.ALPHA, RuptureTexture.TORPEDO_SMOKE_LARGE),
+
+    /** impact.cheap_particle_emitter: spark_orange_space streaks. */
+    TORPEDO_SPARK(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_SPARK),
+
+    /** impact.lens_flare and impact_anamorphic.lens_flare. */
+    TORPEDO_FLARE_SIMPLE(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_SIMPLE),
+    TORPEDO_FLARE_ANAMORPHIC(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_ANAMORPHIC);
 
     enum class Blend { ADDITIVE, ALPHA }
 }
@@ -87,6 +131,8 @@ internal const val MODE_TEXTURE_ADD = 1
 internal const val MODE_SMOKE = 2
 internal const val MODE_TEXTURE_ALPHA = 3
 internal const val MODE_DISTORTION = 4
+internal const val MODE_PALETTE_ADD = 5
+internal const val MODE_PALETTE_ALPHA = 6
 
 /** Which Reach particle system a sprite comes from; picks its material and its update rules. */
 internal enum class SpriteKind(val material: SpriteMaterial) {
@@ -97,7 +143,19 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     PLASMA_FLAME(SpriteMaterial.PLASMA_FLAME),
     TWINKLE(SpriteMaterial.TWINKLE),
     SMOKE(SpriteMaterial.SMOKE),
-    HAZE(SpriteMaterial.SMOKE)
+    HAZE(SpriteMaterial.SMOKE),
+
+    // Plasma torpedo (utils/render/torpedo)
+    TORPEDO_BODY(SpriteMaterial.TORPEDO_BODY),
+    TORPEDO_STAR(SpriteMaterial.TORPEDO_STAR),
+    TORPEDO_MUZZLE_ROUND(SpriteMaterial.TORPEDO_MUZZLE_ROUND),
+    TORPEDO_FLASH(SpriteMaterial.TORPEDO_FLASH),
+    TORPEDO_FIREBALL(SpriteMaterial.TORPEDO_FIREBALL),
+    TORPEDO_PLASMA(SpriteMaterial.TORPEDO_PLASMA),
+    TORPEDO_SMOKE(SpriteMaterial.TORPEDO_SMOKE),
+    TORPEDO_SPARK(SpriteMaterial.TORPEDO_SPARK),
+    TORPEDO_FLARE_SIMPLE(SpriteMaterial.TORPEDO_FLARE_SIMPLE),
+    TORPEDO_FLARE_ANAMORPHIC(SpriteMaterial.TORPEDO_FLARE_ANAMORPHIC)
 }
 
 /**

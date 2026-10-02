@@ -10,10 +10,11 @@
   "hardpointAngleOffsets": [0, 0, 0],
   "turretAngleOffsets": [0, 0, 0],
   "barrelMode": "ALTERNATING",
-  "animationType": "SMOKE",
+  "animationType": "NONE",
   "renderHints": ["RENDER_LOADED_MISSILES"],
   "interruptibleBurst": false,
   "displayArcRadius": 300,
-  "projectileSpecId": "sabot_srm",
-  "fireSoundTwo": "sabot_srm_fire"
+  "projectileSpecId": "covenant_remnants_plasmatorpedo_light",
+  "onFireEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire",
+  "fireSoundTwo": "covenant_remnants_plasma_torpedo_fire"
 }

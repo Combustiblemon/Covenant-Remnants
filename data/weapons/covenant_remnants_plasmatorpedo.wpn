@@ -10,9 +10,10 @@
   "hardpointAngleOffsets": [0, 0],
   "turretAngleOffsets": [0, 0],
   "barrelMode": "ALTERNATING",
-  "animationType": "SMOKE",
+  "animationType": "NONE",
   "renderHints": ["RENDER_LOADED_MISSILES"],
   "interruptibleBurst": false,
-  "projectileSpecId": "harpoon_mrm",
-  "fireSoundTwo": "harpoon_fire"
+  "projectileSpecId": "covenant_remnants_plasmatorpedo",
+  "onFireEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire",
+  "fireSoundTwo": "covenant_remnants_plasma_torpedo_fire"
 }
