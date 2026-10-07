@@ -1,91 +1,56 @@
 {
-    "hullName":"Ardo'nikapoora-pattern Landing Corvette",
-    "hullId":"covenant_remnants_frigate3",
-    "hullSize":"FRIGATE",
-    "style":"COVENANT",
-    "spriteName":"graphics/covenant_remnants/ships/covenant_remnants_frigate3.png",
-    "height":126,
-    "width":82,
-    "center":[
-        41, 63
-    ],
-    "collisionRadius":63,
-    "coversColor":"",
-    "shieldCenter":[
-        0, 0
-    ],
-    "shieldRadius":63,
-    "viewOffset":0,
-    "builtInMods":[
-        "covenant_remnants_covenantsystems",
-        "covenant_remnants_nanolaminate_armor",
-        "covenant_remnants_slipspace_drive",
-        "covenant_remnants_covenantshieldhullmod"
-    ],
-    "builtInWings":[],
-    "builtInModules":null,
-    "weaponSlots":[
-        {
-            "id":"WS0001",
-            "size":"SMALL",
-            "type":"ENERGY",
-            "mount":"TURRET",
-            "arc":360,
-            "angle":0,
-            "locations":[
-                      10,        0
-            ]
-        }
-    ],
-    "engineSlots":[
-        {
-            "location":[
-                -50, 8
-            ],
-            "length":15,
-            "width":4,
-            "angle":180,
-            "contrailSize":3,
-            "style":"HIGH_TECH"
-        },
-        {
-            "location":[
-                -50, -8
-            ],
-            "length":15,
-            "width":4,
-            "angle":180,
-            "contrailSize":3,
-            "style":"HIGH_TECH"
-        }
-    ],
-    "bounds":[
-               6,      -39,
-             -15,      -25,
-             -33,      -18,
-           -46.5,    -10.5,
-           -44.5,     -6.5,
-        
-             -61,        0,
-           -44.5,      6.5,
-           -46.5,     10.5,
-             -33,       19,
-             -15,       26,
-        
-               6,       40,
-              15,       39,
-              23,       36,
-              38,       26,
-              41,       17,
-        
-              52,       11,
-              63,        0,
-              52,      -10,
-              41,      -16,
-              38,      -25,
-        
-              23,      -35,
-              14,      -38
-    # 22 points total.
-    ]
+  "hullName": "Ardo'nikapoora-pattern Landing Corvette",
+  "hullId": "covenant_remnants_frigate3",
+  "hullSize": "FRIGATE",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_frigate3.png",
+  "style": "COVENANT",
+  "height": 126,
+  "width": 82,
+  "center": [41, 63],
+  "collisionRadius": 63,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 63,
+  "viewOffset": 0,
+  "builtInMods": [
+    "covenant_remnants_covenantsystems",
+    "covenant_remnants_nanolaminate_armor",
+    "covenant_remnants_slipspace_drive",
+    "covenant_remnants_covenantshieldhullmod",
+  ],
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": 0,
+      "locations": [10, 0],
+    },
+  ],
+  "engineSlots": [
+    {
+      "location": [-28.5, 10],
+      "length": 5,
+      "width": 32,
+      "angle": 180,
+      "contrailSize": 32,
+      "style": "CUSTOM",
+      "styleId": "COVENANT",
+    },
+    {
+      "location": [-28.5, -11],
+      "length": 5,
+      "width": 32,
+      "angle": 180,
+      "contrailSize": 32,
+      "style": "CUSTOM",
+      "styleId": "COVENANT",
+    },
+  ],
+  "bounds": [
+    6, -39, -15, -25, -33, -18, -46.5, -10.5, -44.5, -6.5, -44.5, 6.5, -46.5,
+    10.5, -33, 19, -15, 26, 6, 40, 15, 39, 23, 36, 38, 26, 41, 17, 52, 11, 63,
+    0, 52, -10, 41, -16, 38, -25, 23, -35, 14, -38,
+  ],
 }

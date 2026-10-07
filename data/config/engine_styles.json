@@ -9,7 +9,6 @@
 		"contrailAngularVelocityMult":0f,
 		"contrailColor":[50,50,255,75],
 		"type":"GLOW",
-
 		"glowSprite":"graphics/fx/engineglow32b.png",
 		"glowOutline":"graphics/fx/engineflame32b.png",
 		"omegaMode":true,

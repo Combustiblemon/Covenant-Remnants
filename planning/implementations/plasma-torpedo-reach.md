@@ -118,5 +118,5 @@ to 125 su.
   hit. Damage types also unchanged (light KINETIC, others HE).
 - Units per size, spark count, trail spacing, body/flare brightness — placeholders.
 - Launcher sprites are still vanilla (Bespoke weapon art TODO).
-- `build.gradle.kts` also packs `data/` and `graphics/` into the jar as resources (twice), so new
-  textures grow the jar (5.6 → 7.1 MB here). Pre-existing; not changed.
+- ~~`build.gradle.kts` also packed `data/` and `graphics/` into the jar~~ — fixed 2026-10-02, the
+  jar is code only now ([jar-code-only.md](jar-code-only.md)).

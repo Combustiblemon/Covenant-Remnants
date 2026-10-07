@@ -1,78 +1,59 @@
 {
-    "hullName":"Type-26 Banshee",
-    "hullId":"covenant_remnants_wing2",
-    "hullSize":"FIGHTER",
-    "style":"COVENANT",
-    "spriteName":"graphics/covenant_remnants/ships/wings/covenant_remnants_wing2.png",
-    "height":31,
-    "width":37,
-    "center":[
-        18.5, 15.5
-    ],
-    "collisionRadius":20,
-    "coversColor":"",
-    "shieldCenter":[
-        0, 0
-    ],
-    "shieldRadius":20,
-    "viewOffset":0,
-    "builtInWings":[],
-    "builtInModules":null,
-    "weaponSlots":[
-        {
-            "id":"WS0001",
-            "size":"SMALL",
-            "type":"ENERGY",
-            "mount":"HIDDEN",
-            "arc":25,
-            "angle":0,
-            "locations":[
-                      12,        4
-            ]
-        },
-        {
-            "id":"WS0002",
-            "size":"SMALL",
-            "type":"ENERGY",
-            "mount":"HIDDEN",
-            "arc":25,
-            "angle":0,
-            "locations":[
-                      12,       -4
-            ]
-        }
-    ],
-    "engineSlots":[
-        {
-            "location":[
-                -13, 3
-            ],
-            "length":7,
-            "width":3,
-            "angle":180,
-            "contrailSize":2,
-            "style":"HIGH_TECH"
-        },
-        {
-            "location":[
-                -13, -3
-            ],
-            "length":7,
-            "width":3,
-            "angle":180,
-            "contrailSize":2,
-            "style":"HIGH_TECH"
-        }
-    ],
-    "bounds":[
-              14,       -3,
-               1,      -15,
-              -6,     -6.5,
-           -13.5,       -5,
-           -13.5,        5,
-        
-              -6,      6.5,
-               1,       15,
-              14,        3
-    ]
+  "hullName": "Type-26 Banshee",
+  "hullId": "covenant_remnants_wing2",
+  "hullSize": "FIGHTER",
+  "spriteName": "graphics/covenant_remnants/ships/wings/covenant_remnants_wing2.png",
+  "style": "COVENANT",
+  "height": 31,
+  "width": 37,
+  "center": [18.5, 15.5],
+  "collisionRadius": 20,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 20,
+  "viewOffset": 0,
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "HIDDEN",
+      "arc": 25,
+      "angle": 0,
+      "locations": [8, 4.5]
+    },
+    {
+      "id": "WS0002",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "HIDDEN",
+      "arc": 25,
+      "angle": 0,
+      "locations": [8, -4.5]
+    }
+  ],
+  "engineSlots": [
+    {
+      "location": [-0.5, 15.5],
+      "length": 2.5,
+      "width": 5,
+      "angle": 180,
+      "contrailSize": 5,
+      "style": "HIGH_TECH"
+    },
+    {
+      "location": [-1, -16.5],
+      "length": 3.5,
+      "width": 4,
+      "angle": 180,
+      "contrailSize": 4,
+      "style": "CUSTOM",
+      "styleId": "COVENANT"
+    }
+  ],
+  "bounds": [
+    13.5, -4.5,
+    -12, -4.5,
+    -12, 4.5,
+    13.5, 4.5
+  ]
 }

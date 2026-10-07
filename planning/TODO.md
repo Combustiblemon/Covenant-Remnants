@@ -189,6 +189,10 @@ Keep this file current — tick items off and add new ones as work lands.
 
 ## Rendering / shaders
 
+- [ ] **Engines below hull — in-game check** — all 16 Covenant hulls now carry the
+      `RENDER_ENGINES_BELOW_HULL` hint (2026-10-07): in combat, engine flames should sit under the
+      sprite edge, not over it. Also note what the campaign fleet view does (the hint is read by the
+      combat ship). See [implementations/engines-below-hull.md](implementations/engines-below-hull.md).
 - [x] **Reach shield look — in-game test** (signed off 2026-10-02 after three rounds): hits flare blue at the
       impact and fade in ~0.35 s, bigger when HP is low; low HP = faint always-on plasma + rim glow,
       no tint; flares stay on the hull while moving/turning, same at every zoom; break = flash,

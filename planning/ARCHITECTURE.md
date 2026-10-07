@@ -187,12 +187,14 @@ the subsystem shaders above implement it. Composed systems registered with Lemon
 
 Gradle Kotlin DSL, Kotlin JVM 2.1.0, Java 8 target (`build.gradle.kts`):
 
-- **sourceSets:** `src` → Kotlin/Java classes; `data` + `graphics` → resources.
+- **sourceSets:** `src` → Kotlin/Java classes. The jar holds **code only** (2026-10-02): Starsector
+  reads `data/`, `graphics/`, `sounds/` and `mod_info.json` from the mod folder, so they are not
+  packed into it.
 - **compileOnly:** Starsector core jars (`../../starsector-core/*`, incl. `starfarer.api.jar`, obf
   jars, `json.jar`, `lwjgl`), LemonLib (composite build — `settings.gradle.kts`
   `includeBuild("../LemonLib")`, resolved to LemonLib's classes), LazyLib, MagicLib, LunaLib,
   Console Commands, log4j 1.2.17.
-- **Tasks:** `buildMod` (compile → `jars/CovenantRemnants.jar`), `cleanMod`,
+- **Tasks:** `buildMod` (compiled classes → `jars/CovenantRemnants.jar`), `cleanMod`,
   `packageMod` (assemble `build/mod_package/` → `Covenant Remnants.zip`).
 
 > **Runtime dependencies:** `mod_info.json` declares LemonLib, MagicLib, LazyLib (required).

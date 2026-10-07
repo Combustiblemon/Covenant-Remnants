@@ -1,174 +1,177 @@
 {
-    "hullName":"RCS-class Armored Cruiser",
-    "hullId":"covenant_remnants_cruiser4",
-    "hullSize":"CRUISER",
-    "style":"COVENANT",
-    "spriteName":"graphics/covenant_remnants/ships/covenant_remnants_cruiser4.png",
-    "height":318,
-    "width":162,
-    "center":[
-        81, 159
-    ],
-    "collisionRadius":159,
-    "coversColor":"",
-    "shieldCenter":[
-        0, 0
-    ],
-    "shieldRadius":159,
-    "viewOffset":0,
-    "builtInMods":[
-        "covenant_remnants_covenantsystems",
-        "covenant_remnants_nanolaminate_armor",
-        "covenant_remnants_slipspace_drive",
-        "covenant_remnants_covenantshieldhullmod"
-    ],
-    "builtInWings":[],
-    "builtInModules":null,
-    "weaponSlots":[
-        {
-            "id":"WS0001",
-            "size":"LARGE",
-            "type":"ENERGY",
-            "mount":"HARDPOINT",
-            "arc":6,
-            "angle":0,
-            "locations":[
-                      70,        0
-            ]
-        },
-        {
-            "id":"WS0002",
-            "size":"MEDIUM",
-            "type":"ENERGY",
-            "mount":"TURRET",
-            "arc":200,
-            "angle":60,
-            "locations":[
-                      25,       45
-            ]
-        },
-        {
-            "id":"WS0003",
-            "size":"MEDIUM",
-            "type":"ENERGY",
-            "mount":"TURRET",
-            "arc":200,
-            "angle":-60,
-            "locations":[
-                      25,      -45
-            ]
-        },
-        {
-            "id":"WS0004",
-            "size":"SMALL",
-            "type":"ENERGY",
-            "mount":"TURRET",
-            "arc":270,
-            "angle":130,
-            "locations":[
-                     -25,       48
-            ]
-        },
-        {
-            "id":"WS0005",
-            "size":"SMALL",
-            "type":"ENERGY",
-            "mount":"TURRET",
-            "arc":270,
-            "angle":-130,
-            "locations":[
-                     -25,      -48
-            ]
-        }
-    ],
-    "engineSlots":[
-        {
-            "location":[
-                -148, 18
-            ],
-            "length":32,
-            "width":9,
-            "angle":180,
-            "contrailSize":8,
-            "style":"HIGH_TECH"
-        },
-        {
-            "location":[
-                -152, 0
-            ],
-            "length":36,
-            "width":11,
-            "angle":180,
-            "contrailSize":9,
-            "style":"HIGH_TECH"
-        },
-        {
-            "location":[
-                -148, -18
-            ],
-            "length":32,
-            "width":9,
-            "angle":180,
-            "contrailSize":8,
-            "style":"HIGH_TECH"
-        }
-    ],
-    "bounds":[
-             -10,      -74,
-             -29,      -79,
-             -47,      -75,
-             -63,      -65,
-             -75,      -51,
-        
-             -82,    -48.5,
-             -93,    -49.5,
-            -117,    -37.5,
-            -139,      -29,
-            -144,    -18.5,
-        
-            -154,      -12,
-          -157.5,     -2.5,
-          -157.5,      2.5,
-            -154,       12,
-            -144,     18.5,
-        
-            -140,       30,
-            -117,     37.5,
-             -93,     49.5,
-             -82,     48.5,
-             -75,       52,
-        
-             -62,       65,
-             -47,       76,
-             -29,       80,
-             -10,       75,
-               4,       64,
-        
-               7,     57.5,
-              31,       53,
-              45,       45,
-              52,     36.5,
-            69.5,       36,
-        
-              99,     28.5,
-           120.5,     28.5,
-             134,       27,
-           149.5,     18.5,
-             158,      6.5,
-        
-             158,     -6.5,
-           149.5,    -18.5,
-             134,      -27,
-           120.5,    -28.5,
-              99,    -28.5,
-        
-            69.5,      -36,
-              52,    -36.5,
-              45,      -44,
-              31,      -52,
-               7,    -57.5,
-        
-               4,      -62
-    # 46 points total.
-    ]
+  "hullName": "RCS-class Armored Cruiser",
+  "hullId": "covenant_remnants_cruiser4",
+  "hullSize": "CRUISER",
+  "spriteName": "graphics/covenant_remnants/ships/covenant_remnants_cruiser4.png",
+  "style": "COVENANT",
+  "height": 318,
+  "width": 162,
+  "center": [81, 159],
+  "collisionRadius": 162,
+  "shieldCenter": [0, 0],
+  "shieldRadius": 159,
+  "viewOffset": 0,
+  "builtInMods": [
+    "covenant_remnants_covenantsystems",
+    "covenant_remnants_nanolaminate_armor",
+    "covenant_remnants_slipspace_drive",
+    "covenant_remnants_covenantshieldhullmod",
+  ],
+  "weaponSlots": [
+    {
+      "id": "WS0001",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": 0,
+      "locations": [-30, -0],
+    },
+    {
+      "id": "WS0002",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 200,
+      "angle": 81.5,
+      "locations": [25, 45],
+    },
+    {
+      "id": "WS0003",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 200,
+      "angle": -81.5,
+      "locations": [25, -45],
+    },
+    {
+      "id": "WS0004",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 228,
+      "angle": 105,
+      "locations": [-51, 51],
+    },
+    {
+      "id": "WS0005",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 228,
+      "angle": -105,
+      "locations": [-51, -51],
+    },
+    {
+      "id": "WS0006",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": 0,
+      "locations": [72, -0],
+    },
+    {
+      "id": "WS0007",
+      "size": "LARGE",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 360,
+      "angle": 0,
+      "locations": [130.5, -0.5],
+    },
+    {
+      "id": "WS0008",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 195,
+      "angle": -101,
+      "locations": [-94, -37],
+    },
+    {
+      "id": "WS0009",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 195,
+      "angle": 101,
+      "locations": [-94, 37],
+    },
+    {
+      "id": "WS0010",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 200,
+      "angle": -97,
+      "locations": [-105, -11],
+    },
+    {
+      "id": "WS0011",
+      "size": "MEDIUM",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 200,
+      "angle": 97,
+      "locations": [-105, 11],
+    },
+    {
+      "id": "WS0012",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 228,
+      "angle": -73.5,
+      "locations": [-13.5, -53],
+    },
+    {
+      "id": "WS0013",
+      "size": "SMALL",
+      "type": "ENERGY",
+      "mount": "TURRET",
+      "arc": 228,
+      "angle": 73.5,
+      "locations": [-13.5, 53],
+    },
+  ],
+  "engineSlots": [
+    {
+      "location": [-142, 18.5],
+      "length": 5,
+      "width": 32,
+      "angle": 180,
+      "contrailSize": 32,
+      "style": "CUSTOM",
+      "styleId": "COVENANT",
+    },
+    {
+      "location": [-144.5, -0.5],
+      "length": 5,
+      "width": 32,
+      "angle": 180,
+      "contrailSize": 32,
+      "style": "CUSTOM",
+      "styleId": "COVENANT",
+    },
+    {
+      "location": [-141.5, -22],
+      "length": 5,
+      "width": 32,
+      "angle": 180,
+      "contrailSize": 32,
+      "style": "CUSTOM",
+      "styleId": "COVENANT",
+    },
+  ],
+  "bounds": [
+    -10, -74, -29, -79, -47, -75, -63, -65, -75, -51, -82, -48.5, -93, -49.5,
+    -117, -37.5, -139, -29, -144, -18.5, -154, -12, -157.5, -2.5, -157.5, 2.5,
+    -154, 12, -144, 18.5, -140, 30, -117, 37.5, -93, 49.5, -82, 48.5, -75, 52,
+    -62, 65, -47, 76, -29, 80, -10, 75, 4, 64, 7, 57.5, 31, 53, 45, 45, 52,
+    36.5, 69.5, 36, 99, 28.5, 120.5, 28.5, 134, 27, 149.5, 18.5, 158, 6.5, 158,
+    -6.5, 149.5, -18.5, 134, -27, 120.5, -28.5, 99, -28.5, 69.5, -36, 52, -36.5,
+    45, -44, 31, -52, 7, -57.5, 4, -62,
+  ],
 }

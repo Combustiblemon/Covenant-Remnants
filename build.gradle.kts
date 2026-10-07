@@ -19,9 +19,6 @@ sourceSets {
         java {
             srcDirs("src")
         }
-        resources {
-            srcDirs("data", "graphics")
-        }
     }
 }
 
@@ -106,18 +103,9 @@ tasks.register<Jar>("buildMod") {
         }
     }
 
+    // Code only: Starsector reads data/, graphics/, sounds/ and mod_info.json from the mod folder
+    // (the classpath is only its last fallback), so copies in the jar were dead weight.
     from(sourceSets.main.get().output)
-
-    // Include mod resources
-    from("data") {
-        into("data")
-    }
-    from("graphics") {
-        into("graphics")
-    }
-
-    // Include mod_info.json
-    from("mod_info.json")
 
     manifest {
         attributes(
@@ -146,6 +134,7 @@ tasks.register("packageMod") {
             include("mod_info.json")
             include("data/**")
             include("graphics/**")
+            include("sounds/**")
             include("jars/**")
             exclude("build/**")
             exclude("src/**")
