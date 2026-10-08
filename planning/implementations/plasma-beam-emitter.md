@@ -105,6 +105,11 @@ the close-ups. The first render whited the beam out (6 overlapping pulses at Rea
 
 - Developer: "looks good". Sound drowned everything out (support weapon) — volumes lowered in
   `sounds.json`: loop 1 → 0.55, in / out 1 → 0.6, impacts 0.8 → 0.5. Re-check the mix.
+- **Energy flowing toward the ship**: the pulse strip (shader mode 11) samples `vUv.y`, which
+  runs 0 at the far end to 1 at the muzzle, so its negative v travel ran the stripes inward.
+  Flipped to +1 (`PLASMA_BEAM_PULSE` xform). The sheath layers sample sprite-local x (muzzle →
+  target) with a negative travel and flow outward. Re-check; if the sheath streaks still read as
+  inward, their `NoiseTransform` travel signs flip the same way.
 
 ## Open items
 

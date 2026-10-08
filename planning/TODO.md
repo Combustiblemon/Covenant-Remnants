@@ -57,6 +57,12 @@ Keep this file current — tick items off and add new ones as work lands.
       loud for a support weapon → volumes lowered (loop 0.55, in/out 0.6, impacts 0.5). Re-check
       the mix next session. See
       [implementations/plasma-beam-emitter.md](implementations/plasma-beam-emitter.md).
+- [x] **Suppressor Beam — hot Plasma Beam Emitter** — built 2026-10-08 (rulings: reuse the focus
+      rifle data, "a better Emitter that actually deals damage": 250 ENERGY dps / 200 flux / 14 OP,
+      width 24, ×1.3 brightness, own sound ids at pitch 0.9). See
+      [implementations/suppressor-beam.md](implementations/suppressor-beam.md).
+- [ ] **Suppressor Beam — in-game check** — 4-point list in
+      [implementations/suppressor-beam.md](implementations/suppressor-beam.md).
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.

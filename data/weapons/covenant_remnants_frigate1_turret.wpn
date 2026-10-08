@@ -1,7 +1,7 @@
 {
   "id": "covenant_remnants_frigate1_turret",
   "specClass": "beam",
-  "beamEffect": "com.fs.starfarer.api.impl.combat.GravitonBeamEffect",
+  "beamEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaBeamEmitterEffect",
   "type": "ENERGY",
   "size": "MEDIUM",
   "displayArcRadius": 600,
@@ -14,12 +14,15 @@
   "hardpointOffsets": [8, 0],
   "hardpointAngleOffsets": [0],
   "glowColor": [165, 100, 255, 235],
-  "fringeColor": [139, 130, 251, 255],
-  "coreColor": [255, 255, 255, 255],
-  "width": 12,
+  # The Plasma Beam Emitter's Halo: Reach focus rifle look, hotter (ruling 2026-10-08): the same
+  # overlay (PlasmaBeamRenderPlugin scales it to the beam width, x1.3 brightness for this id),
+  # width 24. Vanilla ROUGH textures stay (standing ruling).
+  "fringeColor": [128, 81, 187, 255],
+  "coreColor": [255, 195, 118, 255],
+  "width": 24,
   "textureType": "ROUGH",
   "textureScrollSpeed": 260,
   "pixelsPerTexel": 5,
   "pierceSet": ["PROJECTILE_FF", "PROJECTILE_NO_FF", "PROJECTILE_FIGHTER", "MISSILE_FF", "MISSILE_NO_FF"],
-  "fireSoundTwo": "graviton_beam_loop"
+  "fireSoundTwo": "covenant_remnants_suppressor_beam_fire_loop"
 }

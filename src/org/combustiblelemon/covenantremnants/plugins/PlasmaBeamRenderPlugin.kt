@@ -14,8 +14,8 @@ import org.lwjgl.util.vector.Vector2f
 import java.util.EnumSet
 
 /**
- * One-per-combat owner of the Plasma Beam Emitters' Halo: Reach focus rifle look (see
- * [PlasmaBeamLook]). Each emitter's `beamEffect`
+ * One-per-combat owner of the Plasma Beam Emitters' (and the Suppressor Beam's) Halo: Reach focus
+ * rifle look (see [PlasmaBeamLook]; sounds and gain per weapon id in [PlasmaBeamLook.Style]). Each emitter's `beamEffect`
  * ([org.combustiblelemon.covenantremnants.weapons.PlasmaBeamEmitterEffect]) hands over the live
  * beam with its collision-resolved endpoints every frame. The plugin advances one look per
  * weapon, plays the fire in / out pieces when a beam starts / stops and the impact sound when a
@@ -25,9 +25,6 @@ import java.util.EnumSet
 class PlasmaBeamRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     companion object {
         private const val KEY = "covenant_remnants_plasma_beam_render_plugin"
-        const val SOUND_FIRE_IN = "covenant_remnants_plasma_beam_fire_in"
-        const val SOUND_FIRE_OUT = "covenant_remnants_plasma_beam_fire_out"
-        const val SOUND_IMPACT = "covenant_remnants_plasma_beam_impact"
 
         fun forEngine(engine: CombatEngineAPI): PlasmaBeamRenderPlugin {
             (engine.customData[KEY] as? PlasmaBeamRenderPlugin)?.let { return it }
@@ -56,9 +53,10 @@ class PlasmaBeamRenderPlugin private constructor() : CombatLayeredRenderingPlugi
             val entry = iterator.next()
             val look = entry.value
             look.advance(amount)
-            if (look.startedThisFrame) play(SOUND_FIRE_IN, look.muzzle, entry.key.ship?.velocity)
-            if (look.endedThisFrame) play(SOUND_FIRE_OUT, look.muzzle, entry.key.ship?.velocity)
-            if (look.impactThisFrame) play(SOUND_IMPACT, look.hitPoint, null)
+            val style = look.style
+            if (look.startedThisFrame) play(style.fireIn, look.muzzle, entry.key.ship?.velocity)
+            if (look.endedThisFrame) play(style.fireOut, look.muzzle, entry.key.ship?.velocity)
+            if (look.impactThisFrame) play(style.impact, look.hitPoint, null)
             val ship = entry.key.ship
             if (look.isDone && (ship == null || !ship.isAlive)) iterator.remove()
         }

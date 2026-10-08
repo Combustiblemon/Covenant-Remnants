@@ -27,14 +27,14 @@ import kotlin.math.sqrt
  * `PlasmaBeamEmitterEffect.advance`), where `getTo()` is the collision point (see the Energy
  * Projector's in-game fixes). No snapshot in a frame = the beam is gone.
  *
- * Scale: [UNIT] Starsector units per Reach world unit, chosen so Reach's 0.25 WU sheath is the
+ * Scale: [unit] Starsector units per Reach world unit, chosen so Reach's 0.25 WU sheath is the
  * 20 su engine beam (proposal accepted 2026-10-08, to be checked in game). Sprites carry world
  * positions; `phase` holds a sprite's spin (rad/s), `random2` its second random.
  */
 internal class PlasmaBeamLook(val weapon: WeaponAPI) {
     companion object {
-        /** Starsector units per Reach world unit (the 0.25 WU sheath = the 20 su engine beam). */
-        const val UNIT = 80f
+        /** Default Starsector units per Reach world unit (the 0.25 WU sheath = a 20 su engine beam); a live beam sets it from its own width. */
+        const val DEFAULT_UNIT = 80f
 
         /** The energy_trail band covers about half the profile bitmap's height. */
         private const val PROFILE_FILL = 0.5f
@@ -129,13 +129,37 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         private const val RELEASE_FADE = 0.1f
 
         private var counter = 0
+
+        /** The Plasma Beam Emitter: Reach as-is. */
+        val EMITTER = Style(
+            1f, "covenant_remnants_plasma_beam_fire_in", "covenant_remnants_plasma_beam_fire_out",
+            "covenant_remnants_plasma_beam_impact"
+        )
+
+        /** The Suppressor Beam (frigate1 built-in): the same look, hotter (ruling 2026-10-08: x1.3, pitched-down sounds). */
+        val SUPPRESSOR = Style(
+            1.3f, "covenant_remnants_suppressor_beam_fire_in", "covenant_remnants_suppressor_beam_fire_out",
+            "covenant_remnants_suppressor_beam_impact"
+        )
+
+        fun styleFor(weaponId: String?): Style = when (weaponId) {
+            "covenant_remnants_frigate1_turret" -> SUPPRESSOR
+            else -> EMITTER
+        }
     }
+
+    /** Per-weapon dressing: brightness gain on the beam layers, the sound ids the plugin plays. */
+    class Style(val gain: Float, val fireIn: String, val fireOut: String, val impact: String)
 
     val sprites = ArrayList<RuptureSprite>()
 
     private val random = Random(System.nanoTime() xor (counter++ * 7919L))
     private val salt = counter * 131
     private val color = FloatArray(3)
+
+    /** Per-weapon dressing (brightness gain, sound ids). */
+    val style: Style = styleFor(weapon.id)
+    private var unit = DEFAULT_UNIT
 
     private var hasBeam = false
     private var beamAge = 0f
@@ -191,6 +215,8 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         snapshotTo.set(beam.to)
         snapshotBrightness = beam.brightness
         snapshotHit = beam.damageTarget != null
+        // the sheath is the engine beam: scale the whole look to its width
+        if (beam.width > 0f) unit = beam.width / SHEATH_THICKNESS
         snapshotFresh = true
     }
 
@@ -263,25 +289,25 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         val halfLength = length * 0.5f
 
         val a = sheath ?: spawn(SpriteKind.PLASMA_BEAM_SHEATH, 0f, 0f, Float.MAX_VALUE, 0f).also { sheath = it }
-        alongBeam(a, halfLength, SHEATH_THICKNESS * UNIT * 0.5f / PROFILE_FILL)
-        for (c in 0..2) a.color[c] = 1f
+        alongBeam(a, halfLength, SHEATH_THICKNESS * unit * 0.5f / PROFILE_FILL)
+        for (c in 0..2) a.color[c] = style.gain
         a.alpha = fade
         a.paletteV = 0.5f
         a.uvScale = 1f
         a.noiseOffset = 0f
 
         val b = sheath2 ?: spawn(SpriteKind.PLASMA_BEAM_SHEATH_2, 0f, 0f, Float.MAX_VALUE, 0f).also { sheath2 = it }
-        alongBeam(b, halfLength, SHEATH_THICKNESS * UNIT * 0.5f / PROFILE_FILL)
-        for (c in 0..2) b.color[c] = 1f
+        alongBeam(b, halfLength, SHEATH_THICKNESS * unit * 0.5f / PROFILE_FILL)
+        for (c in 0..2) b.color[c] = style.gain
         b.alpha = fade
         b.paletteV = 0.5f
         b.uvScale = 1f
         b.noiseOffset = 0f
 
         val c = core ?: spawn(SpriteKind.PLASMA_BEAM_CORE, 0f, 0f, Float.MAX_VALUE, 0f).also { core = it }
-        alongBeam(c, halfLength, CORE_THICKNESS * UNIT * 0.5f / PROFILE_FILL)
+        alongBeam(c, halfLength, CORE_THICKNESS * unit * 0.5f / PROFILE_FILL)
         PlasmaBeamCurves.CORE_COLOR.at(0.5f, color)
-        color.copyInto(c.color)
+        for (ch in 0..2) c.color[ch] = color[ch] * style.gain
         c.alpha = fade
 
         // the centre's far-end climb (Reach intensity 1 -> 4 over the last ~10 %): a short, brighter copy
@@ -292,9 +318,9 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         tip.angle = facing
         tip.offsetAlong = length - tipHalf
         tip.halfLength = tipHalf
-        tip.halfWidth = CORE_THICKNESS * UNIT * 0.5f / PROFILE_FILL
+        tip.halfWidth = CORE_THICKNESS * unit * 0.5f / PROFILE_FILL
         PlasmaBeamCurves.CORE_COLOR.at(1f, color)
-        for (ch in 0..2) tip.color[ch] = color[ch] * (CORE_TIP_INTENSITY - 1f)
+        for (ch in 0..2) tip.color[ch] = color[ch] * (CORE_TIP_INTENSITY - 1f) * style.gain
         tip.alpha = fade
 
         pulseAccumulator += PULSE_RATE * dt
@@ -322,8 +348,8 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
             flashAccumulator -= 1f
             val s = spawn(
                 SpriteKind.PLASMA_BEAM_MUZZLE_FLASH,
-                from.x + cos(facing) * FLASH_OFFSET * UNIT, from.y + sin(facing) * FLASH_OFFSET * UNIT,
-                FLASH_LIFE, rand(FLASH_SIZE_MIN, FLASH_SIZE_MAX) * UNIT
+                from.x + cos(facing) * FLASH_OFFSET * unit, from.y + sin(facing) * FLASH_OFFSET * unit,
+                FLASH_LIFE, rand(FLASH_SIZE_MIN, FLASH_SIZE_MAX) * unit
             )
             s.angle = facing + rand(-FLASH_SPREAD, FLASH_SPREAD) * DEG
         }
@@ -334,10 +360,10 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
             val heading = facing + rand(-EMBER_CONE, EMBER_CONE) * DEG
             val s = spawn(
                 SpriteKind.PLASMA_BEAM_EMBER, from.x, from.y, rand(EMBER_LIFE_MIN, EMBER_LIFE_MAX),
-                max(MIN_SPRITE_SIZE, rand(EMBER_SIZE_MIN, EMBER_SIZE_MAX) * UNIT)
+                max(MIN_SPRITE_SIZE, rand(EMBER_SIZE_MIN, EMBER_SIZE_MAX) * unit)
             )
-            s.vx = cos(heading) * EMBER_SPEED * UNIT
-            s.vy = sin(heading) * EMBER_SPEED * UNIT
+            s.vx = cos(heading) * EMBER_SPEED * unit
+            s.vy = sin(heading) * EMBER_SPEED * unit
         }
 
         muzzlePlasmaAccumulator += MUZZLE_PLASMA_RATE * dt
@@ -346,7 +372,7 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
             val s = spawn(
                 SpriteKind.PLASMA_BEAM_MUZZLE_PLASMA, from.x, from.y,
                 rand(MUZZLE_PLASMA_LIFE_MIN, MUZZLE_PLASMA_LIFE_MAX),
-                rand(MUZZLE_PLASMA_SIZE_MIN, MUZZLE_PLASMA_SIZE_MAX) * UNIT
+                rand(MUZZLE_PLASMA_SIZE_MIN, MUZZLE_PLASMA_SIZE_MAX) * unit
             )
             s.angle = facing + rand(-MUZZLE_PLASMA_CONE, MUZZLE_PLASMA_CONE) * DEG
             s.phase = rand(-MUZZLE_PLASMA_SPIN, MUZZLE_PLASMA_SPIN) * 2f * PI.toFloat()
@@ -357,13 +383,13 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         // the light-volume cone: glow sprites along the first LIGHT_VOLUME_LENGTH of the beam
         for (i in 0 until LIGHT_VOLUME_SEGMENTS) {
             val x = (i + 0.5f) / LIGHT_VOLUME_SEGMENTS
-            val along = (LIGHT_VOLUME_OFFSET + LIGHT_VOLUME_LENGTH * x) * UNIT
+            val along = (LIGHT_VOLUME_OFFSET + LIGHT_VOLUME_LENGTH * x) * unit
             val s = lightVolume[i] ?: spawn(SpriteKind.PLASMA_BEAM_LIGHT, 0f, 0f, Float.MAX_VALUE, 0f).also { lightVolume[i] = it }
             s.x = from.x + cos(facing) * along
             s.y = from.y + sin(facing) * along
             s.angle = facing
             s.offsetAlong = 0f
-            val half = PlasmaBeamCurves.LIGHT_VOLUME_THICKNESS.at(x) * UNIT * 0.5f
+            val half = PlasmaBeamCurves.LIGHT_VOLUME_THICKNESS.at(x) * unit * 0.5f
             s.halfLength = half
             s.halfWidth = half
             val intensity = PlasmaBeamCurves.LIGHT_VOLUME_INTENSITY.at(x) * LIGHT_VOLUME_GAIN
@@ -376,7 +402,7 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         light.y = from.y
         light.angle = 0f
         light.offsetAlong = 0f
-        light.halfLength = MUZZLE_LIGHT_RADIUS * UNIT
+        light.halfLength = MUZZLE_LIGHT_RADIUS * unit
         light.halfWidth = light.halfLength
         val flicker = TorpedoLook.noise(beamAge * MUZZLE_LIGHT_FREQ, salt) * MUZZLE_LIGHT_GAIN
         for (c in 0..2) light.color[c] = MUZZLE_LIGHT_COLOR[c] * flicker
@@ -412,7 +438,7 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         flare.y = to.y
         flare.angle = 0f
         flare.offsetAlong = 0f
-        flare.halfLength = IMPACT_FLARE_RADIUS * UNIT
+        flare.halfLength = IMPACT_FLARE_RADIUS * unit
         flare.halfWidth = flare.halfLength
         val noise = IMPACT_FLARE_NOISE_MIN + (IMPACT_FLARE_NOISE_MAX - IMPACT_FLARE_NOISE_MIN) * TorpedoLook.noise(hitAge * IMPACT_FLARE_FREQ + 1f, salt + 7)
         val b = max(0f, IMPACT_FLARE_BRIGHTNESS * (1f - IMPACT_FLARE_MODULATION + IMPACT_FLARE_MODULATION * noise))
@@ -424,7 +450,7 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         light.y = to.y
         light.angle = 0f
         light.offsetAlong = 0f
-        light.halfLength = IMPACT_LIGHT_RADIUS * UNIT
+        light.halfLength = IMPACT_LIGHT_RADIUS * unit
         light.halfWidth = light.halfLength
         val lb = PlasmaBeamCurves.IMPACT_LIGHT.at(cycleAge / IMPACT_CYCLE) * IMPACT_LIGHT_GAIN
         for (c in 0..2) light.color[c] = IMPACT_LIGHT_COLOR[c] * lb
@@ -435,8 +461,8 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         val back = facing + PI.toFloat()   // the surface normal, read as "back toward the shooter"
         val flash = spawn(
             SpriteKind.PLASMA_BEAM_IMPACT_FLASH,
-            to.x + cos(back) * FLASH_OFFSET * UNIT, to.y + sin(back) * FLASH_OFFSET * UNIT,
-            rand(IMPACT_FLASH_LIFE_MIN, IMPACT_FLASH_LIFE_MAX), rand(IMPACT_FLASH_SIZE_MIN, IMPACT_FLASH_SIZE_MAX) * UNIT
+            to.x + cos(back) * FLASH_OFFSET * unit, to.y + sin(back) * FLASH_OFFSET * unit,
+            rand(IMPACT_FLASH_LIFE_MIN, IMPACT_FLASH_LIFE_MAX), rand(IMPACT_FLASH_SIZE_MIN, IMPACT_FLASH_SIZE_MAX) * unit
         )
         flash.angle = back + rand(-FLASH_SPREAD, FLASH_SPREAD) * DEG
 
@@ -445,11 +471,11 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
             val s = spawn(
                 SpriteKind.PLASMA_BEAM_IMPACT_PLASMA, to.x, to.y,
                 rand(IMPACT_PLASMA_LIFE_MIN, IMPACT_PLASMA_LIFE_MAX),
-                rand(IMPACT_PLASMA_SIZE_MIN, IMPACT_PLASMA_SIZE_MAX) * UNIT
+                rand(IMPACT_PLASMA_SIZE_MIN, IMPACT_PLASMA_SIZE_MAX) * unit
             )
             s.angle = heading
-            s.vx = cos(heading) * IMPACT_PLASMA_SPEED * UNIT
-            s.vy = sin(heading) * IMPACT_PLASMA_SPEED * UNIT
+            s.vx = cos(heading) * IMPACT_PLASMA_SPEED * unit
+            s.vy = sin(heading) * IMPACT_PLASMA_SPEED * unit
             s.phase = rand(-MUZZLE_PLASMA_SPIN, MUZZLE_PLASMA_SPIN) * 2f * PI.toFloat()
             s.paletteV = 0.5f
             s.uvScale = 1f
@@ -459,11 +485,11 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
             val heading = back + rand(-SPARK_LONG_CONE, SPARK_LONG_CONE) * DEG
             val s = spawn(
                 SpriteKind.PLASMA_BEAM_SPARK_LONG, to.x, to.y, SPARK_LONG_LIFE,
-                max(MIN_SPRITE_SIZE * 0.5f, SPARK_LONG_SIZE * UNIT)
+                max(MIN_SPRITE_SIZE * 0.5f, SPARK_LONG_SIZE * unit)
             )
             s.angle = heading
-            s.vx = cos(heading) * SPARK_LONG_SPEED * UNIT
-            s.vy = sin(heading) * SPARK_LONG_SPEED * UNIT
+            s.vx = cos(heading) * SPARK_LONG_SPEED * unit
+            s.vy = sin(heading) * SPARK_LONG_SPEED * unit
         }
     }
 
@@ -505,9 +531,9 @@ internal class PlasmaBeamLook(val weapon: WeaponAPI) {
         when (s.kind) {
             SpriteKind.PLASMA_BEAM_PULSE -> {
                 // a tube along the live beam, swelling from the centre to the sheath, peach -> blue
-                if (hasBeam) alongBeam(s, length * 0.5f, PlasmaBeamCurves.PULSE_THICKNESS.at(x) * UNIT * 0.5f / PROFILE_FILL)
+                if (hasBeam) alongBeam(s, length * 0.5f, PlasmaBeamCurves.PULSE_THICKNESS.at(x) * unit * 0.5f / PROFILE_FILL)
                 PlasmaBeamCurves.PULSE_COLOR.at(x, color)
-                val intensity = PlasmaBeamCurves.PULSE_INTENSITY.at(x) * PULSE_GAIN
+                val intensity = PlasmaBeamCurves.PULSE_INTENSITY.at(x) * PULSE_GAIN * style.gain
                 for (c in 0..2) s.color[c] = color[c] * intensity
                 s.blackPoint = PlasmaBeamCurves.PULSE_BLACK_POINT.at(x)
                 s.alpha = if (hasBeam) fade else 0f

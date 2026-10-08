@@ -87,5 +87,23 @@
 		{"file":"sounds/plasma_beam/impact_3.ogg","pitch":1,"volume":0.5},
 		{"file":"sounds/plasma_beam/impact_4.ogg","pitch":1,"volume":0.5},
 		{"file":"sounds/plasma_beam/impact_5.ogg","pitch":1,"volume":0.5}
+	],
+	# Suppressor Beam (frigate1 built-in): the Plasma Beam Emitter's focus rifle sounds pitched
+	# down to 0.9 (ruling 2026-10-08: the heavier beam). See planning/implementations/suppressor-beam.md.
+	"covenant_remnants_suppressor_beam_fire_in":[
+		{"file":"sounds/plasma_beam/fire_in.ogg","pitch":0.9,"volume":0.6}
+	],
+	"covenant_remnants_suppressor_beam_fire_loop":[
+		{"file":"sounds/plasma_beam/fire_loop.ogg","pitch":0.9,"volume":0.55}
+	],
+	"covenant_remnants_suppressor_beam_fire_out":[
+		{"file":"sounds/plasma_beam/fire_out.ogg","pitch":0.9,"volume":0.6}
+	],
+	"covenant_remnants_suppressor_beam_impact":[
+		{"file":"sounds/plasma_beam/impact_1.ogg","pitch":0.9,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_2.ogg","pitch":0.9,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_3.ogg","pitch":0.9,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_4.ogg","pitch":0.9,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_5.ogg","pitch":0.9,"volume":0.5}
 	]
 }

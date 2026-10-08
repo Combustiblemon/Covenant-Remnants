@@ -223,12 +223,14 @@ internal enum class SpriteMaterial(
     /**
      * `pulse` (diffuse, black point): the pulse stripes scrolling along (and sideways across) the
      * beam, shaped by the energy_trail profile. One tile along the beam, 3 widths a second across,
-     * 2 lengths a second along (placeholders; Reach: tiling 0.35, scroll 5 / 3).
+     * 2 lengths a second along (placeholders; Reach: tiling 0.35, scroll 5 / 3). The strip's v runs
+     * from the far end (0) to the muzzle (1), so a positive v travel moves the stripes away from
+     * the ship (in-game fix 2026-10-08: they ran toward it).
      */
     PLASMA_BEAM_PULSE(
         MODE_TEXTURE_STRIP, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_PULSE,
         alphaMap = RuptureTexture.PLASMA_BEAM_PROFILE,
-        xformA = NoiseTransform(1f, 1f / 3f, -1f, 0.5f, -1f)
+        xformA = NoiseTransform(1f, 1f / 3f, -1f, 0.5f, 1f)
     ),
 
     /** muzzle_flash_plasma.particle: palettized_2d_plasma flame through soft_plasma_blue, fire_large shape. */
