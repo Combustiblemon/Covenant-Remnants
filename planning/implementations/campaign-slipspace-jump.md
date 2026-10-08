@@ -26,8 +26,11 @@ starsector-knowledge skill (0.98a-RC8).
    (collapse visible) → screen fade → location switch into the **pocket system "Slipspace"** at
    the entrance, facing down the path → fade back → member views warp in with jitter.
 6. **Pocket**: pitch black background (`graphics/covenant_remnants/backgrounds/slipspace_bg.jpg`,
-   solid black placeholder) with sparse drifting light streaks (`SlipspaceAmbienceEntity`,
-   placeholder). A **winding slipstream path** (`SlipspaceStreamTerrainPlugin`, subclass of
+   solid black placeholder; the engine's star / dust particle layer hidden since 2026-10-08 by
+   shifting the location's particle colour to transparent every frame from `SlipspaceSystemEFS`,
+   vanilla's abyss mechanism — the engine only applies the colour while a shift is active, so a
+   base colour alone did nothing) with sparse drifting light streaks
+   (`SlipspaceAmbienceEntity`, placeholder). A **winding slipstream path** (`SlipspaceStreamTerrainPlugin`, subclass of
    vanilla `SlipstreamTerrainPlugin2`) carries the fleet from the entrance to the exit; the player
    can slow or speed it slightly (vanilla slipstream steering). Off the path the fleet is pushed
    back, harder the further out; hard clamp at one fleet length (2 radii) past the edge. Vanilla

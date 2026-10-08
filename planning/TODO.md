@@ -318,6 +318,10 @@ Keep this file current — tick items off and add new ones as work lands.
       the carrier burst outlasts the exit lurch + hold; noise aliasing when zoomed out
       (`ARK_TUBE_STREAK_U`); per-layer intensity budget (layers tone-map separately and add).
 - [ ] **Pocket art** — background is a solid black jpg, light streaks are a placeholder entity.
+      The engine's star / dust particle layer is hidden in the pocket since 2026-10-08
+      (`SlipspaceSystemEFS.hideParticles`: the particle colour shifted to transparent every frame,
+      the abyss mechanism — the engine only applies the colour while a shift is active, a base
+      colour alone did nothing).
 - [ ] **Granting quest** — the ability is quest-gated; until the quest exists `CovenantGiveAll`
       grants it (`SlipspaceJumpRules.grantToPlayer()`).
 - [x] **`SlipspaceSystemEFS` bug** — fixed 2026-10-07: it disabled Transverse Jump sector-wide

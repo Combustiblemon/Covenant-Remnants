@@ -95,8 +95,18 @@ fun generateSlipspaceSystem(sector: SectorAPI): StarSystemAPI {
     addPocketEntities(system)
 
     system.setBackgroundOffset(0f, 0f)
+    hideBackgroundParticles(system)
     (system as StarSystem).displayName = SLIPSPACE_POCKET_NAME
     return system
+}
+
+/**
+ * Background star / dust particle layer in the pocket (developer 2026-10-08): the base colour is
+ * set transparent here, but the engine only applies the colour to the particles while a shift is
+ * active — the real work is the per-frame shift in [SlipspaceSystemEFS]. Idempotent.
+ */
+private fun hideBackgroundParticles(system: StarSystemAPI) {
+    system.backgroundParticleColorShifter.base = Color(0, 0, 0, 0)
 }
 
 private fun migrateSlipspaceSystem(system: StarSystemAPI) {
@@ -104,6 +114,7 @@ private fun migrateSlipspaceSystem(system: StarSystemAPI) {
     if (system.backgroundTextureFilename != SlipspaceJumpRules.POCKET_BACKGROUND) {
         system.backgroundTextureFilename = SlipspaceJumpRules.POCKET_BACKGROUND
     }
+    hideBackgroundParticles(system)
     // Prototype portals: replaced by the typed entrance / exit.
     system.getEntityById(SLIPSPACE_JUMP_POINT_ENTRANCE)?.let { system.removeEntity(it) }
     system.getEntityById(SLIPSPACE_JUMP_POINT_EXIT)?.let { system.removeEntity(it) }
