@@ -953,7 +953,8 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
                 SpriteKind.ARK_RING, SpriteKind.ARK_FLASH, SpriteKind.ARK_CLOSE, SpriteKind.ARK_DISTORTION,
                 SpriteKind.ARK_RING_BITMAP, SpriteKind.ARK_RING2, SpriteKind.ARK_RIM, SpriteKind.ARK_SHOCKWAVE,
                 SpriteKind.ARK_REMNANT, SpriteKind.ARK_REFRACT, SpriteKind.ARK_RIPPLE, SpriteKind.ARK_FLASH_HALO,
-                SpriteKind.ARK_SPARK, SpriteKind.ARK_TWINKLE, SpriteKind.ARK_HAZE, SpriteKind.ARK_STREAK ->
+                SpriteKind.ARK_SPARK, SpriteKind.ARK_TWINKLE, SpriteKind.ARK_HAZE, SpriteKind.ARK_STREAK,
+                SpriteKind.ARK_WINDOW ->
                     ark?.refresh(s, x)
                 // Torpedo sprites (utils/render/torpedo) never live in a rupture
                 else -> {}

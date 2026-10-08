@@ -28,6 +28,7 @@ import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceExit
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
 import org.combustiblelemon.covenantremnants.utils.render.rupture.ArkVariant
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureEffect
+import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureRenderer
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.EnumSet
@@ -55,7 +56,8 @@ class SlipspaceJump : BaseDurationAbility() {
     enum class Phase { IDLE, PICKING, CHARGING, LURCH, TRANSITION_OUT, IN_POCKET, EXITING, TRANSITION_BACK }
 
     companion object {
-        private val LAYERS: EnumSet<CampaignEngineLayers> = EnumSet.of(CampaignEngineLayers.ABOVE)
+        /** Ark effects split around the fleets: TERRAIN_7A below, ABOVE above (the Reach rupture draws whole in ABOVE). */
+        private val LAYERS: EnumSet<CampaignEngineLayers> = EnumSet.of(CampaignEngineLayers.TERRAIN_7A, CampaignEngineLayers.ABOVE)
         private const val TOOLTIP_MAX_SHIPS = 4
 
         /** Movement abilities held off while the jump owns the fleet. Nothing else is touched (transponder etc.). */
@@ -659,10 +661,15 @@ class SlipspaceJump : BaseDurationAbility() {
     override fun getActiveLayers(): EnumSet<CampaignEngineLayers> = LAYERS
 
     override fun render(layer: CampaignEngineLayers?, viewport: ViewportAPI?) {
-        if (viewport == null || layer != CampaignEngineLayers.ABOVE) return
+        if (viewport == null) return
+        val pass = when (layer) {
+            CampaignEngineLayers.TERRAIN_7A -> RuptureRenderer.Pass.BELOW
+            CampaignEngineLayers.ABOVE -> RuptureRenderer.Pass.ABOVE
+            else -> return
+        }
         val v = visuals ?: return
         val location: LocationAPI? = fleet?.containingLocation
-        v.render(viewport, location)
+        v.render(viewport, location, pass)
     }
 
     // =============================================================================================

@@ -138,6 +138,38 @@ TWINKLES/GATHER_RADII/RIM`, `ARK_AFTERGLOW`, `ARK_HAZE_COUNT/SIZE/INTENSITY`, `A
 standalone GL 3.3 context (moderngl, NVIDIA); the lathe preview shows a smooth bell with the mouth
 ellipse at the marker and the body receding. Not yet seen in-game.
 
+## Split passes around the fleets (developer 2026-10-08, after the first in-game look)
+
+The campaign draws every Ark effect in two passes so a fleet reads as coming out of the middle
+of the tube rather than from under it (`CampaignEngineLayers`: `TERRAIN_8` sits above `FLEETS`,
+which is why the fleet looked buried). `RuptureRenderer.Pass`: **BELOW** (layer `TERRAIN_7A`) =
+light pool, dim, mouth glow, the tube's back wall (`wallSign` −1 in `arkTube.frag`), the heat haze
+/ refraction over the screen copy, and the far half of the mouth-plane sprites; **ABOVE**
+(`TERRAIN_8` for the pocket portals, `ABOVE` for the ability's destination effect) = the front
+wall, the near half, sparks / twinkles / haze / streaks, flares. Mouth-plane sprites carry
+`RuptureSprite.split` (main ring, second ring, rim, remnant, flashes and their halos); the sprite
+shader's `halfSign` uniform keeps one half by the sign of the local x (along the facing; the near
+half is the tube-body side, flip-aware). Close flash, shockwave, refraction rings and particles
+are whole. Non-Ark effects (the Reach departure rupture) draw whole in ABOVE and skip BELOW;
+combat renderers stay on `Pass.FULL`. `custom_entities.json`: the three portal types list both
+layers; `SlipspaceJump.getActiveLayers` = `TERRAIN_7A` + `ABOVE`. Seam: the two halves meet on the
+silhouette (`vFront` 0) and the sprite midline; both are additive, so the seam is invisible unless
+a fleet sits exactly on it.
+
+## Mouth window (developer 2026-10-08: the middle must not be solid white)
+
+The mouth interior is a look into slipspace: sprite mode 10 `PORTAL_WINDOW` (`ruptureSprite.frag`,
+material `ARK_WINDOW`, kind `ARK_WINDOW`, held sprite in `ArkTimeline.setWindow`): a near-black
+violet base (`ARK_WINDOW_BASE_R/G/B`) with slow blobby plasma veins (|noise A − noise B| through
+the Reach web palette, violet near 0; drift `ARK_WINDOW_SPEED`, CPU-integrated phase in
+`paletteV`; scale `ARK_WINDOW_VEIN_SCALE`, brightness `ARK_WINDOW_VEIN_INTENSITY`), soft
+elliptical edge (`ARK_WINDOW_EDGE`) so the white rim and ring core stay. Alpha-blended
+(`ARK_WINDOW_ALPHA`, idle × `ARK_WINDOW_IDLE`, ramps in with the opening dim, out with the tail),
+drawn in the BELOW pass right after the tube, so it covers the back wall and the mouth glow and
+sits under the fleet; the front wall, near ring half and flashes still draw over it. Sized
+`ARK_WINDOW_RADIUS` × M. `ARK_RING_FILL` default 0.6 → 0.15 (the Halo disc fill was the main
+white). Sprite params for mode 10: p0 phase, p1 vein scale, p2 vein intensity, p3 edge softness.
+
 ## Files
 
 New: `utils/render/rupture/ArkTubeProfile.kt` (generated), `assets/reference/ark-slipspace-exit/

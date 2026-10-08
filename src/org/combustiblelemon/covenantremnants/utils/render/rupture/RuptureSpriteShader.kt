@@ -118,11 +118,13 @@ internal class RuptureSpriteShader {
         exposure: Float,
         distortion: Float = 0f,
         screenCopy: Int = 0,
-        viewportPx: IntArray? = null
+        viewportPx: IntArray? = null,
+        halfSign: Float = 0f,
+        filter: ((RuptureSprite) -> Boolean)? = null
     ) {
         drawSprites(
             material, effect.sprites, effect.center.x, effect.center.y, effect.master,
-            view, time, exposure, distortion, screenCopy, viewportPx, effect.arkRingStyle
+            view, time, exposure, distortion, screenCopy, viewportPx, effect.arkRingStyle, halfSign, filter
         )
     }
 
@@ -130,7 +132,9 @@ internal class RuptureSpriteShader {
      * Draws every sprite in [sprites] that uses [material]; sprite positions are relative to
      * ([originX], [originY]) in world units, [master] fades the whole batch. [style] = the
      * ANALYTIC_RING colours / shape ([RING_STYLE_FLOATS] floats: core rgb, inner rgb, outer rgb,
-     * body width, fringe offset, fringe width, fringe intensity); null = defaults.
+     * body width, fringe offset, fringe width, fringe intensity); null = defaults. [halfSign]
+     * ±1 draws only the half of each sprite on that side of its direction (Ark split passes);
+     * [filter] limits the batch to some sprites.
      */
     fun drawSprites(
         material: SpriteMaterial,
@@ -144,10 +148,12 @@ internal class RuptureSpriteShader {
         distortion: Float = 0f,
         screenCopy: Int = 0,
         viewportPx: IntArray? = null,
-        style: FloatArray? = null
+        style: FloatArray? = null,
+        halfSign: Float = 0f,
+        filter: ((RuptureSprite) -> Boolean)? = null
     ) {
         var count = 0
-        for (s in sprites) if (s.kind.material == material) count++
+        for (s in sprites) if (s.kind.material == material && (filter == null || filter(s))) count++
         if (count == 0) return
 
         glBindVertexArray(vao)
@@ -157,13 +163,14 @@ internal class RuptureSpriteShader {
         var written = 0
         for (s in sprites) {
             if (s.kind.material != material) continue
+            if (filter != null && !filter(s)) continue
             if (writeSprite(s, material, originX, originY, view, distortion)) written++
         }
         if (written == 0) return
         buffer.flip()
         glBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
 
-        begin(material, master, time, exposure, style)
+        begin(material, master, time, exposure, style, halfSign)
         if (material.usesScreenCopy && viewportPx != null) {
             glActiveTexture(GL_TEXTURE0 + 4)
             glBindTexture(GL_TEXTURE_2D, screenCopy)
@@ -258,7 +265,7 @@ internal class RuptureSpriteShader {
         glDrawArrays(GL_TRIANGLES, 0, VERTICES_PER_SPRITE)
     }
 
-    private fun begin(material: SpriteMaterial, master: Float, time: Float, exposure: Float, style: FloatArray? = null) {
+    private fun begin(material: SpriteMaterial, master: Float, time: Float, exposure: Float, style: FloatArray? = null, halfSign: Float = 0f) {
         glUseProgram(program.id)
         glEnable(GL_BLEND)
         when (material.blend) {
@@ -266,6 +273,7 @@ internal class RuptureSpriteShader {
             SpriteMaterial.Blend.ALPHA -> glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         }
         glUniform1i(program.location("mode"), material.mode)
+        glUniform1f(program.location("halfSign"), halfSign)
         if (material.mode == MODE_ANALYTIC_RING) {
             val s = if (style != null && style.size >= RING_STYLE_FLOATS) style else DEFAULT_RING_STYLE
             glUniform3f(program.location("ringCore"), s[0], s[1], s[2])

@@ -302,7 +302,8 @@ Keep this file current — tick items off and add new ones as work lands.
       ahead, body back toward the fleet; tube one fleet length; flow out of the mouth; sound at the opening):
       lathed mesh + depth shading, procedural streaks, wall lightning, rim / glow / pool, analytic
       chromatic rings, sparks / glitter / anamorphic, refraction front + dim, carrier extras,
-      pre-roll, afterglow, idle life. See
+      pre-roll, afterglow, idle life; split passes around the fleets (back wall + far ring half
+      below on `TERRAIN_7A`, the rest above). See
       [implementations/ark-portal-visuals-pass.md](implementations/ark-portal-visuals-pass.md).
 - [ ] **Ark portals — in-game checklist** — the 5-point list in
       [implementations/ark-portal-visuals-pass.md](implementations/ark-portal-visuals-pass.md)

@@ -17,15 +17,18 @@ import org.lwjgl.util.vector.Vector2f
  * through the entrance or leaves through the exit ([burst], called by the campaign ability).
  *
  * The entity's `facing` is the direction a fleet leaves the tube (set by the route layout); the
- * tube extends behind the mouth. Everything render-side is transient and rebuilt lazily; the
- * class name is kept because the entity json and saves reference it.
+ * tube extends behind the mouth. Drawn in two passes around the fleets (TERRAIN_7A below, TERRAIN_8
+ * above) so a fleet reads as coming out of the middle of the tube. Everything render-side is
+ * transient and rebuilt lazily; the class name is kept because the entity json and saves reference it.
  */
 class SlipspacePortalEntity : BaseCustomEntityPlugin() {
     private companion object {
         /** One renderer for all portals: one screen-copy texture per session (entity plugins have no cleanup hook). */
         val renderer: RuptureRenderer by lazy { RuptureRenderer() }
 
-        val LAYER = CampaignEngineLayers.TERRAIN_8
+        /** Below the fleets (pool, dim, glow, back wall, far half of the rings) and above them (the rest). */
+        val LAYER_BELOW = CampaignEngineLayers.TERRAIN_7A
+        val LAYER_ABOVE = CampaignEngineLayers.TERRAIN_8
     }
 
     @Transient
@@ -56,13 +59,19 @@ class SlipspacePortalEntity : BaseCustomEntityPlugin() {
     }
 
     override fun render(layer: CampaignEngineLayers?, viewport: ViewportAPI?) {
-        if (layer != LAYER || viewport == null) return
+        if (viewport == null) return
+        val pass = when (layer) {
+            LAYER_BELOW -> RuptureRenderer.Pass.BELOW
+            LAYER_ABOVE -> RuptureRenderer.Pass.ABOVE
+            else -> return
+        }
         val e = effect ?: return
         val alpha = viewport.alphaMult
         if (alpha <= 0f) return
         renderer.effects.clear()
         renderer.effects.add(e)
         renderer.alphaMult = alpha
+        renderer.pass = pass
         renderer.render(viewport)
     }
 

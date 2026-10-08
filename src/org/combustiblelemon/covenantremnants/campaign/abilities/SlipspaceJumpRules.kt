@@ -264,10 +264,20 @@ object SlipspaceJumpRules {
     val arkPoolRadii = tune("ARK_POOL_RADII", 4f, "Background light pool size, × R")
     val arkPoolOffset = tune("ARK_POOL_OFFSET", 0.5f, "Light pool shift toward the tube body, × L")
 
+    // Mouth window: the interior as a look into slipspace (developer 2026-10-08: not solid white)
+    val arkWindowAlpha = tune("ARK_WINDOW_ALPHA", 0.9f, "Mouth window opacity during a burst (0 = off)")
+    val arkWindowRadius = tune("ARK_WINDOW_RADIUS", 0.92f, "Mouth window radius, × M")
+    val arkWindowEdge = tune("ARK_WINDOW_EDGE", 0.2f, "Mouth window edge softness, fraction of its radius")
+    val arkWindowVeinIntensity = tune("ARK_WINDOW_VEIN_INTENSITY", 1.5f, "Mouth window plasma vein brightness")
+    val arkWindowVeinScale = tune("ARK_WINDOW_VEIN_SCALE", 2f, "Mouth window plasma vein scale (noise repeats across)")
+    val arkWindowSpeed = tune("ARK_WINDOW_SPEED", 0.25f, "Mouth window plasma drift, noise widths/s")
+    val arkWindowIdle = tune("ARK_WINDOW_IDLE", 0.7f, "Standing portal: mouth window opacity, × ARK_WINDOW_ALPHA")
+    val arkWindowBase = tuneRgb("ARK_WINDOW_BASE", 0.05f, 0.02f, 0.12f, "Mouth window base colour (near-black violet)")
+
     // Ring: analytic ring with chromatic edge, second ring
     val arkRingBitmap = tune("ARK_RING_BITMAP", 0f, "1 = main ring uses the Halo glow_hard bitmap instead of the analytic ring")
     val arkRingPeak = tune("ARK_RING_PEAK", 0.85f, "Ring line radius, × the Halo half-size (glow_hard edge)")
-    val arkRingFill = tune("ARK_RING_FILL", 0.6f, "Ring interior fill (glow_hard is a filled disc)")
+    val arkRingFill = tune("ARK_RING_FILL", 0.15f, "Ring interior fill (glow_hard is a filled disc; low since the mouth window covers the middle)")
     val arkRingCoreWidth = tune("ARK_RING_CORE_WIDTH", 0.015f, "Ring white core width, × half-size")
     val arkRingBodyWidth = tune("ARK_RING_BODY_WIDTH", 4f, "Ring body width, × core width")
     val arkRingCoreIntensity = tune("ARK_RING_CORE_INTENSITY", 3f, "Ring white core brightness")

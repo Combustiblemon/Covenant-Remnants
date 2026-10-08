@@ -71,7 +71,8 @@ internal class ArkTubeShader {
         glUseProgram(0)
     }
 
-    fun draw(tube: TubeDraw, effect: RuptureEffect, view: RuptureView, exposure: Float) {
+    /** [wallSign]: 0 = both walls, +1 = the wall facing the viewer only, −1 = the back wall only (split passes). */
+    fun draw(tube: TubeDraw, effect: RuptureEffect, view: RuptureView, exposure: Float, wallSign: Float = 0f) {
         if (!tube.active) return
         val alpha = tube.alpha * effect.master
         if (alpha <= 0f || tube.along <= 0f || tube.across <= 0f) return
@@ -128,6 +129,7 @@ internal class ArkTubeShader {
         glUniform1f(program.location("arcGate"), tube.arcGate)
         glUniform1f(program.location("arcReach"), tube.arcReach)
         glUniform1f(program.location("paletteV"), tube.paletteV)
+        glUniform1f(program.location("wallSign"), wallSign)
 
         glActiveTexture(GL_TEXTURE0 + 3)
         RuptureTexture.SPHERE_WEB_PALETTE.bind()

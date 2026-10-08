@@ -99,6 +99,9 @@ internal enum class SpriteMaterial(
     /** Soft glow sprite (flash halos): light_volume_glow, additive. */
     ARK_GLOW(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.GLOW),
 
+    /** The mouth interior (a look into slipspace): plasma veins on a near-black base, alpha blend, drawn under the fleet. */
+    ARK_WINDOW(MODE_PORTAL_WINDOW, Blend.ALPHA, RuptureTexture.NOISE_512_A, RuptureTexture.NOISE_512_B, RuptureTexture.SPHERE_WEB_PALETTE),
+
     /** Anamorphic streak (big carrier flashes): the torpedo's anamorphic_flare, additive. */
     ARK_STREAK(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_ANAMORPHIC),
 
@@ -162,6 +165,7 @@ internal const val MODE_PALETTE_ALPHA = 6
 internal const val MODE_TEXTURE_ADD_ROT = 7
 internal const val MODE_ANALYTIC_RING = 8
 internal const val MODE_REFRACT_RING = 9
+internal const val MODE_PORTAL_WINDOW = 10
 
 /** Which Reach particle system a sprite comes from; picks its material and its update rules. */
 internal enum class SpriteKind(val material: SpriteMaterial) {
@@ -192,6 +196,7 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     ARK_TWINKLE(SpriteMaterial.TWINKLE),
     ARK_HAZE(SpriteMaterial.SMOKE),
     ARK_STREAK(SpriteMaterial.ARK_STREAK),
+    ARK_WINDOW(SpriteMaterial.ARK_WINDOW),
 
     // Plasma torpedo (utils/render/torpedo)
     TORPEDO_BODY(SpriteMaterial.TORPEDO_BODY),
@@ -237,6 +242,8 @@ internal class RuptureSprite(val kind: SpriteKind) {
     var noiseOffset = 0f
     /** ANALYTIC_RING / REFRACT_RING params (p0..p3, see ruptureSprite.frag). */
     val shape = FloatArray(4)
+    /** Ark: a sprite in the mouth plane, drawn half below and half above the fleets in the campaign's split passes. */
+    var split = false
 
     val isDead: Boolean get() = age >= life
 }

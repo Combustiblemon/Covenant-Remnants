@@ -12,7 +12,7 @@
     "renderCircleIndicator": false,
     "interactionImage": "graphics/illustrations/abyssal_light.jpg",
     "tags": ["has_interaction_dialog", "neutrino_high"],
-    "layers": ["TERRAIN_8"],
+    "layers": ["TERRAIN_7A", "TERRAIN_8"],
     "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
   },
 
@@ -29,7 +29,7 @@
     "customDescriptionId": "covenant_remnants_slipspace_entrance",
     "renderCircleIndicator": false,
     "tags": ["non_clickable", "neutrino_high"],
-    "layers": ["TERRAIN_8"],
+    "layers": ["TERRAIN_7A", "TERRAIN_8"],
     "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
   },
 
@@ -46,7 +46,7 @@
     "renderCircleIndicator": false,
     "interactionImage": "graphics/illustrations/entering_hyperspace.jpg",
     "tags": ["has_interaction_dialog", "neutrino_high"],
-    "layers": ["TERRAIN_8"],
+    "layers": ["TERRAIN_7A", "TERRAIN_8"],
     "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
   },
 

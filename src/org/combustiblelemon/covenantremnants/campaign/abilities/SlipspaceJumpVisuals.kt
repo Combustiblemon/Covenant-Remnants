@@ -37,13 +37,14 @@ class SlipspaceJumpVisuals {
         }
     }
 
-    /** Draws the effects that belong to [location]; the viewport alpha (screen fade) dims them. */
-    fun render(viewport: ViewportAPI, location: LocationAPI?) {
+    /** Draws the effects that belong to [location] in [pass]; the viewport alpha (screen fade) dims them. */
+    fun render(viewport: ViewportAPI, location: LocationAPI?, pass: RuptureRenderer.Pass = RuptureRenderer.Pass.FULL) {
         if (location == null || entries.isEmpty()) return
         renderer.effects.clear()
         for (e in entries) if (e.location === location) renderer.effects.add(e.effect)
         if (renderer.effects.isEmpty()) return
         renderer.alphaMult = viewport.alphaMult
+        renderer.pass = pass
         renderer.render(viewport)
     }
 

@@ -42,6 +42,7 @@ uniform vec4 arc;             // x = intensity, y = phase, z = u scale (whole), 
 uniform float arcGate;        // gate threshold
 uniform float arcReach;       // lightning fades out by this depth
 uniform float paletteV;       // palette row
+uniform float wallSign;       // 0 = both walls; +1 = only the wall facing the viewer; -1 = only the back wall
 
 vec3 tonemap(vec3 hdr) {
     return vec3(1.0) - exp(-hdr * exposure);
@@ -93,6 +94,13 @@ vec3 lightning(vec2 uv) {
 }
 
 void main() {
+    // Split passes (campaign: back wall below the fleets, front wall above them).
+    if (wallSign > 0.5 && vFront < 0.0) {
+        discard;
+    }
+    if (wallSign < -0.5 && vFront >= 0.0) {
+        discard;
+    }
     vec4 t = texture(tubeMap, vUv);
     float bitmap = max(t.r, max(t.g, t.b)) * t.a;
     float proc = filaments(vUv) * streakGain;

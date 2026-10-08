@@ -142,16 +142,18 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
     private var prerollTwinklesSpawned = false
     private var afterglowSpawned = false
 
-    /** CPU-integrated tube phases: streak scroll and lightning crawl (the portal renderer's clock never advances). */
+    /** CPU-integrated phases: streak scroll, lightning crawl, window drift (the portal renderer's clock never advances). */
     private var flow = 0f
     private var arcPhase = 0f
+    private var windowPhase = 0f
 
     /** The held sprites (persistent in the effect's sprite list while shown). */
-    private val ringAnalytic = RuptureSprite(SpriteKind.ARK_RING).apply { life = Float.MAX_VALUE }
-    private val ringBitmap = RuptureSprite(SpriteKind.ARK_RING_BITMAP).apply { life = Float.MAX_VALUE }
-    private val ring2 = RuptureSprite(SpriteKind.ARK_RING2).apply { life = Float.MAX_VALUE }
-    private val rim = RuptureSprite(SpriteKind.ARK_RIM).apply { life = Float.MAX_VALUE }
-    private val held = listOf(ringAnalytic, ringBitmap, ring2, rim)
+    private val ringAnalytic = RuptureSprite(SpriteKind.ARK_RING).apply { life = Float.MAX_VALUE; split = true }
+    private val ringBitmap = RuptureSprite(SpriteKind.ARK_RING_BITMAP).apply { life = Float.MAX_VALUE; split = true }
+    private val ring2 = RuptureSprite(SpriteKind.ARK_RING2).apply { life = Float.MAX_VALUE; split = true }
+    private val rim = RuptureSprite(SpriteKind.ARK_RIM).apply { life = Float.MAX_VALUE; split = true }
+    private val window = RuptureSprite(SpriteKind.ARK_WINDOW).apply { life = Float.MAX_VALUE }
+    private val held = listOf(ringAnalytic, ringBitmap, ring2, rim, window)
 
     private val scratch = FloatArray(4)
 
@@ -379,6 +381,8 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
         setGlow(mouth, rules.arkMouthGlowIntensity.value * (0.3f + 0.7f * (1f - dimFade)) * glowFade)
         setPool(u, scale, rules.arkPoolIntensity.value * glowFade)
         setDim(mouth, rules.arkDimStrength.value * dimFade)
+        windowPhase += rules.arkWindowSpeed.value * dt
+        setWindow(mouth, rules.arkWindowAlpha.value * (1f - dimFade * 0.5f) * fade)
 
         // Flashes, 10/s for the whole life
         if (burstTime < life) {
@@ -449,6 +453,7 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
             }
             if (carrier) {
                 val remnant = RuptureSprite(SpriteKind.ARK_REMNANT)
+                remnant.split = true
                 remnant.life = max(rules.arkRemnantSeconds.value, 0.1f)
                 remnant.baseSize = mouth
                 effect.sprites.add(remnant)
@@ -500,6 +505,8 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
 
         setGlow(mouth, rules.arkMouthGlowIntensity.value * rules.arkIdleIntensity.value * breath * alpha)
         setPool(u, scale, rules.arkPoolIntensity.value * rules.arkIdlePool.value * alpha)
+        windowPhase += rules.arkWindowSpeed.value * dt
+        setWindow(mouth, rules.arkWindowAlpha.value * rules.arkWindowIdle.value * alpha)
         effect.arkDim.active = false
         effect.arkLens.active = false
         effect.arkStar.active = false
@@ -622,6 +629,27 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
         setAnalyticRing(ring2, radius * rules.arkRingPeak.value, aspect(), rules.arkRingCoreWidth.value * rules.arkRing2Width.value, 0f, RING_TINT, intensity, alpha)
     }
 
+    /** The mouth window: the interior as a look into slipspace, alpha-blended under the fleet. */
+    private fun setWindow(mouthRadius: Float, alpha: Float) {
+        val s = window
+        val radius = mouthRadius * rules.arkWindowRadius.value
+        if (alpha <= 0.001f || radius <= 0.01f) {
+            effect.sprites.remove(s)
+            return
+        }
+        if (!effect.sprites.contains(s)) effect.sprites.add(s)
+        s.age = 0f
+        s.halfWidth = radius
+        s.halfLength = radius * max(mouthAspect(), MIN_ASPECT)
+        s.angle = facingRadians()
+        rules.arkWindowBase.into(s.color, hdr(1f))
+        s.alpha = alpha.coerceIn(0f, 1f)
+        s.paletteV = windowPhase                                   // p0: drift phase
+        s.blackPoint = rules.arkWindowVeinScale.value              // p1: vein scale
+        s.uvScale = hdr(rules.arkWindowVeinIntensity.value)        // p2: vein intensity
+        s.noiseOffset = rules.arkWindowEdge.value                  // p3: edge softness
+    }
+
     /** The rim light on the mouth lip (exact mouth ellipse). */
     private fun setRim(mouthRadius: Float, intensity: Float, alpha: Float) {
         setAnalyticRing(rim, mouthRadius, max(mouthAspect(), MIN_ASPECT), rules.arkRimWidth.value, 0f, TUBE_TINT, intensity, alpha)
@@ -692,6 +720,7 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
     /** [carrier] picks the size / spin curves; pinned on the sprite so a restarted burst or the idle look cannot change it mid-flight. */
     private fun spawnFlash(u: Float, sizeMult: Float, carrier: Boolean, glitter: Boolean) {
         val s = RuptureSprite(SpriteKind.ARK_FLASH)
+        s.split = true
         s.life = rules.arkFlareLife.value
         s.baseSize = u * sizeMult
         s.random = if (random.nextBoolean()) 1f else -1f                                     // mirror
@@ -702,6 +731,7 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
         effect.sprites.add(s)
 
         val halo = RuptureSprite(SpriteKind.ARK_FLASH_HALO)
+        halo.split = true
         halo.life = s.life
         halo.baseSize = s.baseSize
         halo.baseAlpha = s.baseAlpha
@@ -795,7 +825,7 @@ internal class ArkTimeline(private val effect: RuptureEffect, private val persis
 
     fun refresh(s: RuptureSprite, x: Float) {
         when (s.kind) {
-            SpriteKind.ARK_RING, SpriteKind.ARK_RING_BITMAP, SpriteKind.ARK_RING2, SpriteKind.ARK_RIM -> {}  // held: set in advance
+            SpriteKind.ARK_RING, SpriteKind.ARK_RING_BITMAP, SpriteKind.ARK_RING2, SpriteKind.ARK_RIM, SpriteKind.ARK_WINDOW -> {}  // held: set in advance
             SpriteKind.ARK_FLASH -> refreshFlash(s, x, 1f, 1f)
             SpriteKind.ARK_FLASH_HALO -> refreshFlash(s, x, rules.arkFlashHaloSize.value, rules.arkFlashHaloIntensity.value)
             SpriteKind.ARK_CLOSE -> {

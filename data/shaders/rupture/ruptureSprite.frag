@@ -41,9 +41,13 @@ in vec4 vParams;
 //   9 REFRACT_RING   Ark refraction front: a thin ring that pushes the screen copy outward across
 //                    its line. vParams: x = push scale in screen UV, y = line radius, z = width,
 //                    w = aspect. Alpha blend.
+//   10 PORTAL_WINDOW Ark mouth interior: near-black base colour with blobby plasma veins
+//                    (|baseMap - noiseB| -> palette), soft elliptical edge. vParams: x = drift
+//                    phase, y = vein scale, z = vein intensity, w = edge softness. Alpha blend.
 uniform int mode;
 uniform float exposure;   // tone-mapping exposure
 uniform float master;     // whole-effect fade (abort)
+uniform float halfSign;   // 0 = whole sprite; ±1 = only the half with sign(vLocal.x) == halfSign (Ark split passes)
 
 uniform sampler2D baseMap;     // PLASMA: noise A; TEXTURE_*, PALETTE_*: the sprite; DISTORTION: offset map
 uniform sampler2D noiseB;      // PLASMA
@@ -79,6 +83,12 @@ float blackPoint(float a, float point) {
 }
 
 void main() {
+    if (halfSign > 0.5 && vLocal.x < 0.0) {
+        discard;
+    }
+    if (halfSign < -0.5 && vLocal.x >= 0.0) {
+        discard;
+    }
     vec4 outColor;
     if (mode == 0) {
         float r2 = min(dot(vLocal, vLocal), 1.0);
@@ -138,6 +148,17 @@ void main() {
         float s = max(vColor.r, max(vColor.g, vColor.b));
         vec3 hdr = s * (ringCore * core + (ringInner * fin + ringOuter * fout) * ringShape.w) + vColor.rgb * (body + fill);
         outColor = vec4(tonemap(hdr) * vColor.a * master, 1.0);
+    } else if (mode == 10) {
+        // Ark portal window: the mouth interior as a look into another dimension - a near-black
+        // base with slow blobby plasma veins (|noiseA - noiseB| -> palette), soft elliptical edge.
+        // vParams: x = drift phase (CPU-integrated), y = vein scale, z = vein intensity, w = edge softness.
+        float len = length(vLocal);
+        float coverage = 1.0 - smoothstep(1.0 - max(vParams.w, 0.01), 1.0, len);
+        vec2 uv = vLocal * vParams.y * 0.5;
+        float a = texture(baseMap, uv + vec2(vParams.x, vParams.x * 0.37)).r;
+        float b = texture(noiseB, uv * 1.31 - vec2(vParams.x * 0.6, vParams.x)).r;
+        vec3 veins = texture(palette, vec2(abs(a - b), 0.5)).rgb * vParams.z;
+        outColor = vec4(tonemap(vColor.rgb + veins), coverage * vColor.a * master);
     } else if (mode == 9) {
         float d = ringDistance(vParams.y, vParams.w);
         vec2 n = vec2(dFdx(d), dFdy(d));
@@ -155,7 +176,7 @@ void main() {
         outColor = vec4(behind, smoothstep(0.0, 0.0015, length(offset)));
     }
 
-    if (mode == 3 || mode == 4 || mode == 6 || mode == 9) {
+    if (mode == 3 || mode == 4 || mode == 6 || mode == 9 || mode == 10) {
         if (outColor.a <= 0.002) {
             discard;
         }

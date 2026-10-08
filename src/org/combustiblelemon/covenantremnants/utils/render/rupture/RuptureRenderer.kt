@@ -74,6 +74,21 @@ class RuptureRenderer : Shader {
         const val TEXTURE_UNITS = 5
     }
 
+    /**
+     * Which part of each effect a [render] call draws. FULL (combat) draws everything. The
+     * campaign draws the Ark effects in two passes around the fleets (developer 2026-10-08, so a
+     * fleet reads as coming out of the middle of the tube): BELOW = the light pool, dim, mouth
+     * glow, the tube's back wall, the heat haze and the far half of the mouth-plane sprites;
+     * ABOVE = the front wall, the near half, the particles, flares and twinkles. Non-Ark effects
+     * draw whole in ABOVE and not at all in BELOW.
+     */
+    enum class Pass { FULL, BELOW, ABOVE }
+
+    var pass = Pass.FULL
+
+    private val SPLIT: (RuptureSprite) -> Boolean = { it.split }
+    private val WHOLE: (RuptureSprite) -> Boolean = { !it.split }
+
     /** Effects to draw on the next [render]; the owner keeps the list current. */
     val effects = ArrayList<RuptureEffect>()
 
@@ -137,7 +152,15 @@ class RuptureRenderer : Shader {
             glDisable(GL_CULL_FACE)
             glEnable(GL_BLEND)
 
+            val pass = pass
+            // Effects whose spheres / tube / screen-copy sprites draw in this pass
+            fun lower(effect: RuptureEffect): Boolean = pass == Pass.FULL || (pass == Pass.BELOW) == (effect.kind == RuptureEffect.Kind.ARK)
+            // Effects whose particles, flares and twinkles draw in this pass
+            fun upper(effect: RuptureEffect): Boolean = pass != Pass.BELOW
+            val wallSign = when (pass) { Pass.FULL -> 0f; Pass.BELOW -> -1f; Pass.ABOVE -> 1f }
+
             for (effect in effects) {
+                if (!lower(effect)) continue
                 for (sphere in effect.spheres) {
                     if (sphere.active) spheres.draw(sphere, effect, view, time, exposure)
                 }
@@ -146,13 +169,25 @@ class RuptureRenderer : Shader {
             // The Ark tube after the spheres, before the heat haze so the distortion ripples over it
             if (effects.any { it.tube.active }) {
                 val tubes = RupturePrograms.tube()
-                for (effect in effects) if (effect.tube.active) tubes.draw(effect.tube, effect, view, exposure)
+                for (effect in effects) {
+                    if (effect.tube.active && (pass == Pass.FULL || effect.kind == RuptureEffect.Kind.ARK)) {
+                        tubes.draw(effect.tube, effect, view, exposure, wallSign)
+                    }
+                }
+            }
+
+            // The Ark mouth window (alpha, under the fleets): after the tube so it covers the back wall and the glow
+            for (effect in effects) {
+                if (effect.kind == RuptureEffect.Kind.ARK && lower(effect)) {
+                    sprites.draw(SpriteMaterial.ARK_WINDOW, effect, view, time, exposure)
+                }
             }
 
             // After the spheres and the tube, so the heat-haze rings ripple over the charge core and the tube
-            if (distortion > 0f && effects.any { effect -> effect.sprites.any { it.kind.material.usesScreenCopy } }) {
+            if (distortion > 0f && effects.any { effect -> lower(effect) && effect.sprites.any { it.kind.material.usesScreenCopy } }) {
                 copyScreen()
                 for (effect in effects) {
+                    if (!lower(effect)) continue
                     for (material in SCREEN_SPRITES) {
                         sprites.draw(material, effect, view, time, exposure, distortion, screenCopy, viewportPx)
                     }
@@ -160,7 +195,18 @@ class RuptureRenderer : Shader {
             }
 
             for (effect in effects) {
-                for (material in ADDITIVE_SPRITES) sprites.draw(material, effect, view, time, exposure)
+                if (pass != Pass.FULL && effect.kind == RuptureEffect.Kind.ARK) {
+                    // Mouth-plane sprites: the half toward the tube body is the near half (above the fleets).
+                    val near = if (effect.tube.flip) 1f else -1f
+                    val halfSign = if (pass == Pass.ABOVE) near else -near
+                    for (material in ADDITIVE_SPRITES) {
+                        sprites.draw(material, effect, view, time, exposure, halfSign = halfSign, filter = SPLIT)
+                        if (pass == Pass.ABOVE) sprites.draw(material, effect, view, time, exposure, filter = WHOLE)
+                    }
+                } else if (upper(effect)) {
+                    for (material in ADDITIVE_SPRITES) sprites.draw(material, effect, view, time, exposure)
+                }
+                if (!upper(effect)) continue
                 for (flare in effect.flares) {
                     if (flare.active) sprites.drawFlare(flare, effect, view, time, exposure)
                 }
