@@ -14,7 +14,7 @@ arsenal is usable in-game now.
 | Plasma Repeater | S | energy | ENERGY | ioncannon | rapid dps |
 | Plasma Torpedo (Light) | S | missile | KINETIC | sabot | anti-shield |
 | Suppressor Beam | M | energy | ENERGY | gravitonbeam | **frigate1 built-in** + normal weapon; shield-suppress (GravitonBeamEffect) |
-| Plasma Beam Emitter | M | energy | ENERGY | gravitonbeam | shield-suppress beam |
+| Plasma Beam Emitter | M | energy | ENERGY | gravitonbeam | shield-suppress beam (also vs Covenant shields); Reach focus rifle look + sounds 2026-10-08, see [plasma-beam-emitter.md](plasma-beam-emitter.md) |
 | Plasma Cannon | M | energy | ENERGY | heavyblaster | anti-hull bolt |
 | Plasma Mortar | M | energy | HIGH_EXPLOSIVE | miningblaster | anti-armor bolt |
 | Plasma Torpedo | M | missile | HIGH_EXPLOSIVE | harpoonpod | tracking |

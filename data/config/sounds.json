@@ -66,5 +66,26 @@
 	"covenant_remnants_plasma_lance_fire":[
 		{"file":"sounds/plasma_lance/fire_1.ogg","pitch":1,"volume":1},
 		{"file":"sounds/plasma_lance/fire_2.ogg","pitch":1,"volume":1}
+	],
+	# Plasma Beam Emitter. The Halo: Reach focus rifle: the third-person fire loop's in / loop / out
+	# pieces (FMOD bank samples 10952-10954; the loop is the weapon's fireSoundTwo, in / out are
+	# played by the beam effect) and the five focus_beam_impact takes (10946-10950). See
+	# planning/implementations/plasma-beam-emitter.md.
+	# Volumes lowered 2026-10-08 (developer: support weapon, drowned everything out).
+	"covenant_remnants_plasma_beam_fire_in":[
+		{"file":"sounds/plasma_beam/fire_in.ogg","pitch":1,"volume":0.6}
+	],
+	"covenant_remnants_plasma_beam_fire_loop":[
+		{"file":"sounds/plasma_beam/fire_loop.ogg","pitch":1,"volume":0.55}
+	],
+	"covenant_remnants_plasma_beam_fire_out":[
+		{"file":"sounds/plasma_beam/fire_out.ogg","pitch":1,"volume":0.6}
+	],
+	"covenant_remnants_plasma_beam_impact":[
+		{"file":"sounds/plasma_beam/impact_1.ogg","pitch":1,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_2.ogg","pitch":1,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_3.ogg","pitch":1,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_4.ogg","pitch":1,"volume":0.5},
+		{"file":"sounds/plasma_beam/impact_5.ogg","pitch":1,"volume":0.5}
 	]
 }

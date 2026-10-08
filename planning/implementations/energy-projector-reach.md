@@ -117,5 +117,5 @@ bubble + half-dome flash white-lavender at the hit, tongues and cloud ring linge
   rates, Reach particle sizes read as diameters, `emp_charge` noise transforms (its Reach
   uv scroll was not decoded).
 - Mount art (vanilla Tachyon sprites) — deferred by ruling.
-- `ProjectorRenderer` duplicates the torpedo renderer's GL state wrap; a shared helper is worth
-  extracting when the next weapon adds a third copy.
+- ~~`ProjectorRenderer` duplicates the torpedo renderer's GL state wrap~~ — extracted 2026-10-08
+  as `utils/render/rupture/SpriteGlState` with the Plasma Beam Emitter (the third copy).

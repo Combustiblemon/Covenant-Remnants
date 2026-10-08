@@ -1,7 +1,7 @@
 {
   "id": "covenant_remnants_plasmabeam",
   "specClass": "beam",
-  "beamEffect": "com.fs.starfarer.api.impl.combat.GravitonBeamEffect",
+  "beamEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaBeamEmitterEffect",
   "type": "ENERGY",
   "size": "MEDIUM",
   "displayArcRadius": 550,
@@ -16,12 +16,15 @@
   "hardpointOffsets": [23, 0],
   "hardpointAngleOffsets": [0],
   "glowColor": [165, 100, 255, 235],
-  "fringeColor": [139, 130, 251, 255],
-  "coreColor": [255, 255, 255, 255],
+  # Halo: Reach focus rifle look (ruling 2026-10-08, Reach colours as-is): the engine beam is the
+  # violet plasma sheath (focus_rifle_plasma palette mid-tone) with the peach centre; the Reach
+  # layers are overlaid by PlasmaBeamRenderPlugin. Vanilla ROUGH textures stay (standing ruling).
+  "fringeColor": [128, 81, 187, 255],
+  "coreColor": [255, 195, 118, 255],
   "width": 20.0,
   "textureType": "ROUGH",
   "textureScrollSpeed": 260.0,
   "pixelsPerTexel": 5.0,
   "pierceSet": ["PROJECTILE_FF", "PROJECTILE_NO_FF", "PROJECTILE_FIGHTER", "MISSILE_FF", "MISSILE_NO_FF"],
-  "fireSoundTwo": "graviton_beam_loop"
+  "fireSoundTwo": "covenant_remnants_plasma_beam_fire_loop"
 }

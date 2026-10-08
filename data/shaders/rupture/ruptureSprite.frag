@@ -44,6 +44,10 @@ in vec4 vParams;
 //   10 PORTAL_WINDOW Ark mouth interior: near-black base colour with blobby plasma veins
 //                    (|baseMap - noiseB| -> palette), soft elliptical edge. vParams: x = drift
 //                    phase, y = vein scale, z = vein intensity, w = edge softness. Alpha blend.
+//   11 TEXTURE_STRIP beam strips (the focus rifle pulse): the base map tiled and scrolled over
+//                    the sprite by xformA (u across x xformA.x + xformA.z, v along x xformA.y +
+//                    xformA.w), shaped by the alpha map at the sprite's own UV, black point
+//                    vParams.y. Additive.
 uniform int mode;
 uniform float exposure;   // tone-mapping exposure
 uniform float master;     // whole-effect fade (abort)
@@ -159,6 +163,10 @@ void main() {
         float b = texture(noiseB, uv * 1.31 - vec2(vParams.x * 0.6, vParams.x)).r;
         vec3 veins = texture(palette, vec2(abs(a - b), 0.5)).rgb * vParams.z;
         outColor = vec4(tonemap(vColor.rgb + veins), coverage * vColor.a * master);
+    } else if (mode == 11) {
+        vec4 t = texture(baseMap, vUv * xformA.xy + xformA.zw);
+        float shape = texture(alphaMap, vUv).a * t.a;
+        outColor = vec4(tonemap(t.rgb * vColor.rgb) * blackPoint(shape, vParams.y) * vColor.a * master, 1.0);
     } else if (mode == 9) {
         float d = ringDistance(vParams.y, vParams.w);
         vec2 n = vec2(dFdx(d), dFdy(d));

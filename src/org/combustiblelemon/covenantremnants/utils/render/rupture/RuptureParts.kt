@@ -9,12 +9,14 @@ internal class NoiseTransform(
     private val periodX: Float = 0f,
     private val travelX: Float = 0f,
     private val periodY: Float = 0f,
-    private val travelY: Float = 0f
+    private val travelY: Float = 0f,
+    /** Scale of the second axis when it differs from [scale] (beam strips: along vs across). */
+    private val scaleY: Float = scale
 ) {
-    /** Writes (scale, scale, offset x, offset y) at [time] into [out]. */
+    /** Writes (scale x, scale y, offset x, offset y) at [time] into [out]. */
     fun write(time: Float, out: FloatArray) {
         out[0] = scale
-        out[1] = scale
+        out[1] = scaleY
         out[2] = loop(time, periodX) * travelX
         out[3] = loop(time, periodY) * travelY
     }
@@ -191,7 +193,60 @@ internal enum class SpriteMaterial(
         MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_512_A, RuptureTexture.NOISE_512_B,
         RuptureTexture.TORPEDO_PLASMA_PALETTE, RuptureTexture.FIERY_SMOKE,
         NoiseTransform(1.2f, 6f, 1f, 5f, 1f), NoiseTransform(1f, 4f, -1f, 5f, 1f), warp = 0.45f
-    );
+    ),
+
+    // --- Plasma Beam Emitter (Reach focus rifle, objects\weapons\rifle\focus_rifle\fx; see
+    // utils/render/plasmabeam and planning/implementations/plasma-beam-emitter.md) ---
+
+    /**
+     * projectile_3p.beam_system `plasma` (palettized_2d_plasma): plasma_trail_a x plasma_trail_b
+     * through the focus_rifle_plasma palette, shaped across by the energy_trail profile. One tile
+     * along the beam (Reach: uv tiling 1), the two trails sliding toward the target at different
+     * speeds (placeholder speeds; Reach scrolls 8 beam lengths a second).
+     */
+    PLASMA_BEAM_SHEATH(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_TRAIL_A, RuptureTexture.PLASMA_BEAM_TRAIL_B,
+        RuptureTexture.PLASMA_BEAM_PALETTE, RuptureTexture.PLASMA_BEAM_PROFILE,
+        NoiseTransform(1f, 2f, -2f), NoiseTransform(1f, 4f, -2f)
+    ),
+
+    /** The second `plasma` layer (palettized_plasma): half a tile along the beam, slower. */
+    PLASMA_BEAM_SHEATH_2(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_TRAIL_A, RuptureTexture.PLASMA_BEAM_TRAIL_B,
+        RuptureTexture.PLASMA_BEAM_PALETTE, RuptureTexture.PLASMA_BEAM_PROFILE,
+        NoiseTransform(0.5f, 1.5f, -1f, scaleY = 1f), NoiseTransform(0.5f, 3f, -1f, scaleY = 1f)
+    ),
+
+    /** `center` (diffuse_only): the energy_trail band, tinted. */
+    PLASMA_BEAM_CORE(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_PROFILE),
+
+    /**
+     * `pulse` (diffuse, black point): the pulse stripes scrolling along (and sideways across) the
+     * beam, shaped by the energy_trail profile. One tile along the beam, 3 widths a second across,
+     * 2 lengths a second along (placeholders; Reach: tiling 0.35, scroll 5 / 3).
+     */
+    PLASMA_BEAM_PULSE(
+        MODE_TEXTURE_STRIP, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_PULSE,
+        alphaMap = RuptureTexture.PLASMA_BEAM_PROFILE,
+        xformA = NoiseTransform(1f, 1f / 3f, -1f, 0.5f, -1f)
+    ),
+
+    /** muzzle_flash_plasma.particle: palettized_2d_plasma flame through soft_plasma_blue, fire_large shape. */
+    PLASMA_BEAM_MUZZLE_PLASMA(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.TORPEDO_NOISE_256_B, RuptureTexture.FIRE_CLOUDS,
+        RuptureTexture.FLAME_PALETTE, RuptureTexture.PLASMA_BEAM_FIRE,
+        NoiseTransform(0.5f, 6f, 1f, 7f, -1f), NoiseTransform(0.5f, 8f, -1f, 7f, 1f)
+    ),
+
+    /** impact_plasma.particle: the same family through soft_plasma_gold. */
+    PLASMA_BEAM_IMPACT_PLASMA(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_256_A, RuptureTexture.FIRE_CLOUDS,
+        RuptureTexture.PLASMA_BEAM_GOLD_PALETTE, RuptureTexture.PLASMA_BEAM_FIRE,
+        NoiseTransform(0.5f, 6f, 1f, 7f, -1f), NoiseTransform(0.5f, 8f, -1f, 7f, 1f)
+    ),
+
+    /** spark_long.particle: a streak along the direction, additive. */
+    PLASMA_BEAM_SPARK_LONG(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_SPARK_LONG);
 
     enum class Blend { ADDITIVE, ALPHA }
 
@@ -210,6 +265,7 @@ internal const val MODE_TEXTURE_ADD_ROT = 7
 internal const val MODE_ANALYTIC_RING = 8
 internal const val MODE_REFRACT_RING = 9
 internal const val MODE_PORTAL_WINDOW = 10
+internal const val MODE_TEXTURE_STRIP = 11
 
 /** Which Reach particle system a sprite comes from; picks its material and its update rules. */
 internal enum class SpriteKind(val material: SpriteMaterial) {
@@ -265,7 +321,23 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     PROJECTOR_HALF_GLOW(SpriteMaterial.PROJECTOR_GLOW_HALF),
     PROJECTOR_BURST(SpriteMaterial.PROJECTOR_BURST),
     PROJECTOR_CLOUD(SpriteMaterial.PROJECTOR_CLOUD),
-    PROJECTOR_BLUE(SpriteMaterial.PROJECTOR_BLUE)
+    PROJECTOR_BLUE(SpriteMaterial.PROJECTOR_BLUE),
+
+    // Plasma Beam Emitter (utils/render/plasmabeam)
+    PLASMA_BEAM_SHEATH(SpriteMaterial.PLASMA_BEAM_SHEATH),
+    PLASMA_BEAM_SHEATH_2(SpriteMaterial.PLASMA_BEAM_SHEATH_2),
+    PLASMA_BEAM_CORE(SpriteMaterial.PLASMA_BEAM_CORE),
+    PLASMA_BEAM_PULSE(SpriteMaterial.PLASMA_BEAM_PULSE),
+    /** firing_3p.light_volume_system inner_glow and firing_3p.light: light_volume_glow. */
+    PLASMA_BEAM_LIGHT(SpriteMaterial.PROJECTOR_FLARE),
+    PLASMA_BEAM_MUZZLE_FLASH(SpriteMaterial.TORPEDO_FLASH),
+    PLASMA_BEAM_EMBER(SpriteMaterial.SPARK),
+    PLASMA_BEAM_MUZZLE_PLASMA(SpriteMaterial.PLASMA_BEAM_MUZZLE_PLASMA),
+    PLASMA_BEAM_IMPACT_FLASH(SpriteMaterial.TORPEDO_FLASH),
+    PLASMA_BEAM_IMPACT_PLASMA(SpriteMaterial.PLASMA_BEAM_IMPACT_PLASMA),
+    PLASMA_BEAM_SPARK_LONG(SpriteMaterial.PLASMA_BEAM_SPARK_LONG),
+    PLASMA_BEAM_IMPACT_FLARE(SpriteMaterial.TORPEDO_FLARE_SIMPLE),
+    PLASMA_BEAM_IMPACT_LIGHT(SpriteMaterial.PROJECTOR_FLARE)
 }
 
 /**

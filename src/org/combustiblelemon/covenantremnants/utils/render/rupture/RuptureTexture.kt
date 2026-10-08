@@ -166,7 +166,34 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     PROJECTOR_PLASMA_BURST("projector_plasma_burst", false),
 
     /** fx\bitmaps\atmospheric_rolling\rolling_smoke_plate (palette index) + rolling_smoke_mask_large (alpha) */
-    PROJECTOR_CLOUD("projector_rolling_smoke_cloud", false);
+    PROJECTOR_CLOUD("projector_rolling_smoke_cloud", false),
+
+    // --- Plasma Beam Emitter (Reach focus rifle, objects\weapons\rifle\focus_rifle\fx;
+    // graphics/fx/plasma_beam/, see planning/implementations/plasma-beam-emitter.md) ---
+
+    /** fx\bitmaps\contrails\_gradients\focus_rifle_plasma: pale blue-white - purple - violet - black */
+    PLASMA_BEAM_PALETTE("plasma_beam_focus_rifle_plasma", false),
+
+    /** fx\particles\plasma\gradients\soft_plasma_gold */
+    PLASMA_BEAM_GOLD_PALETTE("plasma_beam_soft_plasma_gold", false),
+
+    /** fx\bitmaps\contrails\plasma_trail_a: cloud noise, bright at the top edge (x along the beam) */
+    PLASMA_BEAM_TRAIL_A("plasma_beam_plasma_trail_a", true),
+
+    /** fx\bitmaps\contrails\plasma_trail_b: bright at the bottom edge */
+    PLASMA_BEAM_TRAIL_B("plasma_beam_plasma_trail_b", true),
+
+    /** fx\bitmaps\contrails\energy_trail rotated: the beam's cross profile, band along v */
+    PLASMA_BEAM_PROFILE("plasma_beam_beam_profile", false),
+
+    /** fx\bitmaps\contrails\pulse rotated: stripes across the beam, tiling along v */
+    PLASMA_BEAM_PULSE("plasma_beam_pulse", true),
+
+    /** fx\bitmaps\fire\fire_large: a flame, tip at the top (shape in alpha) */
+    PLASMA_BEAM_FIRE("plasma_beam_fire_large", false),
+
+    /** fx\bitmaps\sparks\spark_long rotated: a streak along v */
+    PLASMA_BEAM_SPARK_LONG("plasma_beam_spark_long", false);
 
     private var textureId = -1
     private var configured = false

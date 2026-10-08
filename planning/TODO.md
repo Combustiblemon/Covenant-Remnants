@@ -47,6 +47,16 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/plasma-lance.md](implementations/plasma-lance.md).
 - [ ] **Plasma Lance — in-game check** — burst feel, colours, sound tail length (first-person
       takes available as the short alternative).
+- [x] **Plasma Beam Emitter — Reach focus rifle** — built 2026-10-08 (rulings: Reach colours
+      as-is, 80 su/WU, continuous, numbers unchanged, fire in+loop+out + 5 impacts, suppression
+      kept and extended to Covenant shields): violet plasma sheath + peach centre + 30/s pulses
+      over the engine beam, blue muzzle tongues / embers / light cone, gold impact licks / sparks /
+      orange flare, new sprite shader mode 11. See
+      [implementations/plasma-beam-emitter.md](implementations/plasma-beam-emitter.md).
+- [x] **Plasma Beam Emitter — in-game check** — developer 2026-10-08: "looks good"; sound too
+      loud for a support weapon → volumes lowered (loop 0.55, in/out 0.6, impacts 0.5). Re-check
+      the mix next session. See
+      [implementations/plasma-beam-emitter.md](implementations/plasma-beam-emitter.md).
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.

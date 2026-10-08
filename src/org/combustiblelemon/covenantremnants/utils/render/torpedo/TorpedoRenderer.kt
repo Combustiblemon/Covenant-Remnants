@@ -5,39 +5,17 @@ import org.combustiblelemon.covenantremnants.utils.render.rupture.RIBBON_STRIDE
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RupturePrograms
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureSprite
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureView
+import org.combustiblelemon.covenantremnants.utils.render.rupture.SpriteGlState
 import org.combustiblelemon.covenantremnants.utils.render.rupture.SpriteMaterial
-import org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS
-import org.lwjgl.opengl.GL11.GL_BLEND
-import org.lwjgl.opengl.GL11.GL_CULL_FACE
-import org.lwjgl.opengl.GL11.GL_DEPTH_TEST
-import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
-import org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D
-import org.lwjgl.opengl.GL11.glBindTexture
-import org.lwjgl.opengl.GL11.glDisable
-import org.lwjgl.opengl.GL11.glEnable
-import org.lwjgl.opengl.GL11.glGetInteger
-import org.lwjgl.opengl.GL11.glPopAttrib
-import org.lwjgl.opengl.GL11.glPushAttrib
-import org.lwjgl.opengl.GL13.GL_ACTIVE_TEXTURE
-import org.lwjgl.opengl.GL13.GL_TEXTURE0
-import org.lwjgl.opengl.GL13.glActiveTexture
-import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
-import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER_BINDING
-import org.lwjgl.opengl.GL15.glBindBuffer
-import org.lwjgl.opengl.GL20.GL_CURRENT_PROGRAM
-import org.lwjgl.opengl.GL20.glUseProgram
-import org.lwjgl.opengl.GL30.GL_VERTEX_ARRAY_BINDING
-import org.lwjgl.opengl.GL30.glBindVertexArray
 
 /**
  * Draws every live torpedo ([TorpedoFlight]) and burst ([TorpedoBurst]) with the shared Reach
- * sprite program ([RupturePrograms.sprites]). Order: trails, impact smoke and fireballs
- * (alpha-blended), impact plasma, torpedo bodies and flares, muzzle flashes, sparks, impact flares.
+ * sprite program ([RupturePrograms.sprites]) inside the common GL state wrap ([SpriteGlState]).
+ * Order: trails, impact smoke and fireballs (alpha-blended), impact plasma, torpedo bodies and
+ * flares, muzzle flashes, sparks, impact flares.
  */
 internal class TorpedoRenderer {
     private companion object {
-        const val TEXTURE_UNITS = 4
-
         // Tone-mapping exposure for Reach's HDR colours (the rupture's default).
         const val EXPOSURE = 1f
 
@@ -63,20 +41,8 @@ internal class TorpedoRenderer {
         if (flights.isEmpty() && bursts.isEmpty()) return
         val view = RuptureView(viewport)
 
-        glPushAttrib(GL_ALL_ATTRIB_BITS)
-        val currentProgram = glGetInteger(GL_CURRENT_PROGRAM)
-        val currentVao = glGetInteger(GL_VERTEX_ARRAY_BINDING)
-        val currentVbo = glGetInteger(GL_ARRAY_BUFFER_BINDING)
-        val currentActiveTexture = glGetInteger(GL_ACTIVE_TEXTURE)
-        val currentTextures = IntArray(TEXTURE_UNITS) { unit ->
-            glActiveTexture(GL_TEXTURE0 + unit)
-            glGetInteger(GL_TEXTURE_BINDING_2D)
-        }
-        try {
+        SpriteGlState.draw {
             val sprites = RupturePrograms.sprites()
-            glDisable(GL_DEPTH_TEST)
-            glDisable(GL_CULL_FACE)
-            glEnable(GL_BLEND)
 
             for (flight in flights) {
                 val needed = flight.maxTrailPoints * RIBBON_STRIDE
@@ -102,16 +68,6 @@ internal class TorpedoRenderer {
             for (material in FLASH_ORDER) {
                 sprites.drawSprites(material, burstSprites, 0f, 0f, 1f, view, time, EXPOSURE)
             }
-        } finally {
-            glUseProgram(currentProgram)
-            glBindVertexArray(currentVao)
-            glBindBuffer(GL_ARRAY_BUFFER, currentVbo)
-            for (unit in TEXTURE_UNITS - 1 downTo 0) {
-                glActiveTexture(GL_TEXTURE0 + unit)
-                glBindTexture(GL_TEXTURE_2D, currentTextures[unit])
-            }
-            glActiveTexture(currentActiveTexture)
-            glPopAttrib()
         }
     }
 }
