@@ -1,40 +1,203 @@
 package org.combustiblelemon.covenantremnants.campaign.systems
 
+import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.CampaignTerrainAPI
 import com.fs.starfarer.api.campaign.SectorAPI
+import com.fs.starfarer.api.campaign.SectorEntityToken
+import com.fs.starfarer.api.campaign.StarSystemAPI
 import com.fs.starfarer.api.impl.campaign.ids.Tags
+import com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2
+import com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2.SlipstreamParams2
+import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.StarSystem
+import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 import org.combustiblelemon.covenantremnants.campaign.systems.scripts.SlipspaceSystemEFS
+import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 
+// ---------------------------------------------------------------------------------------------
+// Ids. The legacy ids (prototype) stay so old saves still resolve their entities.
+// ---------------------------------------------------------------------------------------------
+
+/** Legacy custom-entity type of the prototype's two portals (kept registered for old saves). */
 const val SLIPSPACE_JUMP_POINT_ENTITY = "slipspace_jump_point"
 const val SLIPSPACE_JUMP_POINT_ENTRANCE = "slipspace_jump_point_entrance"
 const val SLIPSPACE_JUMP_POINT_EXIT = "slipspace_jump_point_exit"
 
-fun generateSlipspaceSystem(sector: SectorAPI) {
+/** Display / base name of the pocket system ("Slipspace"). Its id is this lower-cased. */
+const val SLIPSPACE_POCKET_NAME = "Slipspace"
 
-    val system = sector.createStarSystem("Slipspace")
-    system.backgroundTextureFilename = "graphics/covenant_remnants/backgrounds/slipspace_bg.jpg"
+/** Tag on the pocket star system; [org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace] keys on it. */
+const val SLIPSPACE_POCKET_TAG = "covenant_remnants_slipspace_pocket"
+
+/** Custom-entity types (data/config/custom_entities.json). */
+const val SLIPSPACE_ENTRANCE_TYPE = "covenant_remnants_slipspace_entrance"
+const val SLIPSPACE_EXIT_TYPE = "covenant_remnants_slipspace_exit"
+const val SLIPSPACE_AMBIENCE_TYPE = "covenant_remnants_slipspace_ambience"
+
+/** Entity ids inside the pocket. */
+const val SLIPSPACE_ENTRANCE_ID = "covenant_remnants_slipspace_entrance"
+const val SLIPSPACE_EXIT_ID = "covenant_remnants_slipspace_exit"
+const val SLIPSPACE_AMBIENCE_ID = "covenant_remnants_slipspace_ambience"
+
+/** Terrain id of the pocket's path (data/campaign/terrain.json). */
+const val SLIPSPACE_STREAM_TERRAIN = "covenant_remnants_slipspace_stream"
+
+/** Pocket memory keys: the route currently laid out in it. */
+const val SLIPSPACE_ROUTE_ORIGIN_KEY = "\$covenant_remnants_slipspace_route_origin"
+const val SLIPSPACE_ROUTE_DEST_KEY = "\$covenant_remnants_slipspace_route_dest"
+
+// ---------------------------------------------------------------------------------------------
+// Lookup / bootstrap
+// ---------------------------------------------------------------------------------------------
+
+/** The pocket system, by tag first and by the legacy name second; null if the save has none. */
+fun findSlipspaceSystem(sector: SectorAPI = Global.getSector()): StarSystemAPI? {
+    sector.starSystems.firstOrNull { it.hasTag(SLIPSPACE_POCKET_TAG) }?.let { return it }
+    return sector.starSystems.firstOrNull { it.baseName.equals(SLIPSPACE_POCKET_NAME, ignoreCase = true) }
+}
+
+/**
+ * Returns the pocket system, creating it when the save has none (saves from before the campaign
+ * jump existed, or saves created before the mod was added) and migrating a prototype one (adds
+ * the tag, swaps the legacy portal entities for the entrance / exit, adds the ambience entity).
+ * Idempotent; called from `onGameLoad` and `onNewGame`.
+ */
+fun ensureSlipspaceSystem(sector: SectorAPI = Global.getSector()): StarSystemAPI {
+    val existing = findSlipspaceSystem(sector)
+    if (existing != null) {
+        migrateSlipspaceSystem(existing)
+        return existing
+    }
+    return generateSlipspaceSystem(sector)
+}
+
+fun generateSlipspaceSystem(sector: SectorAPI): StarSystemAPI {
+    val system = sector.createStarSystem(SLIPSPACE_POCKET_NAME)
+    system.backgroundTextureFilename = SlipspaceJumpRules.POCKET_BACKGROUND
     system.addScript(SlipspaceSystemEFS())
 
-    system.location.set(0f, 0f) //position of the system on the map
+    system.location.set(0f, 0f) // position of the system on the map (hidden anyway)
     system.doNotShowIntelFromThisLocationOnMap = true
     system.addTag(Tags.DO_NOT_RESPAWN_PLAYER_IN)
     system.addTag(Tags.REPORT_NO_SYSTEM)
-//    system.addTag(Tags.SYSTEM_ABYSSAL)
     system.addTag(Tags.SYSTEM_CUT_OFF_FROM_HYPER)
     system.addTag(Tags.HIDE_IN_CODEX)
     system.addTag(Tags.NO_TOPOGRAPHY_SCANS)
     system.addTag(Tags.NO_SIM)
     system.addTag(Tags.TEMPORARY_LOCATION)
     system.addTag(Tags.STORY_CRITICAL)
+    system.addTag(SLIPSPACE_POCKET_TAG)
 
     system.initNonStarCenter()
     system.lightColor = Color(25, 25, 60) // light color in entire system, affects all entities
 
-    system.addCustomEntity(SLIPSPACE_JUMP_POINT_ENTRANCE, "Jump point", SLIPSPACE_JUMP_POINT_ENTITY, "neutral")
-    system.addCustomEntity(SLIPSPACE_JUMP_POINT_EXIT, "Jump point", SLIPSPACE_JUMP_POINT_ENTITY, "neutral")
+    addPocketEntities(system)
 
     system.setBackgroundOffset(0f, 0f)
+    (system as StarSystem).displayName = SLIPSPACE_POCKET_NAME
+    return system
+}
 
-    (system as StarSystem).displayName = "Slipspace"
+private fun migrateSlipspaceSystem(system: StarSystemAPI) {
+    if (!system.hasTag(SLIPSPACE_POCKET_TAG)) system.addTag(SLIPSPACE_POCKET_TAG)
+    if (system.backgroundTextureFilename != SlipspaceJumpRules.POCKET_BACKGROUND) {
+        system.backgroundTextureFilename = SlipspaceJumpRules.POCKET_BACKGROUND
+    }
+    // Prototype portals: replaced by the typed entrance / exit.
+    system.getEntityById(SLIPSPACE_JUMP_POINT_ENTRANCE)?.let { system.removeEntity(it) }
+    system.getEntityById(SLIPSPACE_JUMP_POINT_EXIT)?.let { system.removeEntity(it) }
+    addPocketEntities(system)
+}
+
+private fun addPocketEntities(system: StarSystemAPI) {
+    if (system.getEntityById(SLIPSPACE_ENTRANCE_ID) == null) {
+        system.addCustomEntity(SLIPSPACE_ENTRANCE_ID, "Slipspace aperture", SLIPSPACE_ENTRANCE_TYPE, "neutral")
+    }
+    if (system.getEntityById(SLIPSPACE_EXIT_ID) == null) {
+        system.addCustomEntity(SLIPSPACE_EXIT_ID, "Slipspace exit", SLIPSPACE_EXIT_TYPE, "neutral")
+    }
+    if (system.getEntityById(SLIPSPACE_AMBIENCE_ID) == null) {
+        system.addCustomEntity(SLIPSPACE_AMBIENCE_ID, "Slipspace", SLIPSPACE_AMBIENCE_TYPE, "neutral")
+    }
+}
+
+fun slipspaceEntrance(system: StarSystemAPI): SectorEntityToken? = system.getEntityById(SLIPSPACE_ENTRANCE_ID)
+fun slipspaceExit(system: StarSystemAPI): SectorEntityToken? = system.getEntityById(SLIPSPACE_EXIT_ID)
+
+// ---------------------------------------------------------------------------------------------
+// Route
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Lays out the pocket for one jump: removes the previous path terrain, builds the winding path
+ * for the (origin, destination) pair (same pair → same path, see [SlipspacePaths]), adds the
+ * slipstream terrain along it, and moves the entrance to the path start and the exit to its end.
+ * The route is remembered in the pocket's memory so the exit knows where it leads.
+ *
+ * @param burnMult transit-speed multiplier (Slipspace Tuning), applied to the stream's burn level.
+ */
+fun prepareSlipspaceRoute(system: StarSystemAPI, originId: String, destId: String, burnMult: Float) {
+    for (terrain in system.terrainCopy) {
+        if (terrain.type == SLIPSPACE_STREAM_TERRAIN) system.removeEntity(terrain)
+    }
+
+    val record = SlipspacePaths.recordFor(originId, destId)
+    val points = SlipspacePaths.buildPolyline(record)
+
+    val params = SlipstreamParams2()
+    params.name = "Slipspace"
+    params.enteringSlipstreamTextOverride = ""
+    params.baseWidth = SlipspaceJumpRules.streamWidth.value
+    params.widthForMaxSpeed = SlipspaceJumpRules.streamWidth.value
+    params.edgeWidth = SlipspaceJumpRules.streamEdgeWidth.value
+    params.burnLevel = Math.round(SlipspaceJumpRules.streamBurnLevel.value * burnMult)
+    params.accelerationMult = SlipspaceJumpRules.streamAccelMult.value
+    params.slowDownInWiderSections = false
+    params.minSpeed = Misc.getSpeedForBurnLevel(params.burnLevel - params.burnLevel / 8f)
+    params.maxSpeed = Misc.getSpeedForBurnLevel(params.burnLevel + params.burnLevel / 8f)
+    params.minColor = SlipspaceJumpRules.STREAM_MIN_COLOR
+    params.maxColor = SlipspaceJumpRules.STREAM_MAX_COLOR
+
+    val terrain = system.addTerrain(SLIPSPACE_STREAM_TERRAIN, params) as CampaignTerrainAPI
+    terrain.addTag(Tags.SLIPSTREAM_VISIBLE_IN_ABYSS)
+    terrain.setLocation(points[0].x, points[0].y)
+    val plugin = terrain.plugin as SlipstreamTerrainPlugin2
+    // Width tapers toward both ends so the corridor opens and closes gracefully instead of
+    // starting and stopping at full width.
+    val total = (points.size - 1) * SlipspaceJumpRules.pathPointSpacing.value
+    val taper = SlipspaceJumpRules.streamTaper.value.coerceAtMost(total * 0.5f).coerceAtLeast(1f)
+    val endFrac = SlipspaceJumpRules.streamEndWidthFrac.value.coerceIn(0.05f, 1f)
+    for ((i, p) in points.withIndex()) {
+        val along = i * SlipspaceJumpRules.pathPointSpacing.value
+        val fromEnd = minOf(along, total - along).coerceAtLeast(0f)
+        val f = (fromEnd / taper).coerceIn(0f, 1f)
+        val smooth = f * f * (3f - 2f * f)
+        val width = SlipspaceJumpRules.streamWidth.value * (endFrac + (1f - endFrac) * smooth)
+        plugin.addSegment(Vector2f(p), width)
+    }
+    plugin.recomputeIfNeeded()
+
+    val start = points.first()
+    val end = points.last()
+    slipspaceEntrance(system)?.setLocation(start.x, start.y)
+    slipspaceExit(system)?.setLocation(end.x, end.y)
+    // The exit sits past the end of the wind (the last segment carries no current) so the fleet
+    // coasts up to it instead of being pushed through it.
+
+    val memory = system.memoryWithoutUpdate
+    memory.set(SLIPSPACE_ROUTE_ORIGIN_KEY, originId)
+    memory.set(SLIPSPACE_ROUTE_DEST_KEY, destId)
+}
+
+/** The destination system of the route currently laid out in the pocket, or null. */
+fun slipspaceRouteDestination(system: StarSystemAPI): StarSystemAPI? {
+    val id = system.memoryWithoutUpdate.getString(SLIPSPACE_ROUTE_DEST_KEY) ?: return null
+    return Global.getSector().getStarSystem(id)
+}
+
+/** The origin system of the route currently laid out in the pocket, or null. */
+fun slipspaceRouteOrigin(system: StarSystemAPI): StarSystemAPI? {
+    val id = system.memoryWithoutUpdate.getString(SLIPSPACE_ROUTE_ORIGIN_KEY) ?: return null
+    return Global.getSector().getStarSystem(id)
 }

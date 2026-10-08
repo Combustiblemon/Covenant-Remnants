@@ -1,4 +1,5 @@
 {
+  # Legacy prototype portal type: kept registered so saves that still hold one load. Not placed anymore.
   "slipspace_jump_point": {
     "defaultName": "Slipspace Portal",
     "defaultRadius": 45,
@@ -13,5 +14,53 @@
     "tags": ["has_interaction_dialog", "neutrino_high"],
     "layers": ["STATIONS", "TERRAIN_8"],
     "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
+  },
+
+  # Pocket entrance: where the fleet arrives. Arrival only, not interactable. Placeholder look
+  # (the campaign portal shader) until the developer picks a replacement.
+  "covenant_remnants_slipspace_entrance": {
+    "defaultName": "Slipspace aperture",
+    "defaultRadius": 45,
+    "detectionRange": 0,
+    "showInCampaign": true,
+    "icon": "graphics/icons/abyssal_light.png",
+    "iconWidth": 18,
+    "iconHeight": 18,
+    "customDescriptionId": "covenant_remnants_slipspace_entrance",
+    "renderCircleIndicator": false,
+    "tags": ["non_clickable", "neutrino_high"],
+    "layers": ["STATIONS", "TERRAIN_8"],
+    "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
+  },
+
+  # Pocket exit: interactable (dialog routed by SlipspaceCampaignPlugin). Same placeholder look.
+  "covenant_remnants_slipspace_exit": {
+    "defaultName": "Slipspace exit",
+    "defaultRadius": 45,
+    "detectionRange": 0,
+    "showInCampaign": true,
+    "icon": "graphics/icons/abyssal_light.png",
+    "iconWidth": 18,
+    "iconHeight": 18,
+    "customDescriptionId": "covenant_remnants_slipspace_exit",
+    "renderCircleIndicator": false,
+    "interactionImage": "graphics/illustrations/entering_hyperspace.jpg",
+    "tags": ["has_interaction_dialog", "neutrino_high"],
+    "layers": ["STATIONS", "TERRAIN_8"],
+    "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
+  },
+
+  # Pocket ambience: sparse light streaks over the black background. One per pocket, invisible itself.
+  "covenant_remnants_slipspace_ambience": {
+    "defaultName": "Slipspace",
+    "defaultRadius": 1,
+    "detectionRange": 0,
+    "showInCampaign": true,
+    "showIconOnMap": false,
+    "showNameOnMap": false,
+    "renderCircleIndicator": false,
+    "tags": ["non_clickable"],
+    "layers": ["TERRAIN_1"],
+    "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspaceAmbienceEntity"
   }
 }

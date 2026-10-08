@@ -5,7 +5,6 @@ import com.fs.starfarer.api.campaign.CampaignEngineLayers
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.impl.campaign.BaseCustomEntityPlugin
 import com.fs.starfarer.api.util.Misc
-import com.fs.starfarer.campaign.save.`null`
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
 import org.combustiblelemon.covenantremnants.utils.render.SlipspacePortalEntityShader
 import org.combustiblelemon.covenantremnants.utils.render.SlipspacePortalEntityShader.AnimationState

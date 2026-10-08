@@ -33,8 +33,12 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
 `src/.../CovenantRemnantsPlugin.kt` (extends `BaseModPlugin`):
 
 - On application load: verifies MagicLib and LazyLib are enabled; loads `shield_data.csv` (custom
-  per-ship shield parameters).
-- On new game: generates the slipspace star system (`generateSlipspaceSystem()`).
+  per-ship shield parameters); compiles the shared shader programs; preloads the slipspace pocket
+  background.
+- On game load: re-verifies the hullmod incompatibilities; `ensureSlipspaceSystem()` creates or
+  migrates the slipspace pocket system; registers the transient `SlipspaceCampaignPlugin` (exit
+  portal dialog).
+- On new game: `ensureSlipspaceSystem()`.
 
 ## Subsystems
 
@@ -80,14 +84,30 @@ vanilla one:
   `graphics/fx/shield/`. See
   [implementations/shield-reach-impact.md](implementations/shield-reach-impact.md).
 
-### Slipspace (campaign travel)
+### Slipspace Jump (campaign travel)
 
-- Ability: `campaign/abilities/SlipspaceJump.kt` — declared in `data/campaign/abilities.csv` as
-  `covenant_remnants_slipspace_jump` (a Transverse-Jump analog); helper `utils/abilities/Slipspace.kt`.
-- World: `campaign/systems/SlipspaceSystem.kt` (+ `scripts/SlipspaceSystemEFS.kt`),
-  entity `campaign/entities/SlipspacePortalEntity.kt`.
-- Render (campaign): `utils/render/SlipspacePortalEntityShader.kt`
-  (`data/shaders/slipspacePortalEntityShader.frag`/`.vert`).
+`covenant_remnants_slipspace_jump` (`data/campaign/abilities.csv`, quest-granted; `CovenantGiveAll`
+grants it meanwhile). Press → sector-map picker → charge (controls locked, Reach rupture ahead of
+the fleet) → lurch in → custom transition into the pocket system "Slipspace" → a winding slipstream
+carries the fleet to the exit → exit dialog → transition to the destination's edge facing the
+origin. See [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
+
+- Ability: `campaign/abilities/SlipspaceJump.kt` (phase machine, rendering on the `ABOVE` layer),
+  `SlipspaceJumpRules.kt` (gating, costs, destinations, Tuning bonus, every placeholder number as a
+  live tunable for the `SlipspaceJumpTune` console command),
+  `SlipspaceDestinationDialog.kt` (host dialog + `showCampaignEntityPicker`),
+  `SlipspaceTransitionScript.kt` (sector-level location switch), `SlipspaceJumpVisuals.kt`
+  (campaign owner of `utils/render/rupture/RuptureRenderer`).
+- Pocket: `campaign/systems/SlipspaceSystem.kt` (`ensureSlipspaceSystem`, `prepareSlipspaceRoute`,
+  route memory) + `SlipspacePaths.kt` (per-pair saved path records, polyline builder) +
+  `scripts/SlipspaceSystemEFS.kt` (vanilla movement abilities off while in the pocket);
+  path terrain `campaign/terrain/SlipspaceStreamTerrainPlugin.kt` (`SlipstreamTerrainPlugin2`
+  subclass with push-back + clamp; `data/campaign/terrain.json`).
+- Entities (`data/config/custom_entities.json`): entrance / exit use
+  `campaign/entities/SlipspacePortalEntity.kt` + `utils/render/SlipspacePortalEntityShader.kt`
+  (placeholder look); exit dialog `SlipspaceExitDialogPlugin.kt` routed by
+  `SlipspaceCampaignPlugin.kt`; `SlipspaceAmbienceEntity.kt` draws the sparse light streaks.
+- Background: `graphics/covenant_remnants/backgrounds/slipspace_bg.jpg` (solid black placeholder).
 
 ### Slipspace Drive blink (frigate1 / frigate3 / destroyer2)
 

@@ -13,8 +13,6 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   damage). Regen is frozen while it's on, it only works with the shield up, a custom
   incoming-damage AI drives it, and a fortress shader layer shows it. See
   [implementations/fortress-shield.md](implementations/fortress-shield.md).
-- **Slipspace travel** — jump ability, portal entity, generated slipspace system,
-  regen/debug console commands.
 - **Slipspace Drive blink (frigate1 / frigate3 / destroyer2)** — Wolf-style short-range blink
   (engine teleporter, 500 su toward the cursor, 3 charges) with ODST-style hull ripple + portals.
   Placeholder portal until the ODST kit data is pulled. See
@@ -38,6 +36,11 @@ in-progress work and unresolved questions, not settled decisions (those live in 
 
 ## In progress / open
 
+- **Campaign Slipspace Jump** — built 2026-10-07 (map picker, charge + Reach rupture, custom
+  transition, slipstream pocket path with push-back, exit dialog, edge arrival facing the origin,
+  Tuning bonus, `CovenantGiveAll` grant). Awaiting the in-game checklist in
+  [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
+  All numbers are placeholders. The granting quest is not built (quests below).
 - **Quests & narrative content — not started.** No `data/campaign/rules.csv`, missions, intel, or
   bar events yet. This is the primary acquisition path (ships/weapons are quest-gated only — see
   [CLAUDE.md](../CLAUDE.md)) and the next major area of work.
@@ -56,6 +59,9 @@ in-progress work and unresolved questions, not settled decisions (those live in 
 - Ongoing polish of shaders and feel.
 - **LunaLib settings** — in-game options to control the mod. LunaLib is optional, so each setting
   needs a default for when LunaLib is absent.
+- **Ground combat** — via the separate Planetfall library mod (OpenRA engine in a child process,
+  shown in a dialog panel). Parked 2026-10-08 after its skeleton. See
+  [ground-combat-planetfall.md](ground-combat-planetfall.md).
 
 ## Open questions
 

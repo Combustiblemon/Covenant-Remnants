@@ -28,7 +28,9 @@ Increase repair rate by %s
 Counteracts negative effects of %s hullmod if present.",,,
 Slipspace Tuning,covenant_remnants_slipspace_tuning,,,Covenant,"req_spaceport, no_drop, no_drop_salvage","Requires Dock",,FALSE,FALSE,,4,8,12,20,org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning,"Increases slipspace drive charge regeneration by %s.
 
-Only installable on ships with a slipspace drive.",,,
+Each ship in the fleet carrying this hullmod speeds the fleet's transit through a slipspace corridor by %s, up to %s.
+
+Only installable on ships with a slipspace drive.",,"Each ship carrying this as a built-in (s-mod) hullmod also shortens the fleet's slipspace jump charge-up and cooldown by %s, up to %s.",
 Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"req_spaceport, no_drop, no_drop_salvage","Requires Dock",,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.PlasmaCapacitors,"Increases maximum flux capacity by %s.
 Increases venting rate by %s.
 

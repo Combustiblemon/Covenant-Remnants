@@ -69,6 +69,13 @@ class RuptureRenderer : Shader {
     /** Effects to draw on the next [render]; the owner keeps the list current. */
     val effects = ArrayList<RuptureEffect>()
 
+    /**
+     * Whole-frame alpha, applied on top of every effect's `master`. The campaign ability renderer
+     * ignores the viewport's alpha (the screen fade), so the campaign owner sets this from it;
+     * combat leaves it at 1.
+     */
+    var alphaMult = 1f
+
     private var time = 0f
 
     private var screenCopy = 0
@@ -83,6 +90,22 @@ class RuptureRenderer : Shader {
 
     override fun render(viewport: ViewportAPI) {
         if (effects.isEmpty()) return
+        if (alphaMult <= 0f) return
+        if (alphaMult < 1f) {
+            // Scale every effect's master for this draw, then put it back.
+            val saved = FloatArray(effects.size) { effects[it].master }
+            try {
+                for (i in effects.indices) effects[i].master = saved[i] * alphaMult
+                renderAll(viewport)
+            } finally {
+                for (i in effects.indices) effects[i].master = saved[i]
+            }
+            return
+        }
+        renderAll(viewport)
+    }
+
+    private fun renderAll(viewport: ViewportAPI) {
         val view = RuptureView(viewport)
         val exposure = FleetSlipspaceJump.exposure.value
         val distortion = FleetSlipspaceJump.distortion.value

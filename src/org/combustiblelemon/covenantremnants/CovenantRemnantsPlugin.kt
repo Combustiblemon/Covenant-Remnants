@@ -2,7 +2,9 @@ package org.combustiblelemon.covenantremnants
 
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
-import org.combustiblelemon.covenantremnants.campaign.systems.generateSlipspaceSystem
+import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
+import org.combustiblelemon.covenantremnants.campaign.entities.SlipspaceCampaignPlugin
+import org.combustiblelemon.covenantremnants.campaign.systems.ensureSlipspaceSystem
 import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilities
 import org.combustiblelemon.covenantremnants.utils.initShieldData
 import org.combustiblelemon.covenantremnants.utils.render.blink.BlinkRenderer
@@ -45,14 +47,22 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         // Same for the rupture (fleet jump + blink portals) and the blink hull ripple.
         RupturePrograms.warmUp()
         BlinkRenderer.warmUp()
+
+        // Pocket background (solid black placeholder, developer 2026-10-07).
+        Global.getSettings().loadTexture(SlipspaceJumpRules.POCKET_BACKGROUND)
     }
 
     override fun onGameLoad(newGame: Boolean) {
         super.onGameLoad(newGame)
         HullmodIncompatibilityInstaller.verifyAndReinstall(CovenantIncompatibilities.registry())
+
+        // Campaign slipspace jump: the pocket system exists in every save (created or migrated),
+        // and the exit portal's dialog is routed by a transient campaign plugin.
+        ensureSlipspaceSystem(Global.getSector())
+        Global.getSector().registerPlugin(SlipspaceCampaignPlugin())
     }
 
     override fun onNewGame() {
-        generateSlipspaceSystem(Global.getSector())
+        ensureSlipspaceSystem(Global.getSector())
     }
 }

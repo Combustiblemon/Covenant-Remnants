@@ -84,12 +84,12 @@ task list. This documentation duty is a fixed AI-assistant rule — see
 Root package `org.combustiblelemon.covenantremnants`, organised **by feature/role**, not by type:
 
 - `ai/` — weapon/ship AI plugins.
-- `campaign/` — `abilities/`, `entities/`, `systems/` for campaign-layer content.
+- `campaign/` — `abilities/`, `entities/`, `systems/`, `terrain/` for campaign-layer content.
 - `commands/` — Console Commands.
 - `hullmods/` — hullmod effects (shields, armor, crew, systems).
 - `plugins/` — combat/render `EveryFrame`-style plugins.
 - `systems/` — ship-system effect classes.
-- `utils/` — `render/` (shaders), `reflection/`, `extensions/`, `abilities/`, shared helpers.
+- `utils/` — `render/` (shaders), `reflection/`, `extensions/`, shared helpers.
 - `weapons/` — weapon effect classes.
 
 Put a new class in the package that matches its role. The `modPlugin` entry class

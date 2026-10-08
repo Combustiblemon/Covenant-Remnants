@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.commands
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.fleet.FleetMemberType
+import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 import org.lazywizard.console.BaseCommand
 import org.lazywizard.console.BaseCommand.CommandContext
 import org.lazywizard.console.BaseCommand.CommandResult
@@ -18,6 +19,7 @@ import org.lazywizard.console.Console
  *  - Weapons:  [QTY] of each to cargo.
  *  - Fighters: [QTY] of each LPC to cargo.
  *  - Hullmods: learned (installable in refit); hidden internal hullmods skipped.
+ *  - Ability:  the campaign Slipspace Jump (quest-granted once the quest exists).
  */
 class CovenantGiveAll : BaseCommand {
 
@@ -76,9 +78,13 @@ class CovenantGiveAll : BaseCommand {
             hullmods++
         }
 
+        // Campaign Slipspace Jump ability — quest-granted later; the cheat grants it meanwhile.
+        val abilityGranted = SlipspaceJumpRules.grantToPlayer()
+
         Console.showMessage(
             "Covenant: $ships ships (fleet), $weapons weapons + $fighters fighters (x$QTY, cargo), " +
-                "$hullmods hullmods learned."
+                "$hullmods hullmods learned, Slipspace Jump ability " +
+                (if (abilityGranted) "granted." else "already known.")
         )
         return CommandResult.SUCCESS
     }

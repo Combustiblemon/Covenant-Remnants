@@ -238,9 +238,9 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     var openness = 0f
         private set
 
-    /** Whole-effect opacity: 1 normally, fades to 0 when aborted. */
+    /** Whole-effect opacity: 1 normally, fades to 0 when aborted. [RuptureRenderer] may scale it for one draw. */
     var master = 1f
-        private set
+        internal set
 
     // --- Draw lists (read by RuptureRenderer) -------------------------------------------------
 

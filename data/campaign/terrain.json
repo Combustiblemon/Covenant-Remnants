@@ -1,0 +1,17 @@
+{
+	# Slipspace pocket path: a vanilla slipstream subclass that keeps the fleet on the path.
+	# Sound / music settings copied from the vanilla "slipstream" entry.
+	"covenant_remnants_slipspace_stream":{
+		"plugin":"org.combustiblelemon.covenantremnants.campaign.terrain.SlipspaceStreamTerrainPlugin",
+		"musicSuppression":1,
+		"loopOne":"terrain_slipstream",
+		"loopTwo":"terrain_slipstream_near",
+		"custom":{
+			"gain":0.75,
+			"gainHF":0.5,
+			"minPitch":0.5,
+			"maxPitch":1.25,
+			"outsideSoundRange":1000,
+		},
+	},
+}

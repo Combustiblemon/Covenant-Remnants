@@ -153,10 +153,10 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/in-game-test-pass-2026-10-01.md](implementations/in-game-test-pass-2026-10-01.md).
 - [x] **Slipspace Tuning eligibility** — now any ship with the Slipspace Drive hullmod; combat
       bonuses only on drive-system ships. Verified in-game 2026-10-01.
-- [ ] **Slipspace Tuning campaign bonus** — on ships without the drive system the mod has no effect
-      yet; give it a bonus to the planned campaign slipspace-jump ability when that is built
-      (developer 2026-10-02: the campaign slipspace-jump ability is next, in a few days).
-      (Combat effect since 2026-10-02: +30 % blink charge regen; the flux-gate line is gone.)
+- [x] **Slipspace Tuning campaign bonus** — built 2026-10-07 with the campaign Slipspace Jump:
+      each tuned ship +10 % corridor transit speed (cap ×1.5); each S-modded one −10 % charge-up
+      and cooldown (floor ×0.5). Placeholders. See
+      [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
 - [x] **frigate3 builtInMods** — `covenant_remnants_slipspace_drive` now present on
       `covenant_remnants_frigate3.ship` (added in the ship-editor bounds pass); all 16 combat hulls match.
 - [ ] **Tune hullmod numbers** — after all gameplay systems are done (developer 2026-10-02). OP costs and all new-mod values are vanilla-anchored placeholders.
@@ -278,9 +278,30 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **`FleetJumpTune` console command** — lists / sets / resets every Fleet Slipspace Jump
       tunable live (CHARGE/FADE/ARRIVAL from the next battle). See
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
+- [x] **`SlipspaceJumpTune` console command** — lists / sets / resets every campaign Slipspace
+      Jump tunable; `NO_SHIP_RESTRICTION 1` and `FREE 1` for testing. See
+      [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
 - [ ] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
       (`65a5b80`). Still uncommitted as of 2026-10-02: `jars/LemonLib.jar`, new
       `src/.../lemonlib/geometry/CubicCurve2D.kt`, `README.md` row. Developer to commit.
+
+## Campaign Slipspace Jump (built 2026-10-07)
+
+- [ ] **In-game checklist** — run the 9-point list in
+      [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md)
+      (old-save migration, gating tooltip, picker, charge + cancel, transition, pocket path and
+      push-back, exit + edge arrival, Tuning, save/load mid-flight, visuals / log).
+- [ ] **Tuning** — after all gameplay systems are done: every constant in
+      `campaign/abilities/SlipspaceJumpRules.kt` (costs, timings, portal size, path length / wind,
+      stream width / burn, push-back, Tuning multipliers; tune live with `SlipspaceJumpTune`, then
+      bake the defaults) and the ambience / stream colours.
+- [ ] **Pocket entrance / exit look** — placeholder (`SlipspacePortalEntityShader`); developer
+      wants it replaced, replacement undecided.
+- [ ] **Pocket art** — background is a solid black jpg, light streaks are a placeholder entity.
+- [ ] **Granting quest** — the ability is quest-gated; until the quest exists `CovenantGiveAll`
+      grants it (`SlipspaceJumpRules.grantToPlayer()`).
+- [x] **`SlipspaceSystemEFS` bug** — fixed 2026-10-07: it disabled Transverse Jump sector-wide
+      (non-current systems advance every frame); now guarded on the player being in the pocket.
 
 ## From PLAN.md (still open)
 
@@ -294,3 +315,7 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **LunaLib settings (future)** — add real LunaLib settings to control mod options. LunaLib
       stays optional: every setting needs a built-in default used when LunaLib is absent.
 - [ ] Items (Covenant items).
+
+## Planetfall (ground combat library in ../Planetfall; parked 2026-10-08)
+
+- [ ] M5 hook, only after Planetfall reaches M5: add `combustiblelemon_planetfall` dependency, one test ground-battle option on a planet dialog, implementation doc. See [ground-combat-planetfall.md](ground-combat-planetfall.md).
