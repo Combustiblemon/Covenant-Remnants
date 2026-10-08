@@ -139,7 +139,34 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     ARK_FLASH("ark_flash", false),
 
     /** fx\lens_flares\_bitmaps\simple_flare: the carrier's opening lens flare */
-    ARK_FLARE("ark_flare", false);
+    ARK_FLARE("ark_flare", false),
+
+    // --- Energy Projector (Reach CCS cruiser glassing beam, objects\vehicles\covenant\covenant_fleet\
+    // cruiser\fx\glassing; graphics/fx/energy_projector/, see planning/implementations/energy-projector-reach.md) ---
+
+    /** fx\particles\_gradients\glassing_beam_01, re-hued orange to violet: 2 rows */
+    PROJECTOR_BEAM_PALETTE("projector_glassing_beam_palette", false),
+
+    /** fx\particles\_gradients\fireball_human_red, re-hued: 8 rows */
+    PROJECTOR_FIREBALL_PALETTE("projector_fireball_palette", false),
+
+    /** fx\particles\plasma\gradients\oni_gravlift_plasma: dark - blue - white - blue - dark */
+    PROJECTOR_GRAVLIFT_PALETTE("projector_gravlift_plasma_palette", false),
+
+    /** fx\bitmaps\flash\glow_soft_half: a half-dome of light rays, apex at the top */
+    PROJECTOR_GLOW_HALF("projector_glow_soft_half", false),
+
+    /** fx\bitmaps\plasma\glassing_bubble: the upper half of a plasma dome (shape in alpha) */
+    PROJECTOR_BUBBLE("projector_glassing_bubble", false),
+
+    /** fx\bitmaps\plasma\emp_mask: a ring of electric arcs (shape in alpha) */
+    PROJECTOR_EMP_MASK("projector_emp_mask", false),
+
+    /** fx\bitmaps\plasma\plasma_burst: a tall plasma tongue, tip at the top (shape in alpha) */
+    PROJECTOR_PLASMA_BURST("projector_plasma_burst", false),
+
+    /** fx\bitmaps\atmospheric_rolling\rolling_smoke_plate (palette index) + rolling_smoke_mask_large (alpha) */
+    PROJECTOR_CLOUD("projector_rolling_smoke_cloud", false);
 
     private var textureId = -1
     private var configured = false

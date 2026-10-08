@@ -44,5 +44,20 @@
 		{"file":"sounds/plasma_torpedo/impact_1.ogg","pitch":1,"volume":1},
 		{"file":"sounds/plasma_torpedo/impact_2.ogg","pitch":1,"volume":1},
 		{"file":"sounds/plasma_torpedo/impact_3.ogg","pitch":1,"volume":1}
+	],
+	# Energy Projector. The Halo: Reach CCS cruiser glassing beam (m52 corvette glassing, FMOD bank
+	# sample 11704: 0-1.9 s charge whine, beam roar from 1.9 s) and the Scarab beam impacts (11761-
+	# 11764). See planning/implementations/energy-projector-reach.md.
+	"covenant_remnants_energy_projector_charge":[
+		{"file":"sounds/energy_projector/charge.ogg","pitch":1,"volume":1}
+	],
+	"covenant_remnants_energy_projector_fire":[
+		{"file":"sounds/energy_projector/fire.ogg","pitch":1,"volume":1}
+	],
+	"covenant_remnants_energy_projector_impact":[
+		{"file":"sounds/energy_projector/impact_1.ogg","pitch":1,"volume":0.8},
+		{"file":"sounds/energy_projector/impact_2.ogg","pitch":1,"volume":0.8},
+		{"file":"sounds/energy_projector/impact_3.ogg","pitch":1,"volume":0.8},
+		{"file":"sounds/energy_projector/impact_4.ogg","pitch":1,"volume":0.8}
 	]
 }

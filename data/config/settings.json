@@ -4,6 +4,14 @@
   },
   "graphics": {
     "covenant_remnants": {
+      "projector_glassing_beam_palette": "graphics/fx/energy_projector/glassing_beam_palette.png",
+      "projector_fireball_palette": "graphics/fx/energy_projector/fireball_palette.png",
+      "projector_gravlift_plasma_palette": "graphics/fx/energy_projector/gravlift_plasma_palette.png",
+      "projector_glow_soft_half": "graphics/fx/energy_projector/glow_soft_half.png",
+      "projector_glassing_bubble": "graphics/fx/energy_projector/glassing_bubble.png",
+      "projector_emp_mask": "graphics/fx/energy_projector/emp_mask.png",
+      "projector_plasma_burst": "graphics/fx/energy_projector/plasma_burst.png",
+      "projector_rolling_smoke_cloud": "graphics/fx/energy_projector/rolling_smoke_cloud.png",
       "ark_tube": "graphics/fx/slipspace_ark/slipspace_tube.png",
       "ark_ring": "graphics/fx/slipspace_ark/glow_hard.png",
       "ark_flash": "graphics/fx/slipspace_ark/flash_soft.png",

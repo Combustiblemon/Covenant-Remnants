@@ -32,6 +32,10 @@
   "hardpointAngleOffsets": [
     0
   ],
+  # Halo: Reach CCS glassing beam (developer rulings 2026-10-08: white core, purple fringe; width =
+  # 1.25 x the vanilla Tachyon Lance's 25). The engine beam keeps the vanilla ROUGH
+  # textures (a Reach-strip texture pair looked worse); the Reach look is the overlay drawn over it
+  # by EnergyProjectorRenderPlugin. See planning/implementations/energy-projector-reach.md.
   "fringeColor": [
     139,130,251,
     255
@@ -42,7 +46,7 @@
     255,
     255
   ],
-  "width": 30,
+  "width": 31.25,
   "textureType": ROUGH,
   "textureScrollSpeed": 292,
   "pixelsPerTexel": 5,
@@ -53,5 +57,6 @@
     MISSILE_FF,
     MISSILE_NO_FF
   ],
-  "fireSoundTwo": "tachyon_lance_fire"
+  "fireSoundOne": "covenant_remnants_energy_projector_charge",
+  "fireSoundTwo": "covenant_remnants_energy_projector_fire"
 }

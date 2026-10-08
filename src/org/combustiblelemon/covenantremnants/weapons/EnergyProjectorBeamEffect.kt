@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
 import org.combustiblelemon.covenantremnants.plugins.EnergyProjectorPierceRenderPlugin
+import org.combustiblelemon.covenantremnants.plugins.EnergyProjectorRenderPlugin
 import org.lazywizard.lazylib.MathUtils
 import org.lazywizard.lazylib.CollisionUtils
 import org.lwjgl.util.vector.Vector2f
@@ -44,6 +45,9 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
 
     override fun advance(amount: Float, engine: CombatEngineAPI, beam: BeamAPI) {
         if (engine.isPaused) return
+
+        // Reach glassing look: hand the beam over here, where getTo() is the collision point.
+        EnergyProjectorRenderPlugin.forEngine(engine).beam(beam.weapon, beam)
 
         val target = beam.damageTarget as? ShipAPI
         if (target == null) {

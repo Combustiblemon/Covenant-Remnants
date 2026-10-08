@@ -147,7 +147,51 @@ internal enum class SpriteMaterial(
 
     /** impact.lens_flare and impact_anamorphic.lens_flare. */
     TORPEDO_FLARE_SIMPLE(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_SIMPLE),
-    TORPEDO_FLARE_ANAMORPHIC(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_ANAMORPHIC);
+    TORPEDO_FLARE_ANAMORPHIC(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_ANAMORPHIC),
+
+    // --- Energy Projector (Reach CCS cruiser glassing beam, see utils/render/projector) ---
+
+    /** emp_charge.particle: palettized_2d_plasma through the emp_mask ring, sphere warp. */
+    PROJECTOR_EMP(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_512_A, RuptureTexture.NOISE_512_B,
+        RuptureTexture.PROJECTOR_BEAM_PALETTE, RuptureTexture.PROJECTOR_EMP_MASK,
+        NoiseTransform(0.8f, 3f, 1f, 4f, -1f), NoiseTransform(0.7f, 2.5f, -1f, 3f, 1f), warp = 0.5f
+    ),
+
+    /** explosive_flash.particle / flash_soft.particle: the flash_soft bitmap, additive. */
+    PROJECTOR_FLASH(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.ARK_FLASH),
+
+    /** glassing_charge.lens_flare and glassing_glow.lens_flare: light_volume_glow. */
+    PROJECTOR_FLARE(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.GLOW),
+
+    /** glassing_flicker_glow.particle and glow_soft_half.particle: the half-dome of rays. */
+    PROJECTOR_GLOW_HALF(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.PROJECTOR_GLOW_HALF),
+
+    /** glassing_bubble.particle: palettized dome through the (re-hued) fireball palette. */
+    PROJECTOR_BUBBLE(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.PROJECTOR_BUBBLE,
+        palette = RuptureTexture.PROJECTOR_FIREBALL_PALETTE
+    ),
+
+    /** glassing_plasma_burst.particle: palettized_plasma tongues through the gravlift palette. */
+    PROJECTOR_BURST(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_512_A, RuptureTexture.NOISE_512_B,
+        RuptureTexture.PROJECTOR_GRAVLIFT_PALETTE, RuptureTexture.PROJECTOR_PLASMA_BURST,
+        NoiseTransform(1f, 5f, 0f, 5f, -1f), NoiseTransform(1f, 4f, 0f, 4f, 1f)
+    ),
+
+    /** glassing_plasma_huge.particle: palettized_plus_billboard_alpha cloud through the beam palette. */
+    PROJECTOR_CLOUD(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.PROJECTOR_CLOUD,
+        palette = RuptureTexture.PROJECTOR_BEAM_PALETTE
+    ),
+
+    /** plasma_blue_huge.particle: palettized_2d_plasma through blue_plasma, sphere warp. */
+    PROJECTOR_BLUE(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_512_A, RuptureTexture.NOISE_512_B,
+        RuptureTexture.TORPEDO_PLASMA_PALETTE, RuptureTexture.FIERY_SMOKE,
+        NoiseTransform(1.2f, 6f, 1f, 5f, 1f), NoiseTransform(1f, 4f, -1f, 5f, 1f), warp = 0.45f
+    );
 
     enum class Blend { ADDITIVE, ALPHA }
 
@@ -208,7 +252,20 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     TORPEDO_SMOKE(SpriteMaterial.TORPEDO_SMOKE),
     TORPEDO_SPARK(SpriteMaterial.TORPEDO_SPARK),
     TORPEDO_FLARE_SIMPLE(SpriteMaterial.TORPEDO_FLARE_SIMPLE),
-    TORPEDO_FLARE_ANAMORPHIC(SpriteMaterial.TORPEDO_FLARE_ANAMORPHIC)
+    TORPEDO_FLARE_ANAMORPHIC(SpriteMaterial.TORPEDO_FLARE_ANAMORPHIC),
+
+    // Energy Projector (utils/render/projector)
+    PROJECTOR_EMP(SpriteMaterial.PROJECTOR_EMP),
+    PROJECTOR_FLASH(SpriteMaterial.PROJECTOR_FLASH),
+    PROJECTOR_CHARGE_FLARE(SpriteMaterial.PROJECTOR_FLARE),
+    PROJECTOR_CHARGE_LIGHT(SpriteMaterial.PROJECTOR_FLARE),
+    PROJECTOR_FLICKER(SpriteMaterial.PROJECTOR_GLOW_HALF),
+    PROJECTOR_FAR_FLARE(SpriteMaterial.PROJECTOR_FLARE),
+    PROJECTOR_BUBBLE(SpriteMaterial.PROJECTOR_BUBBLE),
+    PROJECTOR_HALF_GLOW(SpriteMaterial.PROJECTOR_GLOW_HALF),
+    PROJECTOR_BURST(SpriteMaterial.PROJECTOR_BURST),
+    PROJECTOR_CLOUD(SpriteMaterial.PROJECTOR_CLOUD),
+    PROJECTOR_BLUE(SpriteMaterial.PROJECTOR_BLUE)
 }
 
 /**

@@ -29,6 +29,10 @@ arsenal is usable in-game now.
   bolt/missile visual is vanilla-colored for now. **Exception (2026-10-02):** the three plasma
   torpedoes have their own `.proj` (plain homing torpedoes, no Sabot/MIRV splits) and the Halo:
   Reach space Phantom torpedo look — see [plasma-torpedo-reach.md](plasma-torpedo-reach.md).
+  **Energy Projector (2026-10-08):** Reach CCS glassing beam look + sounds, stats re-ruled (2 s
+  charge, 3 s + 1 s beam, 10 s cooldown, 750 dps, 2000 flux/s) — see
+  [energy-projector-reach.md](energy-projector-reach.md). First weapon of the weapons pass
+  (visuals + sounds + stats per weapon, mount art deferred; see [../TODO.md](../TODO.md)).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

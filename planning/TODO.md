@@ -27,9 +27,23 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/plasma-torpedo-reach.md](implementations/plasma-torpedo-reach.md). Note: the
       heavy now does one 500 hit instead of 7 × 500 MIRV warheads, the light one 100 hit instead of
       5 × 200 kinetic darts (numbers unchanged; tuning later).
-- [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance). The beam
-      itself, including the pierce segment, now renders from the `.wpn` beam spec, so it inherits
-      whatever beam colours/texture that spec defines.
+- [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
+      art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
+      Lance → Plasma Beam Emitter → Suppressor Beam → Pulse Laser → Plasma Cannon → Repeater →
+      Autocannon → Mortar → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
+      (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
+- [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
+      beam (vanilla-textured engine beam at 1.25x Tachyon width, overlay: charge rings /
+      flashes / flare, flicker half-dome, impact bubble / half-dome / blue tongues / cloud ring,
+      Reach glassing + Scarab impact sounds), white core / purple fringe, 0.5 su per unit, Reach
+      timing (2 s charge, 3 s + 1 s beam, 10 s cooldown, 750 dps, 2000 flux/s). See
+      [implementations/energy-projector-reach.md](implementations/energy-projector-reach.md).
+- [ ] **Energy Projector — in-game check** — run the checklist in
+      [implementations/energy-projector-reach.md](implementations/energy-projector-reach.md); decide on `beamFireOnlyOnFullCharge` (faint engine beam
+      and damage during the 2 s chargeup), tune the placeholder gains.
+- [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
+      by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
+      beam spec.
 - [x] **Verify exit scorch in-game** — verified in-game 2026-10-01. See
       [implementations/energy-projector.md](implementations/energy-projector.md).
 
