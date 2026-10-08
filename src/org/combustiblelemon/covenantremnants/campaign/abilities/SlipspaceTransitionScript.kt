@@ -6,11 +6,14 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI
 import com.fs.starfarer.api.campaign.JumpPointAPI.JumpDestination
 import com.fs.starfarer.api.campaign.SectorEntityToken
 import com.fs.starfarer.api.util.FaderUtil
+import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.fleet.CampaignFleet
 import com.fs.starfarer.campaign.fleet.CampaignFleetMemberView
+import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.pow
 
 /**
  * The custom location switch of the campaign Slipspace Jump (developer ruling 2026-10-07: fully
@@ -18,9 +21,12 @@ import kotlin.math.min
  * because switching a fleet's location from inside that fleet's own advance (where abilities run)
  * would mutate the location being iterated.
  *
- * States: HOLD (fleet already hidden inside the portal; the collapse plays) → FADE_OUT (player
- * only: screen to black) → SWITCH (remove / add the fleet, current location, place at the target
- * token) → FADE_IN → WARP_IN (hold, then the member views fade back in with jitter) → FINISH.
+ * States: HOLD (fleet already hidden inside the portal) → FADE_OUT (player only: screen to black)
+ * → SWITCH (remove / add the fleet, current location, place at the arrival plan's start) →
+ * FADE_IN → WARP_IN → FINISH. With an [ArrivalPlan] (the Ark look, developer ruling 2026-10-08)
+ * WARP_IN waits `ARK_ARRIVAL_DELAY`, fires the ability's arrival burst, then slides the fleet out
+ * of the tube from the plan's start to its end, the ships showing as they pass the mouth; without
+ * one the member views fade back in in place with jitter.
  * Mirrors the engine's own transition where it matters (`setInJumpTransition`, `setNoEngaging`,
  * `reportFleetJumped`); the obf `CampaignFleet` / `CampaignFleetMemberView` are `DoNotObfuscate`.
  */
@@ -29,28 +35,34 @@ class SlipspaceTransitionScript private constructor(
     val leg: Leg,
     private val target: SectorEntityToken,
     private val ability: SlipspaceJump,
-    private val arrivalFacing: Float?,
+    private val plan: ArrivalPlan?,
     startState: State
 ) : EveryFrameScript {
 
     enum class Leg { OUT, BACK }
+
+    /**
+     * How the fleet arrives: placed at [from] (inside the tube) facing [facing], sliding to [to]
+     * over [seconds]; [mouth] is where the ships start to show.
+     */
+    class ArrivalPlan(val from: Vector2f, val to: Vector2f, val mouth: Vector2f, val facing: Float, val seconds: Float)
 
     private enum class State { HOLD, FADE_OUT, SWITCH, FADE_IN, WARP_IN, FINISH }
 
     companion object {
         private val JITTER_COLOR = Color(150, 90, 255, 200)
 
-        /** Starts a full transition (hold → fades → switch → warp-in). */
-        fun start(fleet: CampaignFleetAPI, leg: Leg, target: SectorEntityToken, ability: SlipspaceJump, arrivalFacing: Float?): SlipspaceTransitionScript {
-            val script = SlipspaceTransitionScript(fleet, leg, target, ability, arrivalFacing, State.HOLD)
+        /** Starts a full transition (hold → fades → switch → arrival). */
+        fun start(fleet: CampaignFleetAPI, leg: Leg, target: SectorEntityToken, ability: SlipspaceJump, plan: ArrivalPlan?): SlipspaceTransitionScript {
+            val script = SlipspaceTransitionScript(fleet, leg, target, ability, plan, State.HOLD)
             script.begin()
             Global.getSector().addTransientScript(script)
             return script
         }
 
-        /** After a load mid-transition: no fades, switch on the next engine frame and finish. */
-        fun resumeAtSwitch(fleet: CampaignFleetAPI, leg: Leg, target: SectorEntityToken, ability: SlipspaceJump, arrivalFacing: Float?): SlipspaceTransitionScript {
-            val script = SlipspaceTransitionScript(fleet, leg, target, ability, arrivalFacing, State.SWITCH)
+        /** After a load mid-transition: no fades, switch on the next engine frame and arrive. */
+        fun resumeAtSwitch(fleet: CampaignFleetAPI, leg: Leg, target: SectorEntityToken, ability: SlipspaceJump, plan: ArrivalPlan?): SlipspaceTransitionScript {
+            val script = SlipspaceTransitionScript(fleet, leg, target, ability, plan, State.SWITCH)
             script.begin()
             Global.getSector().addTransientScript(script)
             return script
@@ -86,6 +98,7 @@ class SlipspaceTransitionScript private constructor(
     private var hold = 0f
     private var warpIn = 0f
     private var jittered = false
+    private var burstFired = false
     private var done = false
 
     private fun begin() {
@@ -103,14 +116,14 @@ class SlipspaceTransitionScript private constructor(
     override fun advance(amount: Float) {
         if (done) return
         fleet.setNoEngaging(30f)
-        fleet.setMoveDestinationOverride(fleet.location.x, fleet.location.y)
+        if (state != State.WARP_IN || plan == null) fleet.setMoveDestinationOverride(fleet.location.x, fleet.location.y)
         fleet.setVelocity(0f, 0f)
         if (isPlayer) Global.getSector().campaignUI.setDisallowPlayerInteractionsForOneFrame()
 
         when (state) {
             State.HOLD -> {
                 hold += amount
-                val holdFor = if (leg == Leg.OUT) SlipspaceJumpRules.warpOutHoldSeconds.value else 0f
+                val holdFor = if (leg == Leg.OUT) SlipspaceJumpRules.warpOutHoldSeconds.value else SlipspaceJumpRules.arkExitHold.value
                 if (hold >= holdFor) {
                     if (isPlayer) {
                         state = State.FADE_OUT
@@ -130,7 +143,6 @@ class SlipspaceTransitionScript private constructor(
 
             State.SWITCH -> {
                 switchLocations()
-                ability.onTransitionSwitched(leg)
                 if (isPlayer) {
                     state = State.FADE_IN
                     fader.fadeOut()
@@ -147,14 +159,7 @@ class SlipspaceTransitionScript private constructor(
 
             State.WARP_IN -> {
                 warpIn += amount
-                val holdFor = if (leg == Leg.BACK) SlipspaceJumpRules.warpInHoldSeconds.value else 0f
-                val t = max(0f, min(1f, (warpIn - holdFor) / SlipspaceJumpRules.warpInSeconds.value))
-                if (t > 0f && !jittered) {
-                    jittered = true
-                    for (view in fleet.views) view.setJitter(0f, SlipspaceJumpRules.warpInSeconds.value, JITTER_COLOR, 7, 15f)
-                }
-                setViewsAlpha(fleet, t)
-                if (t >= 1f) state = State.FINISH
+                if (plan != null) slideOut(plan) else fadeInPlace()
             }
 
             State.FINISH -> {
@@ -171,6 +176,58 @@ class SlipspaceTransitionScript private constructor(
         }
     }
 
+    /** Legacy arrival (no plan): the member views fade back in in place with jitter. */
+    private fun fadeInPlace() {
+        val holdFor = if (leg == Leg.BACK) SlipspaceJumpRules.warpInHoldSeconds.value else 0f
+        val t = max(0f, min(1f, (warpIn - holdFor) / SlipspaceJumpRules.warpInSeconds.value))
+        if (t > 0f && !jittered) {
+            jittered = true
+            for (view in fleet.views) view.setJitter(0f, SlipspaceJumpRules.warpInSeconds.value, JITTER_COLOR, 7, 15f)
+        }
+        setViewsAlpha(fleet, t)
+        if (t >= 1f) state = State.FINISH
+    }
+
+    /**
+     * Ark arrival: the burst fires after the delay (its pre-roll, `ARK_PREROLL`, charges up),
+     * then the fleet slides out of the tube from the opening.
+     */
+    private fun slideOut(plan: ArrivalPlan) {
+        val delay = SlipspaceJumpRules.arkArrivalDelay.value
+        if (warpIn < delay) {
+            fleet.setLocation(plan.from.x, plan.from.y)
+            fleet.setMoveDestinationOverride(plan.from.x, plan.from.y)
+            setViewsAlpha(fleet, 0f)
+            return
+        }
+        if (!burstFired) {
+            burstFired = true
+            ability.onArrivalBurst(leg, plan.mouth)
+        }
+        val u = ((warpIn - delay - SlipspaceJumpRules.arkPreroll.value) / plan.seconds).coerceIn(0f, 1f)
+        val ease = max(SlipspaceJumpRules.arkSlideEase.value, 1f)
+        val p = 1f - (1f - u).pow(ease)
+        val x = plan.from.x + (plan.to.x - plan.from.x) * p
+        val y = plan.from.y + (plan.to.y - plan.from.y) * p
+        fleet.setLocation(x, y)
+        fleet.setMoveDestinationOverride(x, y)
+        fleet.facing = plan.facing
+
+        // Ships show as the fleet's centre passes the mouth.
+        val unit = Misc.getUnitVectorAtDegreeAngle(plan.facing)
+        val past = (x - plan.mouth.x) * unit.x + (y - plan.mouth.y) * unit.y
+        val r = max(fleet.radius, 10f)
+        val alpha = ((past + SlipspaceJumpRules.arkRevealBehind.value * r) / max(SlipspaceJumpRules.arkRevealSpan.value * r, 1f)).coerceIn(0f, 1f)
+        if (alpha > 0f && !jittered) {
+            jittered = true
+            if (SlipspaceJumpRules.arkSlideJitter.isOn) {
+                for (view in fleet.views) view.setJitter(0f, plan.seconds * 0.5f, JITTER_COLOR, 7, 15f)
+            }
+        }
+        setViewsAlpha(fleet, alpha)
+        if (u >= 1f) state = State.FINISH
+    }
+
     private fun switchLocations() {
         val destination = target.containingLocation
         val from = fleet.containingLocation
@@ -180,9 +237,10 @@ class SlipspaceTransitionScript private constructor(
             destination.addEntity(fleet)
         }
         fleet.orbit = null
-        fleet.setLocation(target.location.x, target.location.y)
-        fleet.setMoveDestinationOverride(target.location.x, target.location.y)
+        val at = plan?.from ?: target.location
+        fleet.setLocation(at.x, at.y)
+        fleet.setMoveDestinationOverride(at.x, at.y)
         fleet.setVelocity(0f, 0f)
-        if (arrivalFacing != null) fleet.facing = arrivalFacing
+        if (plan != null) fleet.facing = plan.facing
     }
 }

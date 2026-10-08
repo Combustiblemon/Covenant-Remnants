@@ -4,6 +4,10 @@
   },
   "graphics": {
     "covenant_remnants": {
+      "ark_tube": "graphics/fx/slipspace_ark/slipspace_tube.png",
+      "ark_ring": "graphics/fx/slipspace_ark/glow_hard.png",
+      "ark_flash": "graphics/fx/slipspace_ark/flash_soft.png",
+      "ark_flare": "graphics/fx/slipspace_ark/simple_flare.png",
       "rupture_plasma_clouds01": "graphics/fx/slipspace_rupture/plasma_clouds01.png",
       "torpedo_anamorphic_flare": "graphics/fx/plasma_torpedo/anamorphic_flare.png",
       "torpedo_blue_plasma": "graphics/fx/plasma_torpedo/blue_plasma.png",

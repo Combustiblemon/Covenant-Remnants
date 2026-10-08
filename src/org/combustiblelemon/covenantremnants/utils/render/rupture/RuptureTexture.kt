@@ -124,7 +124,22 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     TORPEDO_FLARE_SIMPLE("torpedo_simple_flare", false),
 
     /** fx\bitmaps\lens_flares\anamorphic_flare: a streak along v */
-    TORPEDO_FLARE_ANAMORPHIC("torpedo_anamorphic_flare", false);
+    TORPEDO_FLARE_ANAMORPHIC("torpedo_anamorphic_flare", false),
+
+    // --- Halo 3: The Ark slipspace exit (H3EK fx\cinematics\070la_waypoint_arrival\01;
+    // graphics/fx/slipspace_ark/, see planning/implementations/ark-slipspace-portals.md) ---
+
+    /** fx\particles\models\mesh_fx\slipspace_tube\_bitmaps\slipspace_tube: streaks along the tube (v = 1 at the mouth) */
+    ARK_TUBE("ark_tube", false),
+
+    /** fx\particles\flare\_bitmaps\glow_hard: a soft ring */
+    ARK_RING("ark_ring", false),
+
+    /** fx\particles\flare\_bitmaps\flash_soft: an irregular starburst */
+    ARK_FLASH("ark_flash", false),
+
+    /** fx\lens_flares\_bitmaps\simple_flare: the carrier's opening lens flare */
+    ARK_FLARE("ark_flare", false);
 
     private var textureId = -1
     private var configured = false

@@ -25,6 +25,7 @@ import org.lwjgl.opengl.GL15.glGenBuffers
 import org.lwjgl.opengl.GL20.glEnableVertexAttribArray
 import org.lwjgl.opengl.GL20.glUniform1f
 import org.lwjgl.opengl.GL20.glUniform1i
+import org.lwjgl.opengl.GL20.glUniform3f
 import org.lwjgl.opengl.GL20.glUniform4f
 import org.lwjgl.opengl.GL20.glUseProgram
 import org.lwjgl.opengl.GL20.glVertexAttribPointer
@@ -39,6 +40,10 @@ import kotlin.math.sqrt
 
 /** Floats per ribbon point for [RuptureSpriteShader.drawRibbon]: x, y, half width, u, r, g, b, alpha, black point. */
 internal const val RIBBON_STRIDE = 9
+
+/** ANALYTIC_RING style floats ([RuptureSpriteShader.drawSprites] `style`): core rgb, inner fringe rgb, outer fringe rgb, body width, fringe offset, fringe width, fringe intensity. */
+internal const val RING_STYLE_FLOATS = 13
+internal val DEFAULT_RING_STYLE = floatArrayOf(3f, 3f, 3f, 0.35f, 0.85f, 1f, 0.6f, 0.3f, 1f, 4f, 0.04f, 0.025f, 1f)
 
 /**
  * Draws Reach particle sprites (ruptureSprite.vert/.frag) in batches: one draw call per material
@@ -60,6 +65,7 @@ internal class RuptureSpriteShader {
         // Corners of a sprite in local space (two triangles).
         val CORNER_X = floatArrayOf(-1f, 1f, 1f, -1f, 1f, -1f)
         val CORNER_Y = floatArrayOf(-1f, -1f, 1f, -1f, 1f, 1f)
+
     }
 
     private val program = PlainProgram(VERTEX_FILE, FRAGMENT_FILE)
@@ -116,13 +122,15 @@ internal class RuptureSpriteShader {
     ) {
         drawSprites(
             material, effect.sprites, effect.center.x, effect.center.y, effect.master,
-            view, time, exposure, distortion, screenCopy, viewportPx
+            view, time, exposure, distortion, screenCopy, viewportPx, effect.arkRingStyle
         )
     }
 
     /**
      * Draws every sprite in [sprites] that uses [material]; sprite positions are relative to
-     * ([originX], [originY]) in world units, [master] fades the whole batch.
+     * ([originX], [originY]) in world units, [master] fades the whole batch. [style] = the
+     * ANALYTIC_RING colours / shape ([RING_STYLE_FLOATS] floats: core rgb, inner rgb, outer rgb,
+     * body width, fringe offset, fringe width, fringe intensity); null = defaults.
      */
     fun drawSprites(
         material: SpriteMaterial,
@@ -135,7 +143,8 @@ internal class RuptureSpriteShader {
         exposure: Float,
         distortion: Float = 0f,
         screenCopy: Int = 0,
-        viewportPx: IntArray? = null
+        viewportPx: IntArray? = null,
+        style: FloatArray? = null
     ) {
         var count = 0
         for (s in sprites) if (s.kind.material == material) count++
@@ -154,8 +163,8 @@ internal class RuptureSpriteShader {
         buffer.flip()
         glBufferSubData(GL_ARRAY_BUFFER, 0, buffer)
 
-        begin(material, master, time, exposure)
-        if (material.mode == MODE_DISTORTION && viewportPx != null) {
+        begin(material, master, time, exposure, style)
+        if (material.usesScreenCopy && viewportPx != null) {
             glActiveTexture(GL_TEXTURE0 + 4)
             glBindTexture(GL_TEXTURE_2D, screenCopy)
             glUniform4f(
@@ -249,7 +258,7 @@ internal class RuptureSpriteShader {
         glDrawArrays(GL_TRIANGLES, 0, VERTICES_PER_SPRITE)
     }
 
-    private fun begin(material: SpriteMaterial, master: Float, time: Float, exposure: Float) {
+    private fun begin(material: SpriteMaterial, master: Float, time: Float, exposure: Float, style: FloatArray? = null) {
         glUseProgram(program.id)
         glEnable(GL_BLEND)
         when (material.blend) {
@@ -257,6 +266,13 @@ internal class RuptureSpriteShader {
             SpriteMaterial.Blend.ALPHA -> glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         }
         glUniform1i(program.location("mode"), material.mode)
+        if (material.mode == MODE_ANALYTIC_RING) {
+            val s = if (style != null && style.size >= RING_STYLE_FLOATS) style else DEFAULT_RING_STYLE
+            glUniform3f(program.location("ringCore"), s[0], s[1], s[2])
+            glUniform3f(program.location("ringInner"), s[3], s[4], s[5])
+            glUniform3f(program.location("ringOuter"), s[6], s[7], s[8])
+            glUniform4f(program.location("ringShape"), s[9], s[10], s[11], s[12])
+        }
         glUniform1f(program.location("exposure"), exposure)
         glUniform1f(program.location("master"), master)
         glUniform1f(program.location("warp"), material.warp)
@@ -305,6 +321,16 @@ internal class RuptureSpriteShader {
             p1 = 0f
             p2 = 1f
             p3 = 0f
+        } else if (material.mode == MODE_REFRACT_RING) {
+            p0 = distortion * DISTORTION_PUSH * halfWidth / view.screenWidth
+            p1 = s.shape[1]
+            p2 = s.shape[2]
+            p3 = s.shape[3]
+        } else if (material.mode == MODE_ANALYTIC_RING) {
+            p0 = s.shape[0]
+            p1 = s.shape[1]
+            p2 = s.shape[2]
+            p3 = s.shape[3]
         } else {
             p0 = s.paletteV
             p1 = s.blackPoint

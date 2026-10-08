@@ -57,12 +57,17 @@ import kotlin.math.sqrt
  * blue build lens flare, all growing linearly over the build; [close] shrinks it away. No collapse,
  * no explosion (developer rulings 2026-10-02). See planning/implementations/slipspace-drive-blink.md.
  *
+ * Ark exit ([Kind.ARK], the campaign jump's pocket portals and destination arrival): the Halo 3
+ * "The Ark" slipspace exit, see [ArkTimeline]. ARMED draws nothing until [burst]; a persistent
+ * portal idles ([Phase.IDLE]) between bursts; a one-shot one ends after its burst. [facing] is the
+ * direction a fleet leaves the tube.
+ *
  * [abort] fades whatever is showing out through [master].
  */
 class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val radiusWorld: Float) {
-    enum class Kind { ENTRY, EXIT, BLINK }
+    enum class Kind { ENTRY, EXIT, BLINK, ARK }
 
-    enum class Phase { CHARGE, OPEN, COLLAPSE, SEED, FLASH, BUILD, CLOSING, ABORTING, DONE }
+    enum class Phase { CHARGE, OPEN, COLLAPSE, SEED, FLASH, BUILD, CLOSING, ARMED, IDLE, BURST, ABORTING, DONE }
 
     companion object {
         private var seedCounter = 0
@@ -173,6 +178,19 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
                 it.blinkBuild = buildDuration
             }
 
+        /**
+         * An Ark slipspace exit with its mouth at [center], fleets leaving along [facingDegrees];
+         * [radiusWorld] sizes the idle look (and bursts that give no radius). [persistent] = a
+         * standing portal that idles between bursts; otherwise it stays ARMED (invisible) until
+         * [burst] and ends after it.
+         */
+        fun ark(center: Vector2f, facingDegrees: Float, radiusWorld: Float, persistent: Boolean): RuptureEffect =
+            RuptureEffect(Kind.ARK, center, radiusWorld).also {
+                it.facing = facingDegrees
+                it.ark = ArkTimeline(it, persistent)
+                it.phase = if (persistent) Phase.IDLE else Phase.ARMED
+            }
+
         // --- Blink portal (ODST c100_intro slipspace_sphere, build event). Colours from the tags;
         // intensities and proportions are placeholders (ODST values are HDR for its own tone map).
         private val WHITE = floatArrayOf(1f, 1f, 1f)
@@ -233,6 +251,17 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     /** CHARGE / SEED input 0..1, set by the jump session every frame. */
     var chargeLevel = 0f
 
+    /** ARK: the direction a fleet leaves the tube, degrees (the tube extends the other way). */
+    var facing = 0f
+
+    private var ark: ArkTimeline? = null
+
+    /** ARK: the variant of the running or last burst. */
+    val arkVariant: ArkVariant? get() = ark?.variant
+
+    /** ARK: true while a burst plays. */
+    val isBursting: Boolean get() = ark?.bursting == true
+
     /** BLINK: build duration (s) and current size as a fraction of the full radius. */
     private var blinkBuild = 1f
     var openness = 0f
@@ -276,13 +305,29 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         uOffset = SPHERE_U_OFFSET
     }
     internal val ring = SphereDraw(SphereMode.RING).apply { RING_VIOLET.copyInto(color) }
+    /** ARK: the background light pool, the opening's black-body dim (elliptical) and the inner mouth glow (elliptical). */
+    internal val arkPool = SphereDraw(SphereMode.LIGHT)
+    internal val arkDim = SphereDraw(SphereMode.BLACK)
+    internal val arkGlow = SphereDraw(SphereMode.LIGHT)
 
-    /** Back to front: lights and shells, charge core, glow, origin core, black body, web, ring. */
-    internal val spheres = listOf(light, shell, plasmaShell, core, glow, origin, black, web, ring)
+    /** Back to front: lights and shells, charge core, glow, origin core, black body, web, ring; then the Ark pool, dim, mouth glow. */
+    internal val spheres = listOf(light, shell, plasmaShell, core, glow, origin, black, web, ring, arkPool, arkDim, arkGlow)
 
     internal val starFlare = FlareDraw(SpriteMaterial.FLARE_STAR)
     internal val collapseFlare = FlareDraw(SpriteMaterial.FLARE_GLOW)
-    internal val flares = listOf(starFlare, collapseFlare)
+    /** ARK: the carrier's opening lens flare and star flare. */
+    internal val arkLens = FlareDraw(SpriteMaterial.ARK_FLARE)
+    internal val arkStar = FlareDraw(SpriteMaterial.FLARE_STAR)
+    internal val flares = listOf(starFlare, collapseFlare, arkLens, arkStar)
+
+    /** ARK: the slipspace tube mesh. */
+    internal val tube = TubeDraw()
+
+    /** ARK: the analytic ring style (RuptureSpriteShader.RING_STYLE_FLOATS), written each frame by the timeline. */
+    internal val arkRingStyle = FloatArray(RING_STYLE_FLOATS)
+
+    /** ARK: called once when a burst opens (after its pre-roll); the owner plays the sound. Transient. */
+    var onArkOpen: (() -> Unit)? = null
 
     // --- Emitter state ------------------------------------------------------------------------
 
@@ -325,7 +370,18 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
         if (phase == Phase.BUILD) switchTo(Phase.CLOSING)
     }
 
-    private fun switchTo(next: Phase) {
+    /**
+     * ARK: play the exit burst of [variant], scaled for a fleet of radius [radiusWorld] (this
+     * effect's radius by default). From ARMED, IDLE or mid-burst (restarts).
+     */
+    fun burst(variant: ArkVariant, radiusWorld: Float = this.radiusWorld) {
+        val timeline = ark ?: return
+        if (phase == Phase.DONE || phase == Phase.ABORTING) return
+        timeline.burst(variant, radiusWorld)
+        switchTo(Phase.BURST)
+    }
+
+    internal fun switchTo(next: Phase) {
         phase = next
         phaseTime = 0f
     }
@@ -348,6 +404,16 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
             Phase.FLASH -> flash(deltaTime)
             Phase.BUILD -> build()
             Phase.CLOSING -> closing()
+            Phase.ARMED -> {}
+            Phase.IDLE, Phase.BURST -> {
+                val timeline = ark
+                if (timeline == null) {
+                    switchTo(Phase.DONE)
+                } else {
+                    val finished = timeline.advance(deltaTime)
+                    if (finished) switchTo(Phase.DONE) else if (!timeline.bursting && phase == Phase.BURST) switchTo(Phase.IDLE)
+                }
+            }
             Phase.ABORTING -> aborting()
             Phase.DONE -> {}
         }
@@ -357,6 +423,7 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
     private fun clearDraws() {
         for (sphere in spheres) sphere.active = false
         for (flare in flares) flare.active = false
+        tube.active = false
     }
 
     private fun moveSprites(dt: Float) {
@@ -883,6 +950,11 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
                     s.alpha = HAZE_ALPHA
                     s.blackPoint = 0f
                 }
+                SpriteKind.ARK_RING, SpriteKind.ARK_FLASH, SpriteKind.ARK_CLOSE, SpriteKind.ARK_DISTORTION,
+                SpriteKind.ARK_RING_BITMAP, SpriteKind.ARK_RING2, SpriteKind.ARK_RIM, SpriteKind.ARK_SHOCKWAVE,
+                SpriteKind.ARK_REMNANT, SpriteKind.ARK_REFRACT, SpriteKind.ARK_RIPPLE, SpriteKind.ARK_FLASH_HALO,
+                SpriteKind.ARK_SPARK, SpriteKind.ARK_TWINKLE, SpriteKind.ARK_HAZE, SpriteKind.ARK_STREAK ->
+                    ark?.refresh(s, x)
                 // Torpedo sprites (utils/render/torpedo) never live in a rupture
                 else -> {}
             }

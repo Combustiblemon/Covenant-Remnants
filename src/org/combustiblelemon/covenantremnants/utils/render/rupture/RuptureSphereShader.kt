@@ -34,6 +34,8 @@ import org.lwjgl.opengl.GL20.glVertexAttribPointer
 import org.lwjgl.opengl.GL30.glBindVertexArray
 import org.lwjgl.opengl.GL30.glDeleteVertexArrays
 import org.lwjgl.opengl.GL30.glGenVertexArrays
+import kotlin.math.cos
+import kotlin.math.sin
 
 /** Screen-space helpers for one frame: world to screen units and NDC. */
 internal class RuptureView(private val viewport: ViewportAPI) {
@@ -100,8 +102,8 @@ internal class RuptureSphereShader {
             else -> 0f
         }
         val half = radius * (1f + margin) + 2f
-        val centerX = view.screenX(effect.center.x)
-        val centerY = view.screenY(effect.center.y)
+        val centerX = view.screenX(effect.center.x + sphere.offsetX)
+        val centerY = view.screenY(effect.center.y + sphere.offsetY)
         if (view.isOffscreen(centerX, centerY, half)) return
 
         val left = view.ndcX(centerX - half)
@@ -143,6 +145,8 @@ internal class RuptureSphereShader {
         glUniform1f(program.location("underRadius"), sphere.underRadius)
         glUniform1f(program.location("paletteV"), sphere.paletteV)
         glUniform1f(program.location("uOffset"), sphere.uOffset + effect.seed)
+        glUniform1f(program.location("aspect"), sphere.aspect)
+        glUniform2f(program.location("axis"), cos(sphere.axisAngle), sin(sphere.axisAngle))
         uploadXform("xformA", sphere.xformA, time)
         uploadXform("xformB", sphere.xformB, time)
 

@@ -104,9 +104,14 @@ origin. See [implementations/campaign-slipspace-jump.md](implementations/campaig
   path terrain `campaign/terrain/SlipspaceStreamTerrainPlugin.kt` (`SlipstreamTerrainPlugin2`
   subclass with push-back + clamp; `data/campaign/terrain.json`).
 - Entities (`data/config/custom_entities.json`): entrance / exit use
-  `campaign/entities/SlipspacePortalEntity.kt` + `utils/render/SlipspacePortalEntityShader.kt`
-  (placeholder look); exit dialog `SlipspaceExitDialogPlugin.kt` routed by
-  `SlipspaceCampaignPlugin.kt`; `SlipspaceAmbienceEntity.kt` draws the sparse light streaks.
+  `campaign/entities/SlipspacePortalEntity.kt`, the Halo 3 "The Ark" slipspace exit as a
+  `RuptureEffect` of kind ARK (`utils/render/rupture/ArkTimeline.kt`, tube mesh
+  `ArkTubeShader.kt` + `ArkTubeMesh.kt` (lathed at load from the generated `ArkTubeProfile.kt`) + `data/shaders/rupture/arkTube.*`, textures
+  `graphics/fx/slipspace_ark/`); idle dim, full burst on use; the destination arrival uses the same
+  effect, the fleet sliding out of the tube. See
+  [implementations/ark-slipspace-portals.md](implementations/ark-slipspace-portals.md). Exit
+  dialog `SlipspaceExitDialogPlugin.kt` routed by `SlipspaceCampaignPlugin.kt`;
+  `SlipspaceAmbienceEntity.kt` draws the sparse light streaks.
 - Background: `graphics/covenant_remnants/backgrounds/slipspace_bg.jpg` (solid black placeholder).
 
 ### Slipspace Drive blink (frigate1 / frigate3 / destroyer2)
@@ -197,8 +202,8 @@ from the mod plugin (`onApplicationLoad` install, `onGameLoad` re-verify). See
 
 `Shader` interface and `getShaderCode` live in LemonLib (`org.combustiblelemon.lemonlib.render`);
 the subsystem shaders above implement it. Composed systems registered with LemonLib's
-`ShaderLayers` command: `shield` (ShieldShader). The one remaining monolith (non-composed) shader is
-`SlipspacePortalEntityShader`. Reflection helper:
+`ShaderLayers` command: `shield` (ShieldShader). No monolith (non-composed) shader is left: the
+campaign portal shader was replaced by the Ark rupture effect on 2026-10-08. Reflection helper:
 `org.combustiblelemon.lemonlib.reflection.ReflectionUtils` (in LemonLib); cubic-bezier easing:
 `org.combustiblelemon.lemonlib.geometry.CubicCurve2D` (in LemonLib). Misc: `utils/Utils.kt`,
 `utils/Data.kt`, `utils/extensions/CampaignFleetAPI.kt`.

@@ -12,12 +12,12 @@
     "renderCircleIndicator": false,
     "interactionImage": "graphics/illustrations/abyssal_light.jpg",
     "tags": ["has_interaction_dialog", "neutrino_high"],
-    "layers": ["STATIONS", "TERRAIN_8"],
+    "layers": ["TERRAIN_8"],
     "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
   },
 
-  # Pocket entrance: where the fleet arrives. Arrival only, not interactable. Placeholder look
-  # (the campaign portal shader) until the developer picks a replacement.
+  # Pocket entrance: where the fleet arrives. Arrival only, not interactable. Halo 3 The Ark
+  # slipspace exit look (SlipspacePortalEntity), drawn on one layer above the fleets.
   "covenant_remnants_slipspace_entrance": {
     "defaultName": "Slipspace aperture",
     "defaultRadius": 45,
@@ -29,11 +29,11 @@
     "customDescriptionId": "covenant_remnants_slipspace_entrance",
     "renderCircleIndicator": false,
     "tags": ["non_clickable", "neutrino_high"],
-    "layers": ["STATIONS", "TERRAIN_8"],
+    "layers": ["TERRAIN_8"],
     "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
   },
 
-  # Pocket exit: interactable (dialog routed by SlipspaceCampaignPlugin). Same placeholder look.
+  # Pocket exit: interactable (dialog routed by SlipspaceCampaignPlugin). Same Ark look.
   "covenant_remnants_slipspace_exit": {
     "defaultName": "Slipspace exit",
     "defaultRadius": 45,
@@ -46,7 +46,7 @@
     "renderCircleIndicator": false,
     "interactionImage": "graphics/illustrations/entering_hyperspace.jpg",
     "tags": ["has_interaction_dialog", "neutrino_high"],
-    "layers": ["STATIONS", "TERRAIN_8"],
+    "layers": ["TERRAIN_8"],
     "pluginClass": "org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity"
   },
 

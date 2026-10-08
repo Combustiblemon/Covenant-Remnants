@@ -102,7 +102,8 @@ Changed:
   sector-wide (non-current systems advance round-robin), disabling Transverse Jump everywhere. Now
   guarded on the player being in the pocket; also disables Sustained / Emergency Burn.
 - `src/.../campaign/entities/SlipspacePortalEntity.kt` — stray obf import removed; look unchanged
-  (placeholder, developer wants a replacement later).
+  then; replaced 2026-10-08 by the Ark exit look, see
+  [ark-slipspace-portals.md](ark-slipspace-portals.md).
 - `src/.../utils/extensions/CampaignFleetAPI.kt` — `isInSlipspace` by pocket tag (name fallback).
 - `src/.../utils/render/rupture/RuptureRenderer.kt` — `alphaMult` (the ability renderer ignores the
   viewport alpha, so the campaign owner passes the screen fade); `RuptureEffect.master` setter
@@ -180,7 +181,9 @@ Deleted: `src/.../utils/abilities/Slipspace.kt` (the broken prototype transition
 ## Open items
 
 - Everything numeric is a placeholder (tuning pass later).
-- Pocket entrance / exit look: placeholder shader, replacement undecided (developer).
+- Pocket entrance / exit look: done 2026-10-08 (Ark exit), see
+  [ark-slipspace-portals.md](ark-slipspace-portals.md); the destination arrival and the arrival
+  motion (slide out of the tube) changed with it.
 - Pocket background and light streaks: placeholders.
 - Picker opened from the dialog's `init` (vanilla opens it from a rule command later); fallback
   retries from `advance` if that is too early — check.

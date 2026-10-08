@@ -237,8 +237,8 @@ Keep this file current — tick items off and add new ones as work lands.
       `git init` the LemonLib repo when ready.
 - [x] **Decide fate of remaining monolith shaders** — `MinimalShader` + `PolygonShader` (and
       `data/shaders/minimalShader.*`) deleted 2026-10-02 (nothing instantiated them; developer
-      ruling). `SlipspacePortalEntityShader` stays as-is (live, campaign portal entity) — migrate to
-      the composition system only if the portal look gets reworked.
+      ruling). `SlipspacePortalEntityShader` was deleted 2026-10-08 when the portal look became
+      the Ark rupture effect (no monolith shader left).
 - [x] **Rupture remake from Reach game data** — developer decision 2026-10-01. The slipspace bomb
       (m45 `045lf_jorge`) was dumped from the official Reach editing kit (ManagedBlam, curves
       included) and rebuilt faithfully: `utils/render/rupture/` (`RuptureRenderer`, sphere + sprite
@@ -295,8 +295,28 @@ Keep this file current — tick items off and add new ones as work lands.
       `campaign/abilities/SlipspaceJumpRules.kt` (costs, timings, portal size, path length / wind,
       stream width / burn, push-back, Tuning multipliers; tune live with `SlipspaceJumpTune`, then
       bake the defaults) and the ambience / stream colours.
-- [ ] **Pocket entrance / exit look** — placeholder (`SlipspacePortalEntityShader`); developer
-      wants it replaced, replacement undecided.
+- [x] **Pocket entrance / exit look** — Halo 3 "The Ark" slipspace exit, built 2026-10-08 (also
+      the destination arrival; fleet slides out of the tube). See
+      [implementations/ark-slipspace-portals.md](implementations/ark-slipspace-portals.md).
+- [x] **Ark portals — visual pass** — built 2026-10-08 (developer rulings: all layers; mouth
+      ahead, body back toward the fleet; tube one fleet length; flow out of the mouth; sound at the opening):
+      lathed mesh + depth shading, procedural streaks, wall lightning, rim / glow / pool, analytic
+      chromatic rings, sparks / glitter / anamorphic, refraction front + dim, carrier extras,
+      pre-roll, afterglow, idle life. See
+      [implementations/ark-portal-visuals-pass.md](implementations/ark-portal-visuals-pass.md).
+- [ ] **Ark portals — in-game checklist** — the 5-point list in
+      [implementations/ark-portal-visuals-pass.md](implementations/ark-portal-visuals-pass.md)
+      (`SlipspaceJumpTune ark cruiser|carrier` for the look, combat jump / blink / torpedo
+      unchanged, then pocket idle / entrance / exit / destination, variants, save/load, pause);
+      the base 8-point list in
+      [implementations/ark-slipspace-portals.md](implementations/ark-slipspace-portals.md).
+- [x] **Ark portals — assumptions to confirm** — confirmed 2026-10-08: tube direction (mouth
+      ahead, body back toward the fleet; the first complaint was the over-long tube running over
+      the fleet; `ARK_TUBE_FLIP` stays 0) and the `late()` reading (`ARK_LATE_MIRROR 1`).
+- [ ] **Ark portals — tuning** — every `ARK_*` tunable (scale, tilt, intensities, distortion cap,
+      idle look, slide, and the visual pass's streak / lightning / ring / particle / phase values);
+      the carrier burst outlasts the exit lurch + hold; noise aliasing when zoomed out
+      (`ARK_TUBE_STREAK_U`); per-layer intensity budget (layers tone-map separately and add).
 - [ ] **Pocket art** — background is a solid black jpg, light streaks are a placeholder entity.
 - [ ] **Granting quest** — the ability is quest-gated; until the quest exists `CovenantGiveAll`
       grants it (`SlipspaceJumpRules.grantToPlayer()`).

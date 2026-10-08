@@ -41,6 +41,10 @@ class SlipspaceStreamTerrainPlugin : SlipstreamTerrainPlugin2() {
     )
 
     override fun applyEffect(other: SectorEntityToken, days: Float) {
+        // A fleet mid-transition (arriving: sliding out of the entrance tube, which starts beyond
+        // the path's start) is placed by the transition script; neither the current nor the clamp
+        // may touch it.
+        if (other is CampaignFleetAPI && other.isInHyperspaceTransition) return
         super.applyEffect(other, days)
         if (other !is CampaignFleetAPI) return
         if (other.hasTag(Tags.UNAFFECTED_BY_SLIPSTREAM)) return

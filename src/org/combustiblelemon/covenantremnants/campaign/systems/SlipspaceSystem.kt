@@ -108,6 +108,7 @@ private fun migrateSlipspaceSystem(system: StarSystemAPI) {
     system.getEntityById(SLIPSPACE_JUMP_POINT_ENTRANCE)?.let { system.removeEntity(it) }
     system.getEntityById(SLIPSPACE_JUMP_POINT_EXIT)?.let { system.removeEntity(it) }
     addPocketEntities(system)
+    reorientExistingRoute(system)
 }
 
 private fun addPocketEntities(system: StarSystemAPI) {
@@ -182,12 +183,32 @@ fun prepareSlipspaceRoute(system: StarSystemAPI, originId: String, destId: Strin
     val end = points.last()
     slipspaceEntrance(system)?.setLocation(start.x, start.y)
     slipspaceExit(system)?.setLocation(end.x, end.y)
+    orientSlipspacePortals(system, points)
     // The exit sits past the end of the wind (the last segment carries no current) so the fleet
     // coasts up to it instead of being pushed through it.
 
     val memory = system.memoryWithoutUpdate
     memory.set(SLIPSPACE_ROUTE_ORIGIN_KEY, originId)
     memory.set(SLIPSPACE_ROUTE_DEST_KEY, destId)
+}
+
+/**
+ * Points the portals the way a fleet leaves their tube (the Ark look: the tube extends behind the
+ * mouth): the entrance along the path's first segment, the exit back up the path's last segment
+ * (its mouth toward the arriving fleet, the tube past the path end).
+ */
+fun orientSlipspacePortals(system: StarSystemAPI, points: List<Vector2f>) {
+    if (points.size < 2) return
+    slipspaceEntrance(system)?.facing = Misc.getAngleInDegrees(points[0], points[1])
+    slipspaceExit(system)?.facing = Misc.getAngleInDegrees(points[points.size - 1], points[points.size - 2])
+}
+
+/** Re-orients the portals of a pocket that already has a route (saves from before the Ark look). */
+private fun reorientExistingRoute(system: StarSystemAPI) {
+    val originId = system.memoryWithoutUpdate.getString(SLIPSPACE_ROUTE_ORIGIN_KEY) ?: return
+    val destId = system.memoryWithoutUpdate.getString(SLIPSPACE_ROUTE_DEST_KEY) ?: return
+    val points = SlipspacePaths.buildPolyline(SlipspacePaths.recordFor(originId, destId))
+    orientSlipspacePortals(system, points)
 }
 
 /** The destination system of the route currently laid out in the pocket, or null. */

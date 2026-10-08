@@ -41,6 +41,12 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   Tuning bonus, `CovenantGiveAll` grant). Awaiting the in-game checklist in
   [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
   All numbers are placeholders. The granting quest is not built (quests below).
+- **Ark slipspace portals** — built 2026-10-08 (Halo 3 The Ark exit look for the pocket portals
+  and the destination arrival), then the visual pass the same day (lathed tube, procedural
+  streaks, wall lightning, analytic rings, particles, pre-roll / afterglow / idle life; all
+  tunables, in-game checklist pending). Details in
+  [implementations/ark-slipspace-portals.md](implementations/ark-slipspace-portals.md) and
+  [implementations/ark-portal-visuals-pass.md](implementations/ark-portal-visuals-pass.md).
 - **Quests & narrative content — not started.** No `data/campaign/rules.csv`, missions, intel, or
   bar events yet. This is the primary acquisition path (ships/weapons are quest-gated only — see
   [CLAUDE.md](../CLAUDE.md)) and the next major area of work.

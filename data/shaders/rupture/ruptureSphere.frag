@@ -57,6 +57,8 @@ uniform vec4 xformA;       // noiseA: uv * xy + zw
 uniform vec4 xformB;       // noiseB: uv * xy + zw
 uniform float paletteV;
 uniform float uOffset;     // mesh texcoord offset around the pole axis
+uniform float aspect;      // ellipse: minor / major axis (1 = circle; the Ark mouth seen tilted)
+uniform vec2 axis;         // ellipse: cos, sin of the minor axis direction
 
 const float PI = 3.14159265359;
 const float TAU = 6.28318530718;
@@ -98,6 +100,11 @@ vec2 poleViewUv(vec2 p, float d) {
 void main() {
     vec2 pixelPos = TexCoord * resolution;
     vec2 p = (pixelPos - center) / radius;
+    if (aspect < 0.999) {
+        // Squash along the minor axis so the sphere reads as an ellipse (the UV modes keep their
+        // circular layout: no existing sphere sets an aspect).
+        p = vec2(dot(p, axis) / max(aspect, 0.01), dot(p, vec2(-axis.y, axis.x)));
+    }
     float d = length(p);
 
     vec4 outColor;

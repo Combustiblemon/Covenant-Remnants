@@ -17,14 +17,16 @@ import com.fs.starfarer.api.impl.campaign.tutorial.TutorialMissionIntel
 import com.fs.starfarer.api.ui.TooltipMakerAPI
 import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceTransitionScript.Leg
+import org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity
 import org.combustiblelemon.covenantremnants.campaign.systems.SLIPSPACE_POCKET_TAG
-import org.combustiblelemon.covenantremnants.campaign.systems.SlipspacePaths
 import org.combustiblelemon.covenantremnants.campaign.systems.ensureSlipspaceSystem
 import org.combustiblelemon.covenantremnants.campaign.systems.prepareSlipspaceRoute
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceEntrance
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceRouteDestination
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceRouteOrigin
+import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceExit
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
+import org.combustiblelemon.covenantremnants.utils.render.rupture.ArkVariant
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureEffect
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -313,15 +315,33 @@ class SlipspaceJump : BaseDurationAbility() {
         lurchFromX = fleet.location.x
         lurchFromY = fleet.location.y
         lurchElapsed = 0f
+        lurchLogged = 0
         entryEffect?.startFade()
         vis().playOneShot(SlipspaceJumpRules.SOUND_OPEN, Vector2f(portalX, portalY))
+        Global.getLogger(SlipspaceJump::class.java).info(
+            "Slipspace lurch: from (%.0f, %.0f) to portal (%.0f, %.0f), distance %.0f, fleet radius %.0f".format(
+                lurchFromX, lurchFromY, portalX, portalY, Misc.getDistance(Vector2f(lurchFromX, lurchFromY), Vector2f(portalX, portalY)), fleet.radius
+            )
+        )
     }
+
+    /** Diagnostic (2026-10-08, "no lurch" report): log the fleet's actual position at 0.5 and 1.0 of the lurch. */
+    @Transient
+    private var lurchLogged = 0
 
     private fun advanceLurch(fleet: CampaignFleetAPI, amount: Float) {
         lockControls(fleet)
         lurchElapsed += amount
         val t = min(1f, lurchElapsed / SlipspaceJumpRules.lurchSeconds.value)
         moveAlongLurch(fleet, t, portalX, portalY)
+        if ((lurchLogged == 0 && t >= 0.5f) || (lurchLogged == 1 && t >= 1f)) {
+            lurchLogged++
+            Global.getLogger(SlipspaceJump::class.java).info(
+                "Slipspace lurch t=%.2f dt=%.3f: fleet at (%.0f, %.0f), velocity %.1f, move dest (%.0f, %.0f)".format(
+                    t, amount, fleet.location.x, fleet.location.y, fleet.velocity.length(), fleet.moveDestination.x, fleet.moveDestination.y
+                )
+            )
+        }
         if (t >= 1f) commit(fleet)
     }
 
@@ -354,14 +374,9 @@ class SlipspaceJump : BaseDurationAbility() {
         entryEffect?.startCollapse()
         vis().playOneShot(SlipspaceJumpRules.SOUND_COLLAPSE, Vector2f(portalX, portalY))
         phase = Phase.TRANSITION_OUT
-        SlipspaceTransitionScript.start(fleet, Leg.OUT, target, this, pathStartFacing(origin.id, dest.id))
-    }
-
-    /** Heading of the pocket path at its start, so the fleet arrives pointed down the corridor. */
-    private fun pathStartFacing(originId: String, destId: String): Float? {
-        val points = SlipspacePaths.buildPolyline(SlipspacePaths.recordFor(originId, destId))
-        if (points.size < 2) return null
-        return Misc.getAngleInDegrees(points[0], points[1])
+        // Arrive sliding out of the entrance tube (the Ark look), down the corridor.
+        val plan = SlipspaceJumpRules.arrivalPlan(Vector2f(entrance.location), entrance.facing, fleet)
+        SlipspaceTransitionScript.start(fleet, Leg.OUT, target, this, plan)
     }
 
     // =============================================================================================
@@ -371,23 +386,34 @@ class SlipspaceJump : BaseDurationAbility() {
     /** The exit portal may be used. */
     fun canExit(): Boolean = currentPhase == Phase.IN_POCKET && fleet?.isInHyperspaceTransition == false
 
-    /** From the exit dialog: lurch into the exit, then the transition home. */
+    /** From the exit dialog: lurch into the exit tube (its burst playing), then the transition home. */
     fun beginExit(portal: SectorEntityToken) {
         val fleet = fleet ?: return
         if (!canExit()) return
         phase = Phase.EXITING
         lurchFromX = fleet.location.x
         lurchFromY = fleet.location.y
-        portalX = portal.location.x
-        portalY = portal.location.y
+        // The lurch ends inside the tube: behind the mouth, against the portal's facing.
+        val unit = Misc.getUnitVectorAtDegreeAngle(portal.facing)
+        val depth = SlipspaceJumpRules.arkSlideDepth.value * max(fleet.radius, 10f)
+        portalX = portal.location.x - unit.x * depth
+        portalY = portal.location.y - unit.y * depth
         lurchElapsed = 0f
-        vis().playOneShot(SlipspaceJumpRules.SOUND_OPEN, Vector2f(portalX, portalY))
+        // The sound plays when the portal opens, after its pre-roll (developer 2026-10-08).
+        val at = Vector2f(portal.location)
+        val plugin = portal.customPlugin as? SlipspacePortalEntity
+        if (plugin != null) {
+            plugin.burst(SlipspaceJumpRules.arkVariant(fleet), SlipspaceJumpRules.arkRadius(fleet)) { vis().playOneShot(SlipspaceJumpRules.SOUND_OPEN, at) }
+        } else {
+            vis().playOneShot(SlipspaceJumpRules.SOUND_OPEN, at)
+        }
     }
 
     private fun advanceExiting(fleet: CampaignFleetAPI, amount: Float) {
         lockControls(fleet)
         lurchElapsed += amount
-        val t = min(1f, lurchElapsed / SlipspaceJumpRules.exitLurchSeconds.value)
+        // The portal's pre-roll charges up first; the lurch starts at its opening.
+        val t = ((lurchElapsed - SlipspaceJumpRules.arkPreroll.value) / SlipspaceJumpRules.exitLurchSeconds.value).coerceIn(0f, 1f)
         moveAlongLurch(fleet, t, portalX, portalY)
         SlipspaceTransitionScript.setViewsAlpha(fleet, 1f - t)
         if (t >= 1f) commitExit(fleet)
@@ -411,29 +437,75 @@ class SlipspaceJump : BaseDurationAbility() {
         val point = SlipspaceJumpRules.arrivalPoint(origin, dest)
         val target = dest.createToken(point.x, point.y)
 
-        val effect = RuptureEffect.exit(Vector2f(point), SlipspaceJumpRules.ruptureRadius(fleet))
-        effect.chargeLevel = 1f
-        exitEffect = vis().add(effect, dest)
-
-        // Face the system centre on arrival.
-        val center = dest.center?.location
-        val facing = if (center != null) Misc.getAngleInDegrees(point, center) else null
+        // Arrive through an Ark exit at the system's edge, facing the system centre (armed now,
+        // burst when the slide starts).
+        val facing = arrivalFacing(point, dest)
+        exitEffect = vis().add(RuptureEffect.ark(Vector2f(point), facing, SlipspaceJumpRules.arkRadius(fleet), persistent = false), dest)
 
         phase = Phase.TRANSITION_BACK
-        SlipspaceTransitionScript.start(fleet, Leg.BACK, target, this, facing)
+        SlipspaceTransitionScript.start(fleet, Leg.BACK, target, this, SlipspaceJumpRules.arrivalPlan(point, facing, fleet))
+    }
+
+    /** The direction a fleet arriving at [point] in [system] faces: the system centre. */
+    private fun arrivalFacing(point: Vector2f, system: StarSystemAPI): Float {
+        val center = system.center?.location ?: return 0f
+        if (Misc.getDistance(point, center) < 1f) return 0f
+        return Misc.getAngleInDegrees(point, center)
     }
 
     // =============================================================================================
     // Transition callbacks
     // =============================================================================================
 
-    fun onTransitionSwitched(leg: Leg) {
-        if (leg == Leg.BACK) {
-            exitEffect?.let {
-                it.startDissolve()
-                vis().playOneShot(SlipspaceJumpRules.SOUND_ARRIVAL, it.center)
+    /**
+     * From the transition script, when the arrival slide starts: the Ark burst at the tube the
+     * fleet comes out of ([mouth]; the fleet itself is still held inside the tube).
+     */
+    fun onArrivalBurst(leg: Leg, mouth: Vector2f) {
+        val fleet = fleet ?: return
+        val variant = SlipspaceJumpRules.arkVariant(fleet)
+        val radius = SlipspaceJumpRules.arkRadius(fleet)
+        when (leg) {
+            Leg.OUT -> {
+                val pocket = fleet.containingLocation as? StarSystemAPI ?: return
+                val entrance = slipspaceEntrance(pocket) ?: return
+                val at = Vector2f(entrance.location)
+                val plugin = entrance.customPlugin as? SlipspacePortalEntity
+                if (plugin != null) {
+                    plugin.burst(variant, radius) { vis().playOneShot(SlipspaceJumpRules.SOUND_ARRIVAL, at) }
+                } else {
+                    vis().playOneShot(SlipspaceJumpRules.SOUND_ARRIVAL, at)
+                }
+            }
+            Leg.BACK -> {
+                var effect = exitEffect
+                if (effect == null || effect.isDone) {
+                    // After a load the armed effect is gone: rebuild it at the tube mouth.
+                    val dest = fleet.containingLocation as? StarSystemAPI ?: return
+                    effect = vis().add(RuptureEffect.ark(Vector2f(mouth), fleet.facing, radius, persistent = false), dest)
+                    exitEffect = effect
+                }
+                val at = Vector2f(effect.center)
+                effect.onArkOpen = { vis().playOneShot(SlipspaceJumpRules.SOUND_ARRIVAL, at) }
+                effect.burst(variant, radius)
             }
         }
+    }
+
+    /**
+     * Dev (`SlipspaceJumpTune ark`): a one-shot Ark burst ahead of the fleet, in its current
+     * location, facing the way the fleet faces: the mouth ahead, the tube body running back
+     * toward the fleet (developer ruling 2026-10-08, after seeing both orientations).
+     */
+    fun debugBurst(variant: ArkVariant) {
+        val fleet = fleet ?: return
+        val location = fleet.containingLocation ?: return
+        val unit = Misc.getUnitVectorAtDegreeAngle(fleet.facing)
+        val ahead = 3f * max(fleet.radius, 10f)
+        val point = Vector2f(fleet.location.x + unit.x * ahead, fleet.location.y + unit.y * ahead)
+        val effect = vis().add(RuptureEffect.ark(point, fleet.facing, SlipspaceJumpRules.arkRadius(fleet), persistent = false), location)
+        effect.onArkOpen = { vis().playOneShot(SlipspaceJumpRules.SOUND_ARRIVAL, point) }
+        effect.burst(variant)
     }
 
     fun onTransitionFinished(leg: Leg) {
@@ -483,10 +555,8 @@ class SlipspaceJump : BaseDurationAbility() {
                     destId = null
                 } else {
                     val target = pocket.createToken(entrance.location.x, entrance.location.y)
-                    val o = originId
-                    val d = destId
-                    val facing = if (o != null && d != null) pathStartFacing(o, d) else null
-                    SlipspaceTransitionScript.resumeAtSwitch(fleet, Leg.OUT, target, this, facing)
+                    val plan = SlipspaceJumpRules.arrivalPlan(Vector2f(entrance.location), entrance.facing, fleet)
+                    SlipspaceTransitionScript.resumeAtSwitch(fleet, Leg.OUT, target, this, plan)
                 }
             }
             Phase.EXITING -> {
@@ -505,7 +575,9 @@ class SlipspaceJump : BaseDurationAbility() {
                         val origin = slipspaceRouteOrigin(pocket) ?: originId?.let { sector.getStarSystem(it) } ?: dest
                         val point = SlipspaceJumpRules.arrivalPoint(origin, dest)
                         val target = dest.createToken(point.x, point.y)
-                        SlipspaceTransitionScript.resumeAtSwitch(fleet, Leg.BACK, target, this, null)
+                        val facing = arrivalFacing(point, dest)
+                        exitEffect = vis().add(RuptureEffect.ark(Vector2f(point), facing, SlipspaceJumpRules.arkRadius(fleet), persistent = false), dest)
+                        SlipspaceTransitionScript.resumeAtSwitch(fleet, Leg.BACK, target, this, SlipspaceJumpRules.arrivalPlan(point, facing, fleet))
                     }
                 } else {
                     restore(fleet)

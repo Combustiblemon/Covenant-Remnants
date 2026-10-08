@@ -79,6 +79,29 @@ internal enum class SpriteMaterial(
     /** distortion_ring.particle: heat-haze ring over a copy of the screen. */
     DISTORTION(MODE_DISTORTION, Blend.ALPHA, RuptureTexture.DISTORTION_RING),
 
+    // --- Halo 3 The Ark slipspace exit (utils/render/rupture/ArkTimeline) ---
+
+    /** slipspace_glow.particle: glow_hard ring, additive. */
+    ARK_RING(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.ARK_RING),
+
+    /** slipspace_flare.particle: flash_soft, random UV rotation and mirror, additive. */
+    ARK_FLASH(MODE_TEXTURE_ADD_ROT, Blend.ADDITIVE, RuptureTexture.ARK_FLASH),
+
+    /** slipspace_rupture_carrier.lens_flare: simple_flare, additive. */
+    ARK_FLARE(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.ARK_FLARE),
+
+    /** Analytic elliptical ring (white core, body, chromatic fringe, fill); the base map is unused. */
+    ARK_RING_ANALYTIC(MODE_ANALYTIC_RING, Blend.ADDITIVE, RuptureTexture.ARK_RING),
+
+    /** Thin analytic refraction ring over a copy of the screen; the base map is unused. */
+    ARK_REFRACT(MODE_REFRACT_RING, Blend.ALPHA, RuptureTexture.DISTORTION_RING),
+
+    /** Soft glow sprite (flash halos): light_volume_glow, additive. */
+    ARK_GLOW(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.GLOW),
+
+    /** Anamorphic streak (big carrier flashes): the torpedo's anamorphic_flare, additive. */
+    ARK_STREAK(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_ANAMORPHIC),
+
     // --- Plasma torpedo (m45 space Phantom torpedo, see utils/render/torpedo) ---
 
     /** projectile.light_volume_system hot_core: light_volume_glow glows along the body. */
@@ -124,6 +147,9 @@ internal enum class SpriteMaterial(
     TORPEDO_FLARE_ANAMORPHIC(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_FLARE_ANAMORPHIC);
 
     enum class Blend { ADDITIVE, ALPHA }
+
+    /** True for the modes that read the screen copy (drawn in the renderer's distortion pass). */
+    val usesScreenCopy: Boolean get() = mode == MODE_DISTORTION || mode == MODE_REFRACT_RING
 }
 
 internal const val MODE_PLASMA = 0
@@ -133,6 +159,9 @@ internal const val MODE_TEXTURE_ALPHA = 3
 internal const val MODE_DISTORTION = 4
 internal const val MODE_PALETTE_ADD = 5
 internal const val MODE_PALETTE_ALPHA = 6
+internal const val MODE_TEXTURE_ADD_ROT = 7
+internal const val MODE_ANALYTIC_RING = 8
+internal const val MODE_REFRACT_RING = 9
 
 /** Which Reach particle system a sprite comes from; picks its material and its update rules. */
 internal enum class SpriteKind(val material: SpriteMaterial) {
@@ -144,6 +173,25 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     TWINKLE(SpriteMaterial.TWINKLE),
     SMOKE(SpriteMaterial.SMOKE),
     HAZE(SpriteMaterial.SMOKE),
+
+    // Halo 3 The Ark slipspace exit (ArkTimeline); the visual pass adds the kinds after ARK_DISTORTION
+    ARK_RING(SpriteMaterial.ARK_RING_ANALYTIC),
+    ARK_FLASH(SpriteMaterial.ARK_FLASH),
+    ARK_CLOSE(SpriteMaterial.ARK_FLASH),
+    ARK_DISTORTION(SpriteMaterial.DISTORTION),
+    /** The main ring on the Halo glow_hard bitmap (`ARK_RING_BITMAP 1`). */
+    ARK_RING_BITMAP(SpriteMaterial.ARK_RING),
+    ARK_RING2(SpriteMaterial.ARK_RING_ANALYTIC),
+    ARK_RIM(SpriteMaterial.ARK_RING_ANALYTIC),
+    ARK_SHOCKWAVE(SpriteMaterial.ARK_RING_ANALYTIC),
+    ARK_REMNANT(SpriteMaterial.ARK_RING_ANALYTIC),
+    ARK_REFRACT(SpriteMaterial.ARK_REFRACT),
+    ARK_RIPPLE(SpriteMaterial.DISTORTION),
+    ARK_FLASH_HALO(SpriteMaterial.ARK_GLOW),
+    ARK_SPARK(SpriteMaterial.SPARK),
+    ARK_TWINKLE(SpriteMaterial.TWINKLE),
+    ARK_HAZE(SpriteMaterial.SMOKE),
+    ARK_STREAK(SpriteMaterial.ARK_STREAK),
 
     // Plasma torpedo (utils/render/torpedo)
     TORPEDO_BODY(SpriteMaterial.TORPEDO_BODY),
@@ -187,6 +235,8 @@ internal class RuptureSprite(val kind: SpriteKind) {
     var blackPoint = 0f
     var uvScale = 1f
     var noiseOffset = 0f
+    /** ANALYTIC_RING / REFRACT_RING params (p0..p3, see ruptureSprite.frag). */
+    val shape = FloatArray(4)
 
     val isDead: Boolean get() = age >= life
 }
@@ -231,6 +281,59 @@ internal class SphereDraw(val mode: SphereMode) {
     var xformB: NoiseTransform? = null
     var paletteV = 0f
     var uOffset = 0f
+    /** Ellipse: minor / major axis (1 = circle, the default); the major axis is across [axisAngle]. */
+    var aspect = 1f
+    /** Radians; the ellipse's minor axis runs along it (an Ark mouth: the effect's facing). */
+    var axisAngle = 0f
+    /** Offset of the centre from the effect's centre, world units. */
+    var offsetX = 0f
+    var offsetY = 0f
+}
+
+/**
+ * The Ark slipspace tube ([ArkTubeShader], mesh [ArkTubeMesh]) to draw this frame, at the effect's
+ * centre (the mouth) along its facing. Filled by [ArkTimeline].
+ */
+internal class TubeDraw {
+    var active = false
+    /** World units per mesh unit along the axis. */
+    var along = 0f
+    /** World units per mesh unit across the axis. */
+    var across = 0f
+    /** Spin about the axis, radians. */
+    var spin = 0f
+    /** View tilt, radians: 0 = the axis flat in the plane (the mouth edge-on). */
+    var tilt = 0f
+    /** True: the tube extends ahead of the mouth (along +facing) instead of behind it. */
+    var flip = false
+    /** HDR body colour × intensity. */
+    val color = floatArrayOf(1f, 1f, 1f)
+    /** HDR white-hot colour at the mouth and deep violet colour at the far end. */
+    val hotColor = floatArrayOf(1f, 1f, 1f)
+    val deepColor = floatArrayOf(0.4f, 0.25f, 1f)
+    var alpha = 1f
+    var blackPoint = 0f
+
+    // Streaks (arkTube.frag): Halo bitmap share, ridged-noise filaments, scroll along the tube.
+    var bitmapMix = 1f
+    /** u repeats (whole), v scale, sharpness, octave gain. */
+    val streak = floatArrayOf(6f, 0.6f, 4f, 0.55f)
+    var streakGain = 1f
+    /** Scroll along v in noise widths, integrated on the CPU (positive = toward the mouth). */
+    var flow = 0f
+    /** White-hot depth and violet-from depth, fractions of the length. */
+    val hotSpan = floatArrayOf(0.15f, 0.45f)
+    var depthFade = 0f
+    var backDim = 1f
+    var backMouth = 1f
+
+    // Lightning on the wall: intensity, crawl phase (CPU-integrated), noise scale, gate, reach, palette row.
+    var arcIntensity = 0f
+    var arcPhase = 0f
+    val arcScale = floatArrayOf(3f, 1.2f)
+    var arcGate = 0.55f
+    var arcReach = 0.5f
+    var paletteV = 0.5f
 }
 
 /** One lens flare to draw this frame (an additive textured sprite at the rupture center). */

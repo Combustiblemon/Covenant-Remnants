@@ -61,8 +61,16 @@ class RuptureRenderer : Shader {
             SpriteMaterial.BURST_PLASMA,
             SpriteMaterial.PLASMA_FLAME,
             SpriteMaterial.CHARGE_PLASMA,
-            SpriteMaterial.SPARK
+            SpriteMaterial.SPARK,
+            SpriteMaterial.ARK_GLOW,
+            SpriteMaterial.ARK_RING,
+            SpriteMaterial.ARK_RING_ANALYTIC,
+            SpriteMaterial.ARK_FLASH,
+            SpriteMaterial.ARK_STREAK
         )
+
+        /** Materials that read the screen copy (one copy per frame, after the spheres and the tube). */
+        val SCREEN_SPRITES = listOf(SpriteMaterial.DISTORTION, SpriteMaterial.ARK_REFRACT)
         const val TEXTURE_UNITS = 5
     }
 
@@ -135,11 +143,19 @@ class RuptureRenderer : Shader {
                 }
             }
 
-            // After the spheres, so the heat-haze rings ripple over the charge core
-            if (distortion > 0f && effects.any { effect -> effect.sprites.any { it.kind == SpriteKind.DISTORTION } }) {
+            // The Ark tube after the spheres, before the heat haze so the distortion ripples over it
+            if (effects.any { it.tube.active }) {
+                val tubes = RupturePrograms.tube()
+                for (effect in effects) if (effect.tube.active) tubes.draw(effect.tube, effect, view, exposure)
+            }
+
+            // After the spheres and the tube, so the heat-haze rings ripple over the charge core and the tube
+            if (distortion > 0f && effects.any { effect -> effect.sprites.any { it.kind.material.usesScreenCopy } }) {
                 copyScreen()
                 for (effect in effects) {
-                    sprites.draw(SpriteMaterial.DISTORTION, effect, view, time, exposure, distortion, screenCopy, viewportPx)
+                    for (material in SCREEN_SPRITES) {
+                        sprites.draw(material, effect, view, time, exposure, distortion, screenCopy, viewportPx)
+                    }
                 }
             }
 
