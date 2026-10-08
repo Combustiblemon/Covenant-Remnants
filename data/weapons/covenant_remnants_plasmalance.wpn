@@ -3,7 +3,9 @@
   "specClass": "beam",
   "type": "ENERGY",
   "size": "LARGE",
-  "beamFireOnlyOnFullCharge": true,
+  # Weapons pass 2026-10-08 (developer): a burst beam on Tachyon Lance timings (weapon_data.csv:
+  # chargeup 0.5, burst 0.5, chargedown 1, cooldown 4; 2000 HE dps = 1000 per burst, 2400 flux/s), white core and a
+  # bluish-white fringe. Sound: the Halo 3 beam rifle shot. No Halo effect source for the beam.
   "collisionClass": "RAY",
   "collisionClassByFighter": "RAY_FIGHTER",
   "turretSprite": "graphics/weapons/hil_turret_base.png",
@@ -14,13 +16,13 @@
   "turretAngleOffsets": [0],
   "hardpointOffsets": [40, 0],
   "hardpointAngleOffsets": [0],
-  "glowColor": [165, 100, 255, 235],
-  "fringeColor": [139, 130, 251, 255],
+  "glowColor": [120, 180, 255, 235],
+  "fringeColor": [90, 160, 255, 255],
   "coreColor": [255, 255, 255, 255],
   "width": 30.0,
   "textureType": "ROUGH",
   "textureScrollSpeed": 292.0,
   "pixelsPerTexel": 5.0,
   "pierceSet": ["PROJECTILE_FF", "PROJECTILE_NO_FF", "PROJECTILE_FIGHTER", "MISSILE_FF", "MISSILE_NO_FF"],
-  "fireSoundTwo": "high_intensity_laser_loop"
+  "fireSoundTwo": "covenant_remnants_plasma_lance_fire"
 }

@@ -59,5 +59,12 @@
 		{"file":"sounds/energy_projector/impact_2.ogg","pitch":1,"volume":0.8},
 		{"file":"sounds/energy_projector/impact_3.ogg","pitch":1,"volume":0.8},
 		{"file":"sounds/energy_projector/impact_4.ogg","pitch":1,"volume":0.8}
+	],
+	# Plasma Lance. The Halo 3 beam rifle shot (H3EK FMOD bank: sound\weapons\beam_rifle\
+	# beam_rifle_fire cov_snip_shot9/10, FSB5 subsounds 4070/4069; the first-person takes 4071-4074
+	# are kept in sounds/plasma_lance/fire_fp_*.ogg, unused). See planning/implementations/plasma-lance.md.
+	"covenant_remnants_plasma_lance_fire":[
+		{"file":"sounds/plasma_lance/fire_1.ogg","pitch":1,"volume":1},
+		{"file":"sounds/plasma_lance/fire_2.ogg","pitch":1,"volume":1}
 	]
 }

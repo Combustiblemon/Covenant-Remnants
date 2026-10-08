@@ -33,6 +33,8 @@ arsenal is usable in-game now.
   charge, 3 s + 1 s beam, 10 s cooldown, 750 dps, 2000 flux/s) — see
   [energy-projector-reach.md](energy-projector-reach.md). First weapon of the weapons pass
   (visuals + sounds + stats per weapon, mount art deferred; see [../TODO.md](../TODO.md)).
+  **Plasma Lance (2026-10-08):** now a half-second burst beam, 2000 HE dps (1000 per burst), white core /
+  bluish-white fringe, Halo 3 beam rifle shot — see [plasma-lance.md](plasma-lance.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

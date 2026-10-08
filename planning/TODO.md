@@ -29,7 +29,7 @@ Keep this file current — tick items off and add new ones as work lands.
       5 × 200 kinetic darts (numbers unchanged; tuning later).
 - [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
       art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
-      Lance → Plasma Beam Emitter → Suppressor Beam → Pulse Laser → Plasma Cannon → Repeater →
+      Lance ✔ → Plasma Beam Emitter → Suppressor Beam → Pulse Laser → Plasma Cannon → Repeater →
       Autocannon → Mortar → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
       (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
 - [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
@@ -38,9 +38,15 @@ Keep this file current — tick items off and add new ones as work lands.
       Reach glassing + Scarab impact sounds), white core / purple fringe, 0.5 su per unit, Reach
       timing (2 s charge, 3 s + 1 s beam, 10 s cooldown, 750 dps, 2000 flux/s). See
       [implementations/energy-projector-reach.md](implementations/energy-projector-reach.md).
-- [ ] **Energy Projector — in-game check** — run the checklist in
-      [implementations/energy-projector-reach.md](implementations/energy-projector-reach.md); decide on `beamFireOnlyOnFullCharge` (faint engine beam
-      and damage during the 2 s chargeup), tune the placeholder gains.
+- [x] **Energy Projector — in-game check** — 2026-10-08: beam strips reverted to ROUGH, width
+      1.25× Tachyon, impact pinned to the live collision point (two fixes, see
+      [implementations/energy-projector-reach.md](implementations/energy-projector-reach.md));
+      developer: "looks ok for now". Still open there: `beamFireOnlyOnFullCharge`, placeholder gains.
+- [x] **Plasma Lance — burst beam** — 2026-10-08: Tachyon-style burst (0.5 / 0.5 / 1 / 4), 2000 HE dps (1000 per
+      burst), 2400 flux/s, white core / bluish-white fringe, Halo 3 beam rifle shot. See
+      [implementations/plasma-lance.md](implementations/plasma-lance.md).
+- [ ] **Plasma Lance — in-game check** — burst feel, colours, sound tail length (first-person
+      takes available as the short alternative).
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.
