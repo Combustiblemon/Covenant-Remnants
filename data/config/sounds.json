@@ -122,5 +122,13 @@
 		{"file":"sounds/plasma_cannon/fire_1.ogg","pitch":1,"volume":0.6},
 		{"file":"sounds/plasma_cannon/fire_2.ogg","pitch":1,"volume":0.6},
 		{"file":"sounds/plasma_cannon/fire_3.ogg","pitch":1,"volume":0.6}
+	],
+	# Plasma Repeater (fighter gun). The Halo: Reach plasma repeater shot (weapons/plasma_repeater/
+	# plas_repeater_fire 1-3, FMOD bank samples 8433-8435), cut to 0.55 s. Volume 0.2 (0.4 was too loud,
+	# developer 2026-10-09; fighter swarms stack). See planning/implementations/plasma-repeater.md.
+	"covenant_remnants_plasma_repeater_fire":[
+		{"file":"sounds/plasma_repeater/fire_1.ogg","pitch":1,"volume":0.2},
+		{"file":"sounds/plasma_repeater/fire_2.ogg","pitch":1,"volume":0.2},
+		{"file":"sounds/plasma_repeater/fire_3.ogg","pitch":1,"volume":0.2}
 	]
 }

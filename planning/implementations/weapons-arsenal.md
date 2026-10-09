@@ -11,7 +11,7 @@ arsenal is usable in-game now.
 | Weapon | Size | Mount | Dmg | Mirror | Notes |
 | --- | --- | --- | --- | --- | --- |
 | Pulse Laser Turret | S | energy | ENERGY | vulcan-shaped bolt | PD plasma machine gun (2026-10-09), see [pulse-laser-turret.md](pulse-laser-turret.md) |
-| Plasma Repeater | S | energy | ENERGY | ioncannon | rapid dps |
+| Plasma Repeater | S | energy | ENERGY | ioncannon (0.4 s refire) | fighter gun, Reach repeater bolt (2026-10-09), see [plasma-repeater.md](plasma-repeater.md) |
 | Plasma Torpedo (Light) | S | missile | KINETIC | sabot | anti-shield |
 | Suppressor Beam | M | energy | ENERGY | gravitonbeam | **frigate1 built-in** + normal weapon; shield-suppress (also vs Covenant shields); hot Plasma Beam Emitter sister 2026-10-08 (250 dps, width 24, ×1.3, pitch 0.9), see [suppressor-beam.md](suppressor-beam.md) |
 | Plasma Beam Emitter | M | energy | ENERGY | gravitonbeam | shield-suppress beam (also vs Covenant shields); Reach focus rifle look + sounds 2026-10-08, see [plasma-beam-emitter.md](plasma-beam-emitter.md) |
@@ -41,6 +41,8 @@ arsenal is usable in-game now.
   **Plasma Cannon (2026-10-09):** Reach corvette ball-turret round — engine-drawn blue / peach
   plasma ball, torpedo-family splash on hit (`PlasmaCannonOnHit`), corvette big-gun shot, stats
   slightly above Heavy Blaster — see [plasma-cannon.md](plasma-cannon.md).
+  **Plasma Repeater (2026-10-09):** Reach plasma repeater teardrop bolt (own `.proj` + sprite, EMP
+  arcs kept), Reach repeater shot, 0.4 s refire — see [plasma-repeater.md](plasma-repeater.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

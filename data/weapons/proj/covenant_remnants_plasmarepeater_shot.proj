@@ -1,0 +1,24 @@
+{
+	"id":"covenant_remnants_plasmarepeater_shot",
+	"specClass":"projectile",
+	# Halo: Reach plasma repeater bolt (plasma_repeater_bolt.projectile): a 0.6 WU light-volume
+	# teardrop, blue-violet (0.47,0.46,1.0) with a hot head, violet simple flare. Cheap route
+	# (developer rulings 2026-10-09): BALLISTIC_AS_BEAM tracer + bullet sprite, vanilla Ion Cannon EMP
+	# arcs kept. Damage / range / speed come from weapon_data.csv. See
+	# planning/implementations/plasma-repeater.md.
+	"onHitEffect":"com.fs.starfarer.api.impl.combat.IonCannonOnHitEffect",
+	"spawnType":"BALLISTIC_AS_BEAM",
+	"collisionClass":"RAY",
+	"collisionClassByFighter":"RAY_FIGHTER",
+	"length":40.0,
+	"width":9.0,
+	"fadeTime":0.25,
+	"fringeColor":[119,118,255,230],
+	"coreColor":[235,235,255,220],
+	"glowColor":[72,70,215,110],
+	"glowRadius":18,
+	"hitGlowRadius":40,
+	"textureScrollSpeed":-192.0,
+	"pixelsPerTexel":5.0,
+	"bulletSprite":"graphics/missiles/covenant_remnants_plasmarepeater_shot.png"
+}

@@ -3,18 +3,29 @@
   "specClass": "projectile",
   "type": "ENERGY",
   "size": "SMALL",
+  # Mount art deferred (weapons-pass ruling 2026-10-08): vanilla Ion Cannon sprites, violet glow.
   "turretSprite": "graphics/weapons/ion_cannon_turret_base.png",
   "turretGlowSprite": "graphics/weapons/ion_cannon_turret_glow.png",
   "hardpointSprite": "graphics/weapons/ion_cannon_hardpoint_base.png",
   "hardpointGlowSprite": "graphics/weapons/ion_cannon_hardpoint_glow.png",
-  "glowColor": [165, 100, 255, 255],
+  "glowColor": [119, 118, 255, 255],
   "turretOffsets": [10, 0],
   "turretAngleOffsets": [0],
   "hardpointOffsets": [18, 0],
   "hardpointAngleOffsets": [0],
   "barrelMode": "ALTERNATING",
   "animationType": "GLOW_AND_FLASH",
+  # Reach firing.effect: muzzle_flash_round 0.08-0.1 s + flash_large 0.1 s + glow_soft, violet.
+  "muzzleFlashSpec": {"length": 18.0,
+                      "spread": 8.0,
+                      "particleSizeMin": 5.0,
+                      "particleSizeRange": 7.0,
+                      "particleDuration": 0.1,
+                      "particleCount": 5,
+                      "particleColor": [160, 150, 255, 210]},
   "autocharge": true,
-  "projectileSpecId": "ioncannon_shot",
-  "fireSoundTwo": "ion_cannon_fire"
+  # Reach plasma repeater bolt + fire sound (developer rulings 2026-10-09). See
+  # planning/implementations/plasma-repeater.md.
+  "projectileSpecId": "covenant_remnants_plasmarepeater_shot",
+  "fireSoundTwo": "covenant_remnants_plasma_repeater_fire"
 }

@@ -30,7 +30,7 @@ Keep this file current — tick items off and add new ones as work lands.
       5 × 200 kinetic darts (numbers unchanged; tuning later).
 - [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
       art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
-      Lance ✔ → Plasma Beam Emitter ✔ → Suppressor Beam ✔ → Pulse Laser ✔ → Plasma Cannon ✔ → Repeater →
+      Lance ✔ → Plasma Beam Emitter ✔ → Suppressor Beam ✔ → Pulse Laser ✔ → Plasma Cannon ✔ → Repeater ✔ →
       Autocannon → Mortar → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
       (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
 - [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
@@ -77,9 +77,14 @@ Keep this file current — tick items off and add new ones as work lands.
       slightly above Heavy Blaster: 500 / 1 s / 700 range / 700 flux / 13 OP; first in-game look:
       the bare `PLASMA` ball was an urchin → Kotlin energy aura added, aura only, no trail). See
       [implementations/plasma-cannon.md](implementations/plasma-cannon.md).
-- [ ] **Plasma Cannon — in-game check** — 7-point list in
-      [implementations/plasma-cannon.md](implementations/plasma-cannon.md) (ball look, splash size,
-      sound tail with 2 cannons, frame rate).
+- [x] **Plasma Cannon — in-game check** — developer 2026-10-09: "looks good" after the aura +
+      no-smoke pass. See [implementations/plasma-cannon.md](implementations/plasma-cannon.md).
+- [x] **Plasma Repeater — Reach repeater bolt** — built 2026-10-09 (rulings: Reach plasma
+      repeater teardrop, cheap `.proj` + sprite after a kit dump, Ion Cannon EMP arcs kept, Reach
+      repeater shot, 0.4 s refire). See
+      [implementations/plasma-repeater.md](implementations/plasma-repeater.md).
+- [x] **Plasma Repeater — in-game check** — developer 2026-10-09: good after the fire volume
+      dropped 0.4 → 0.2. See [implementations/plasma-repeater.md](implementations/plasma-repeater.md).
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.
