@@ -20,7 +20,7 @@ arsenal is usable in-game now.
 | Plasma Torpedo | M | missile | HIGH_EXPLOSIVE | harpoonpod | tracking |
 | Energy Projector | L | energy | ENERGY | custom | see [energy-projector.md](energy-projector.md) |
 | Plasma Lance | L | energy | HIGH_EXPLOSIVE | hil | anti-armor beam |
-| Plasma Autocannon | L | energy | ENERGY | autopulse | burst bolt |
+| Plasma Autocannon | L | energy | ENERGY | autopulse (+100 range, 21 OP) | Seraph quad cannon streak (2026-10-09), see [plasma-autocannon.md](plasma-autocannon.md) |
 | Plasma Bombardment | L | energy | HIGH_EXPLOSIVE | hephag | artillery |
 | Plasma Torpedo (Heavy) | L | missile | HIGH_EXPLOSIVE | hurricane | MIRV / support |
 
@@ -43,6 +43,8 @@ arsenal is usable in-game now.
   slightly above Heavy Blaster — see [plasma-cannon.md](plasma-cannon.md).
   **Plasma Repeater (2026-10-09):** Reach plasma repeater teardrop bolt (own `.proj` + sprite, EMP
   arcs kept), Reach repeater shot, 0.4 s refire — see [plasma-repeater.md](plasma-repeater.md).
+  **Plasma Autocannon (2026-10-09):** Reach Seraph quad cannon streak (own `.proj` + sprite),
+  Seraph cannon shot, 800 range / 21 OP — see [plasma-autocannon.md](plasma-autocannon.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

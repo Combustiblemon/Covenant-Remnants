@@ -130,5 +130,13 @@
 		{"file":"sounds/plasma_repeater/fire_1.ogg","pitch":1,"volume":0.2},
 		{"file":"sounds/plasma_repeater/fire_2.ogg","pitch":1,"volume":0.2},
 		{"file":"sounds/plasma_repeater/fire_3.ogg","pitch":1,"volume":0.2}
+	],
+	# Plasma Autocannon. The Halo: Reach Seraph quad cannon shot (vehicles/seraph/seraph_cannon_fire
+	# 1-3, FMOD bank samples 12138-12140), cut to 0.6 s. Volume 0.3 placeholder (20 rounds/s bursts,
+	# 7 mounts fleet-wide). See planning/implementations/plasma-autocannon.md.
+	"covenant_remnants_plasma_autocannon_fire":[
+		{"file":"sounds/plasma_autocannon/fire_1.ogg","pitch":1,"volume":0.3},
+		{"file":"sounds/plasma_autocannon/fire_2.ogg","pitch":1,"volume":0.3},
+		{"file":"sounds/plasma_autocannon/fire_3.ogg","pitch":1,"volume":0.3}
 	]
 }

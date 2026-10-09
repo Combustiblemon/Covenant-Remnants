@@ -3,18 +3,29 @@
   "specClass": "projectile",
   "type": "ENERGY",
   "size": "LARGE",
+  # Mount art deferred (weapons-pass ruling 2026-10-08): vanilla Autopulse sprites, blue glow.
   "turretSprite": "graphics/weapons/autopulse_laser_turret_base.png",
   "turretGlowSprite": "graphics/weapons/autopulse_laser_turret_glow.png",
   "hardpointSprite": "graphics/weapons/autopulse_laser_hardpoint_base.png",
   "hardpointGlowSprite": "graphics/weapons/autopulse_laser_hardpoint_glow.png",
-  "glowColor": [165, 100, 255, 225],
+  "glowColor": [112, 153, 255, 225],
   "turretOffsets": [33, 0],
   "turretAngleOffsets": [0],
   "hardpointOffsets": [48, 0],
   "hardpointAngleOffsets": [0],
   "barrelMode": "ALTERNATING",
   "animationType": "GLOW_AND_FLASH",
+  # Reach firing.effect: glow_soft 0.085 s + explosive_flash 0.1 s (size 2-3), white-blue.
+  "muzzleFlashSpec": {"length": 30.0,
+                      "spread": 8.0,
+                      "particleSizeMin": 8.0,
+                      "particleSizeRange": 10.0,
+                      "particleDuration": 0.1,
+                      "particleCount": 6,
+                      "particleColor": [190, 215, 255, 220]},
   "autocharge": true,
-  "projectileSpecId": "autopulse_shot",
-  "fireSoundTwo": "autopulse_laser_fire"
+  # Reach Seraph quad cannon bolt + fire sound (developer rulings 2026-10-09). See
+  # planning/implementations/plasma-autocannon.md.
+  "projectileSpecId": "covenant_remnants_plasmaautocannon_shot",
+  "fireSoundTwo": "covenant_remnants_plasma_autocannon_fire"
 }

@@ -17,3 +17,5 @@ pass (developer 2026-10-02: tuning waits until all gameplay systems are finished
 - **Plasma Repeater** (2026-10-09) — fighter gun: 25 ENERGY + 400 EMP, 0.4 s (62.5 dps + 1000
   EMP/s), 500 range, 30 flux, 6 OP. Yardstick Ion Cannon: same at 0.5 s. +25 % rate; only on the
   three wings, so ship balance untouched. TODO: revisit if the wings strip engines too easily.
+- **Plasma Autocannon** (2026-10-09) — 150 ENERGY, 20/s bursts of 30 (regen 2/s), 125 flux, 800
+  range, 21 OP. Yardstick Autopulse Laser: same at 700 range / 20 OP. +100 range for +1 OP.

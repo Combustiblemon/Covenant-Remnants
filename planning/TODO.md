@@ -31,7 +31,7 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
       art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
       Lance ✔ → Plasma Beam Emitter ✔ → Suppressor Beam ✔ → Pulse Laser ✔ → Plasma Cannon ✔ → Repeater ✔ →
-      Autocannon → Mortar → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
+      Autocannon ✔ → Mortar → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
       (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
 - [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
       beam (vanilla-textured engine beam at 1.25x Tachyon width, overlay: charge rings /
@@ -85,6 +85,13 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/plasma-repeater.md](implementations/plasma-repeater.md).
 - [x] **Plasma Repeater — in-game check** — developer 2026-10-09: good after the fire volume
       dropped 0.4 → 0.2. See [implementations/plasma-repeater.md](implementations/plasma-repeater.md).
+- [x] **Plasma Autocannon — Seraph quad cannon bolt** — built 2026-10-09 (rulings: Seraph quad
+      cannon dumped, cheap tracer from the dump, Seraph cannon shot, vanilla hit sounds, +100 range
+      / +1 OP). See [implementations/plasma-autocannon.md](implementations/plasma-autocannon.md).
+- [ ] **Plasma Autocannon — in-game check** — 4-point list in
+      [implementations/plasma-autocannon.md](implementations/plasma-autocannon.md) (burst volume;
+      first look 2026-10-09 was a spear reaching ahead of the bolt → round head + 30-long trail,
+      re-check).
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.

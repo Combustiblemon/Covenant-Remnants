@@ -1,0 +1,25 @@
+{
+	"id":"covenant_remnants_plasmaautocannon_shot",
+	"specClass":"projectile",
+	# Halo: Reach Seraph quad cannon bolt (seraph_quad_cannon_bolt.projectile): an 8 WU light-volume
+	# streak, 20:1 long, cyan-blue (0.44,0.60,1.0) with the intensity peaking x5 near the head, blue
+	# simple flare. Cheap route (developer rulings 2026-10-09): BALLISTIC_AS_BEAM tracer + bullet
+	# sprite. The engine draws the bullet sprite from the true position forward by (sprite h / w) x
+	# width, so the sprite is a round 16x16 head (one width ahead) and the tracer is short (developer
+	# 2026-10-09: the 80-long version read as a spear starting half a length in front of the bolt).
+	# Damage / range / speed come from weapon_data.csv. See planning/implementations/plasma-autocannon.md.
+	"spawnType":"BALLISTIC_AS_BEAM",
+	"collisionClass":"RAY",
+	"collisionClassByFighter":"RAY_FIGHTER",
+	"length":30.0,
+	"width":10.0,
+	"fadeTime":0.25,
+	"fringeColor":[112,153,255,230],
+	"coreColor":[225,240,255,220],
+	"glowColor":[40,80,255,100],
+	"glowRadius":24,
+	"hitGlowRadius":60,
+	"textureScrollSpeed":-256.0,
+	"pixelsPerTexel":5.0,
+	"bulletSprite":"graphics/missiles/covenant_remnants_plasmaautocannon_shot.png"
+}
