@@ -5,9 +5,11 @@ import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.CombatEngineLayers
 import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.CombatLayeredRenderingPlugin
+import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import org.combustiblelemon.covenantremnants.utils.render.torpedo.CannonFlight
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoBurst
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoFlight
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoLook
@@ -21,7 +23,8 @@ import kotlin.random.Random
  * [org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire]). Follows every torpedo:
  * muzzle flash at launch, body/flare/trail and the in-flight hum while it flies, and when it is
  * gone the impact and explosion sound if it hit or was shot down (a torpedo that runs out of fuel
- * just fades). Drawn above ships and missiles.
+ * just fades). Also draws the Plasma Cannon rounds' energy aura ([CannonFlight]) and their hit
+ * splash. Drawn above ships and missiles.
  */
 class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     companion object {
@@ -43,6 +46,7 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     }
 
     private val flights = ArrayList<TorpedoFlight>()
+    private val cannons = ArrayList<CannonFlight>()
     private val bursts = ArrayList<TorpedoBurst>()
     private val renderer = TorpedoRenderer()
     private var time = 0f
@@ -51,6 +55,19 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
         val unit = TorpedoLook.unitFor(weapon.size)
         flights.add(TorpedoFlight(missile, unit))
         bursts.add(TorpedoBurst.muzzle(missile.location, missile.facing, unit))
+    }
+
+    /**
+     * The impact burst alone (no torpedo, no sound, no smoke) at [location], [unit] su per Reach
+     * unit: the Plasma Cannon's hit splash ([org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnHit]).
+     */
+    fun splash(location: Vector2f, unit: Float) {
+        bursts.add(TorpedoBurst.impact(location, unit, smoke = false))
+    }
+
+    /** Follows a Plasma Cannon round with its energy aura ([org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnFire]). */
+    fun trackCannonRound(projectile: DamagingProjectileAPI, unit: Float) {
+        cannons.add(CannonFlight(projectile, unit))
     }
 
     override fun advance(amount: Float) {
@@ -64,6 +81,16 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
             if (flight.flying) track(engine, flight)
             flight.advance(amount)
             if (flight.isDone) flightIterator.remove()
+        }
+        val cannonIterator = cannons.iterator()
+        while (cannonIterator.hasNext()) {
+            val cannon = cannonIterator.next()
+            if (cannon.flying) {
+                val round = cannon.projectile
+                if (round.isExpired || round.didDamage() || !engine.isEntityInPlay(round)) cannon.end()
+            }
+            cannon.advance(amount)
+            if (cannon.isDone) cannonIterator.remove()
         }
         val burstIterator = bursts.iterator()
         while (burstIterator.hasNext()) {
@@ -94,7 +121,7 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     }
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
-        renderer.render(viewport, flights, bursts, time)
+        renderer.render(viewport, flights, cannons, bursts, time)
     }
 
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> =

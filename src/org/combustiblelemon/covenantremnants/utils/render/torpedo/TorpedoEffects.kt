@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils.render.torpedo
 
+import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RIBBON_STRIDE
@@ -275,9 +276,10 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
             return burst
         }
 
-        fun impact(location: Vector2f, unit: Float): TorpedoBurst {
+        /** The impact; [smoke] false leaves out the dark smoke (the Plasma Cannon splash, developer 2026-10-09). */
+        fun impact(location: Vector2f, unit: Float, smoke: Boolean = true): TorpedoBurst {
             val burst = TorpedoBurst(unit)
-            burst.spawnImpact(location.x, location.y)
+            burst.spawnImpact(location.x, location.y, smoke)
             return burst
         }
     }
@@ -324,8 +326,8 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
         flash.angle = Math.toRadians(facing.toDouble()).toFloat()
     }
 
-    private fun spawnImpact(x: Float, y: Float) {
-        repeat(IMPACT_PARTICLES) {
+    private fun spawnImpact(x: Float, y: Float, smoke: Boolean) {
+        if (smoke) repeat(IMPACT_PARTICLES) {
             spawnOutward(SpriteKind.TORPEDO_SMOKE, x, y, 6f, 12f, 22f, 2f, rand(1.5f, 2f), rand(3.75f, 5f), 0.05f)
         }
         repeat(IMPACT_PARTICLES) {
@@ -446,6 +448,129 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
                 s.alpha = 1f
             }
             else -> {}
+        }
+    }
+}
+
+/**
+ * The Plasma Cannon round's energy aura (developer 2026-10-09: "energy stuff around the
+ * projectile", aura only, no trail). The engine draws the hot core (the `.proj` PLASMA ball); over
+ * it: the Reach ball turret's light-volume glow as two glow spheres (blue body, peach heart), its
+ * `star_flare`, and a ring of flickering plasma wisps orbiting the ball. Sizes in Reach units ×
+ * [unit]. Fades out over [FADE_TIME] once the round has hit or expired.
+ */
+internal class CannonFlight(val projectile: DamagingProjectileAPI, val unit: Float) {
+    private companion object {
+        // projectile.light_volume_system: blue (0.40,0.47,0.99) body, peach (1,0.65,0.46) tip, ×3.33.
+        const val GLOW_OUTER_RADIUS = 3.5f
+        const val GLOW_INNER_RADIUS = 1.8f
+        val GLOW_OUTER_COLOR = floatArrayOf(0.404f, 0.471f, 0.992f)
+        val GLOW_INNER_COLOR = floatArrayOf(1f, 0.75f, 0.55f)
+        const val GLOW_OUTER_INTENSITY = 1.3f
+        const val GLOW_INNER_INTENSITY = 1.6f
+        const val GLOW_BREATH = 0.15f
+        const val GLOW_BREATH_RATE = 6f
+
+        // projectile.lens_flare: star_flare, colour (0.16,0.33,1), radius 0.15 → read as 2.5 units here.
+        const val STAR_RADIUS = 2.5f
+        val STAR_COLOR = floatArrayOf(0.162f, 0.332f, 1f)
+        const val STAR_SPIN = 0.6f
+
+        // Wisps: plasma_blue palette clouds orbiting the ball (not in the tags - the "energy stuff").
+        const val WISPS = 6
+        const val WISP_RADIUS = 2.2f
+        const val WISP_RADIUS_WOBBLE = 0.8f
+        const val WISP_SIZE = 2.6f
+        const val WISP_ORBIT_MIN = 1.5f
+        const val WISP_ORBIT_MAX = 2.6f
+        const val WISP_FLICKER = 5f
+        const val WISP_NOISE_RATE = 7.5f
+
+        const val FADE_TIME = 0.25f
+    }
+
+    val glowOuter = RuptureSprite(SpriteKind.TORPEDO_BODY)
+    val glowInner = RuptureSprite(SpriteKind.TORPEDO_BODY)
+    val star = RuptureSprite(SpriteKind.TORPEDO_STAR)
+    val wisps = Array(WISPS) { RuptureSprite(SpriteKind.TORPEDO_PLASMA) }
+
+    private val random = Random(System.nanoTime() xor (projectile.hashCode().toLong() * 7919L))
+    private val salt = random.nextInt(10000)
+    private val wispBase = FloatArray(WISPS) { it * 2f * PI.toFloat() / WISPS + random.nextFloat() * 0.5f }
+    private val wispOmega = FloatArray(WISPS) {
+        (WISP_ORBIT_MIN + random.nextFloat() * (WISP_ORBIT_MAX - WISP_ORBIT_MIN)) * (if (random.nextBoolean()) 1f else -1f)
+    }
+    private val color = FloatArray(3)
+    private var time = random.nextFloat() * 100f
+    private var fade = 1f
+    private val location = Vector2f(projectile.location)
+
+    /** False once the round is gone; the aura then fades out where it was. */
+    var flying = true
+        private set
+
+    val isDone: Boolean get() = !flying && fade <= 0f
+
+    init {
+        for (w in wisps) {
+            w.random = random.nextFloat()
+            w.random2 = random.nextFloat()
+            w.noiseOffset = random.nextFloat()
+            w.angle = random.nextFloat() * 2f * PI.toFloat()
+            w.phase = (random.nextFloat() - 0.5f) * 2f
+        }
+    }
+
+    fun end() {
+        flying = false
+    }
+
+    fun advance(dt: Float) {
+        time += dt
+        if (flying) location.set(projectile.location) else fade = max(0f, fade - dt / FADE_TIME)
+        val x = location.x
+        val y = location.y
+
+        val breath = 1f + GLOW_BREATH * (TorpedoLook.noise(time * GLOW_BREATH_RATE, salt) * 2f - 1f)
+        glowOuter.x = x
+        glowOuter.y = y
+        glowOuter.halfLength = GLOW_OUTER_RADIUS * unit * breath
+        glowOuter.halfWidth = glowOuter.halfLength
+        for (c in 0..2) glowOuter.color[c] = GLOW_OUTER_COLOR[c] * GLOW_OUTER_INTENSITY
+        glowOuter.alpha = fade
+
+        glowInner.x = x
+        glowInner.y = y
+        glowInner.halfLength = GLOW_INNER_RADIUS * unit * (2f - breath)
+        glowInner.halfWidth = glowInner.halfLength
+        for (c in 0..2) glowInner.color[c] = GLOW_INNER_COLOR[c] * GLOW_INNER_INTENSITY
+        glowInner.alpha = fade
+
+        star.x = x
+        star.y = y
+        star.angle += STAR_SPIN * dt
+        star.halfLength = STAR_RADIUS * unit
+        star.halfWidth = star.halfLength
+        STAR_COLOR.copyInto(star.color)
+        star.alpha = 0.8f * fade
+
+        for (i in 0 until WISPS) {
+            val w = wisps[i]
+            val n = TorpedoLook.noise(time * WISP_NOISE_RATE + w.random2 * 50f, salt + i * 13)
+            val orbit = wispBase[i] + time * wispOmega[i]
+            val radius = (WISP_RADIUS + WISP_RADIUS_WOBBLE * (n - 0.5f)) * unit
+            w.x = x + cos(orbit) * radius
+            w.y = y + sin(orbit) * radius
+            w.angle += w.phase * dt
+            w.halfLength = WISP_SIZE * 0.5f * unit * (0.8f + 0.4f * n)
+            w.halfWidth = w.halfLength
+            TorpedoCurves.PLASMA_COLOR.at(0.5f + 0.5f * sin(time * 2f + i), color)
+            val intensity = WISP_FLICKER * max(0f, -0.25f + 1.25f * n)
+            for (c in 0..2) w.color[c] = color[c] * intensity
+            w.alpha = 0.75f * fade
+            w.blackPoint = 0.15f
+            w.paletteV = w.random
+            w.uvScale = 0.9f
         }
     }
 }

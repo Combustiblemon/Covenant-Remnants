@@ -15,7 +15,7 @@ arsenal is usable in-game now.
 | Plasma Torpedo (Light) | S | missile | KINETIC | sabot | anti-shield |
 | Suppressor Beam | M | energy | ENERGY | gravitonbeam | **frigate1 built-in** + normal weapon; shield-suppress (also vs Covenant shields); hot Plasma Beam Emitter sister 2026-10-08 (250 dps, width 24, ×1.3, pitch 0.9), see [suppressor-beam.md](suppressor-beam.md) |
 | Plasma Beam Emitter | M | energy | ENERGY | gravitonbeam | shield-suppress beam (also vs Covenant shields); Reach focus rifle look + sounds 2026-10-08, see [plasma-beam-emitter.md](plasma-beam-emitter.md) |
-| Plasma Cannon | M | energy | ENERGY | heavyblaster | anti-hull bolt |
+| Plasma Cannon | M | energy | ENERGY | heavyblaster (+100 range, 13 OP) | Reach ball-turret round + splash (2026-10-09), see [plasma-cannon.md](plasma-cannon.md) |
 | Plasma Mortar | M | energy | HIGH_EXPLOSIVE | miningblaster | anti-armor bolt |
 | Plasma Torpedo | M | missile | HIGH_EXPLOSIVE | harpoonpod | tracking |
 | Energy Projector | L | energy | ENERGY | custom | see [energy-projector.md](energy-projector.md) |
@@ -38,6 +38,9 @@ arsenal is usable in-game now.
   **Pulse Laser Turret (2026-10-09):** no longer a beam — a Vulcan-timed plasma machine gun (20 × 15
   ENERGY, 500 range, 150 flux/s) with its own cyan streak `.proj` + bullet sprite and the Reach
   Spectre plasma cannon shot — see [pulse-laser-turret.md](pulse-laser-turret.md).
+  **Plasma Cannon (2026-10-09):** Reach corvette ball-turret round — engine-drawn blue / peach
+  plasma ball, torpedo-family splash on hit (`PlasmaCannonOnHit`), corvette big-gun shot, stats
+  slightly above Heavy Blaster — see [plasma-cannon.md](plasma-cannon.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

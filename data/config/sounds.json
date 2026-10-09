@@ -114,5 +114,13 @@
 		{"file":"sounds/pulse_laser/fire_1.ogg","pitch":1,"volume":0.25},
 		{"file":"sounds/pulse_laser/fire_2.ogg","pitch":1,"volume":0.25},
 		{"file":"sounds/pulse_laser/fire_3.ogg","pitch":1,"volume":0.25}
+	],
+	# Plasma Cannon. The Halo: Reach Long Night of Solace corvette big gun (device_machines/omaha/
+	# corvette/bfg_fire 1-3, FMOD bank samples 11684-11686), cut to 1.6 s. Volume 0.6 placeholder.
+	# See planning/implementations/plasma-cannon.md.
+	"covenant_remnants_plasma_cannon_fire":[
+		{"file":"sounds/plasma_cannon/fire_1.ogg","pitch":1,"volume":0.6},
+		{"file":"sounds/plasma_cannon/fire_2.ogg","pitch":1,"volume":0.6},
+		{"file":"sounds/plasma_cannon/fire_3.ogg","pitch":1,"volume":0.6}
 	]
 }

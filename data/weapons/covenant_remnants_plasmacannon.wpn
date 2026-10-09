@@ -3,17 +3,28 @@
   "specClass": "projectile",
   "type": "ENERGY",
   "size": "MEDIUM",
+  # Mount art deferred (weapons-pass ruling 2026-10-08): vanilla Heavy Blaster sprites, blue glow.
   "turretSprite": "graphics/weapons/blaster_turret_base.png",
   "turretGlowSprite": "graphics/weapons/blaster_turret_glow.png",
   "hardpointSprite": "graphics/weapons/blaster_hardpoint_base.png",
   "hardpointGlowSprite": "graphics/weapons/blaster_hardpoint_glow.png",
-  "glowColor": [165, 100, 255, 255],
+  "glowColor": [105, 120, 253, 255],
   "turretOffsets": [10, 0],
   "turretAngleOffsets": [0],
   "hardpointOffsets": [15, 0],
   "hardpointAngleOffsets": [0],
   "barrelMode": "ALTERNATING",
   "animationType": "GLOW_AND_FLASH",
-  "projectileSpecId": "heavyblaster_shot",
-  "fireSoundTwo": "heavy_blaster_fire"
+  "muzzleFlashSpec": {"length": 40.0,
+                      "spread": 12.0,
+                      "particleSizeMin": 12.0,
+                      "particleSizeRange": 16.0,
+                      "particleDuration": 0.2,
+                      "particleCount": 10,
+                      "particleColor": [150, 170, 255, 220]},
+  # Reach corvette ball turret look + Long Night of Solace corvette big-gun shot (developer rulings
+  # 2026-10-09). See planning/implementations/plasma-cannon.md.
+  "projectileSpecId": "covenant_remnants_plasmacannon_shot",
+  "onFireEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnFire",
+  "fireSoundTwo": "covenant_remnants_plasma_cannon_fire"
 }

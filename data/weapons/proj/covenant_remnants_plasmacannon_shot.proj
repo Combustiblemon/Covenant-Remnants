@@ -1,0 +1,19 @@
+{
+	"id":"covenant_remnants_plasmacannon_shot",
+	"specClass":"projectile",
+	# Halo: Reach corvette ball turret round (covenant_ball_turret.projectile): a light-volume plasma
+	# ball, blue body (0.40,0.47,0.99) to a peach tip (1.0,0.65,0.46). Cheap route (developer rulings
+	# 2026-10-09): the engine draws the hot core (PLASMA spawn, kept small - its spiky star render
+	# read as an urchin at width 40); the energy aura around it is PlasmaCannonOnFire (the .wpn) and
+	# the Reach impact (covenant_explosion_artillery_huge) the torpedo impact burst via the onHitEffect.
+	# Damage / range / speed come from weapon_data.csv. See planning/implementations/plasma-cannon.md.
+	"onHitEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnHit",
+	"spawnType":"PLASMA",
+	"collisionClass":"PROJECTILE_FF",
+	"collisionClassByFighter":"PROJECTILE_FIGHTER",
+	"width":16.0,
+	"fadeTime":0.5,
+	"fringeColor":[105,120,253,255],
+	"coreColor":[255,200,160,255],
+	"hitGlowRadius":90
+}
