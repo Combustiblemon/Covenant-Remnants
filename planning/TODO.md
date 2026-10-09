@@ -31,7 +31,7 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
       art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
       Lance ✔ → Plasma Beam Emitter ✔ → Suppressor Beam ✔ → Pulse Laser ✔ → Plasma Cannon ✔ → Repeater ✔ →
-      Autocannon ✔ → Mortar ✔ → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
+      Autocannon ✔ → Mortar ✔ → Bombardment ✔ → torpedo launcher polish. Per-weapon workflow in the plan
       (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
 - [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
       beam (vanilla-textured engine beam at 1.25x Tachyon width, overlay: charge rings /
@@ -99,6 +99,23 @@ Keep this file current — tick items off and add new ones as work lands.
       projectile-list tracking fix and the explosion volume 0.6 → 0.3. See
       [implementations/plasma-mortar.md](implementations/plasma-mortar.md).
 - [ ] **Plasma Mortar — mount it** — not on any variant yet; developer to choose ships / slots.
+- [x] **Plasma Bombardment — Reach Covenant AA gun** — built 2026-10-09 (rulings: heavy siege shell,
+      AA gun "bfg" dumped, full rebuilt round + 1 s muzzle charge + rebuilt
+      `covenant_explosion_artillery_huge`, short tail, AA gun fire (+ core fire mixed in: plain
+      `bfg_fire` is the Plasma Cannon's sound) / charge / `cov_damage_large` sounds at 0.25, stats
+      1000 HE + 400 HE splash r 150, 2.5 s cycle, 900 range, speed 500, 1000 flux, 20 OP). See
+      [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md).
+- [ ] **Plasma Bombardment — in-game check** — run the checklist in
+      [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md) (charge, flash,
+      round, impact, splash, volumes; scales are placeholders from the headless harness).
+- [ ] **Plasma Bombardment — mount it** — not on any variant yet; developer to choose ships / slots.
+- [ ] **Reach curve audit (on request)** — the stock tag dumper printed unclamped curves as raw 0..1
+      and unclamped Basic constants as 0 (found 2026-10-09, see
+      [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md)); the torpedo,
+      Wraith, projector and beam curves may hold such values.
+- [ ] **Plasma Cannon splash — artillery_huge?** — the Cannon's hit stands in for the same
+      `covenant_explosion_artillery_huge` the Bombardment now rebuilds (`ArtilleryBurst`); switch it at
+      a cannon-sized unit? Developer call.
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.

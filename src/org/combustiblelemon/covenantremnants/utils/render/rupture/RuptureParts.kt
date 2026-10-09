@@ -261,7 +261,56 @@ internal enum class SpriteMaterial(
     ),
 
     /** spark_long.particle: a streak along the direction, additive. */
-    PLASMA_BEAM_SPARK_LONG(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_SPARK_LONG);
+    PLASMA_BEAM_SPARK_LONG(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_SPARK_LONG),
+
+    // --- Plasma Bombardment (Reach Covenant AA gun, see utils/render/torpedo/BombardmentEffects) ---
+
+    /** projectile.contrail_system hunter_beam: the hunter_beam ribbon through the energy_trail_blue palette. */
+    BOMBARD_CONTRAIL(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_TRAIL, palette = RuptureTexture.BOMBARD_TRAIL_PALETTE
+    ),
+
+    /** projectile.contrail_system soft_contrail: the wispy_trail ribbon (its palette is plain white). */
+    BOMBARD_WISPY(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.BOMBARD_WISPY_TRAIL),
+
+    /** muzzle_flash_long_soft.particle (Ghost): palettized streak through muzzle_flare_plasma_turret_long. */
+    BOMBARD_MUZZLE(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.BOMBARD_MUZZLE_FLASH, palette = RuptureTexture.BOMBARD_MUZZLE_PALETTE
+    ),
+
+    /** plasma_pulse.particle: palettized_2d_plasma through blue_plasma, fire_large shape, sphere warp -0.5. */
+    BOMBARD_PULSE(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_512_A, RuptureTexture.NOISE_512_B,
+        RuptureTexture.TORPEDO_PLASMA_PALETTE, RuptureTexture.PLASMA_BEAM_FIRE,
+        NoiseTransform(1.5f, 2f, 1f, 2f, -1f), NoiseTransform(1.5f, 2f, -1f, 1f, 1f), warp = -0.5f
+    ),
+
+    /**
+     * plasma_gas.particle: soft_smoke_small through the plasma_blue_02 palette. That gradient exports
+     * corrupt from the kit, so the puff is the particle's own colour curve shaped by soft_smoke_small.
+     */
+    BOMBARD_GAS(MODE_SMOKE, Blend.ADDITIVE, RuptureTexture.BOMBARD_SOFT_SMOKE, alphaMap = RuptureTexture.BOMBARD_SOFT_SMOKE),
+
+    /** core_charge_plasma.particle: palettized_2d_plasma through blue_plasma, plasma_mask shape, sphere warp -0.75. */
+    BOMBARD_CORE(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_256_A, RuptureTexture.BOMBARD_NOISE_128_B,
+        RuptureTexture.TORPEDO_PLASMA_PALETTE, RuptureTexture.BOMBARD_PLASMA_MASK,
+        NoiseTransform(1f, 0f, 0f, 0.5f, 1f), NoiseTransform(2f, 0.5f, -1f, 0.5f, 1f), warp = -0.75f
+    ),
+
+    /** plasma_bolt.particle: plasma_bolt_a x _b through blue_plasma_bolt (lightning bands), bolt mask, warp 0.2. */
+    BOMBARD_BOLT(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.BOMBARD_BOLT_A, RuptureTexture.BOMBARD_BOLT_B,
+        RuptureTexture.BOMBARD_BOLT_PALETTE, RuptureTexture.BOMBARD_BOLT_MASK,
+        NoiseTransform(1f, 0f, 0f, 0.5f, -1f), NoiseTransform(1f, 0f, 0f, 1f, 1f), warp = 0.2f
+    ),
+
+    /** fireball_covenant_artillery_huge.particle: palettized_plus_billboard_alpha through fireball_plasma, warp 0.5. */
+    ARTILLERY_FIREBALL(
+        MODE_PALETTE_ALPHA, Blend.ALPHA, RuptureTexture.TORPEDO_FIREBALL_PLATE,
+        palette = RuptureTexture.BOMBARD_FIREBALL_PALETTE, alphaMap = RuptureTexture.TORPEDO_FIREBALL_MASK,
+        warp = 0.5f
+    );
 
     enum class Blend { ADDITIVE, ALPHA }
 
@@ -355,7 +404,32 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     PLASMA_BEAM_IMPACT_PLASMA(SpriteMaterial.PLASMA_BEAM_IMPACT_PLASMA),
     PLASMA_BEAM_SPARK_LONG(SpriteMaterial.PLASMA_BEAM_SPARK_LONG),
     PLASMA_BEAM_IMPACT_FLARE(SpriteMaterial.TORPEDO_FLARE_SIMPLE),
-    PLASMA_BEAM_IMPACT_LIGHT(SpriteMaterial.PROJECTOR_FLARE)
+    PLASMA_BEAM_IMPACT_LIGHT(SpriteMaterial.PROJECTOR_FLARE),
+
+    // Plasma Bombardment (utils/render/torpedo/BombardmentEffects; the round's body / light / star reuse
+    // TORPEDO_BODY / TORPEDO_STAR): the muzzle charge (charging.effect) ...
+    BOMBARD_CHARGE_PLASMA(SpriteMaterial.TORPEDO_PLASMA),
+    BOMBARD_CHARGE_CORE(SpriteMaterial.BOMBARD_CORE),
+    BOMBARD_CHARGE_BOLT(SpriteMaterial.BOMBARD_BOLT),
+    BOMBARD_CHARGE_GLOW(SpriteMaterial.TORPEDO_BODY),
+    // ... the firing flash (firing.effect) ...
+    BOMBARD_MUZZLE(SpriteMaterial.BOMBARD_MUZZLE),
+    BOMBARD_PULSE(SpriteMaterial.BOMBARD_PULSE),
+    BOMBARD_FLASH(SpriteMaterial.TORPEDO_FLASH),
+    BOMBARD_GAS(SpriteMaterial.BOMBARD_GAS),
+    BOMBARD_MUZZLE_GLOW(SpriteMaterial.TORPEDO_BODY),
+    BOMBARD_BIG_GLOW(SpriteMaterial.TORPEDO_BODY),
+    BOMBARD_ANAMORPHIC(SpriteMaterial.TORPEDO_FLARE_ANAMORPHIC),
+    BOMBARD_LIGHT(SpriteMaterial.TORPEDO_BODY),
+    // ... and the impact (covenant_explosion_artillery_huge.effect)
+    ARTILLERY_FLASH(SpriteMaterial.PROJECTOR_FLASH),
+    ARTILLERY_FIREBALL(SpriteMaterial.ARTILLERY_FIREBALL),
+    ARTILLERY_GAS(SpriteMaterial.BOMBARD_GAS),
+    ARTILLERY_PLASMA(SpriteMaterial.PROJECTOR_BLUE),
+    ARTILLERY_SPARK(SpriteMaterial.TORPEDO_SPARK),
+    ARTILLERY_SPARK_LONG(SpriteMaterial.TORPEDO_SPARK),
+    ARTILLERY_GLOW(SpriteMaterial.TORPEDO_BODY),
+    ARTILLERY_LIGHT(SpriteMaterial.TORPEDO_BODY)
 }
 
 /**

@@ -199,7 +199,44 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     WRAITH_CONTRAIL_PALETTE("plasma_mortar_contrail_palette", false),
 
     /** fx\bitmaps\sparks\spark_long rotated: a streak along v */
-    PLASMA_BEAM_SPARK_LONG("plasma_beam_spark_long", false);
+    PLASMA_BEAM_SPARK_LONG("plasma_beam_spark_long", false),
+
+    // --- Plasma Bombardment (Reach Covenant AA gun, objects\vehicles\covenant\turrets\bfg; graphics/fx/
+    // plasma_bombardment/, see planning/implementations/plasma-bombardment.md) ---
+
+    /** fx\bitmaps\contrails\_gradients\energy_trail_blue: black -> blue -> white, 256x1 (the hunter_beam contrail's palette) */
+    BOMBARD_TRAIL_PALETTE("plasma_bombardment_energy_trail_blue", false),
+
+    /** fx\bitmaps\contrails\wispy_trail: grey wisps, length along u */
+    BOMBARD_WISPY_TRAIL("plasma_bombardment_wispy_trail", true),
+
+    /** fx\bitmaps\weapon_fire\muzzle_flash_long_soft (its first frame): a streak, base at the bottom */
+    BOMBARD_MUZZLE_FLASH("plasma_bombardment_muzzle_flash_long_soft", false),
+
+    /** fx\bitmaps\weapon_fire\gradients\muzzle_flare_plasma_turret_long: black -> blue -> white, 256x1 */
+    BOMBARD_MUZZLE_PALETTE("plasma_bombardment_muzzle_flare_plasma_turret_long", false),
+
+    /** fx\bitmaps\atmospheric\soft_smoke_small: the plasma gas puff shape */
+    BOMBARD_SOFT_SMOKE("plasma_bombardment_soft_smoke_small", false),
+
+    /** fx\particles\_gradients\fireball_plasma: blue fireball rows (the artillery fireball's palette) */
+    BOMBARD_FIREBALL_PALETTE("plasma_bombardment_fireball_plasma", false),
+
+    /** fx\bitmaps\plasma\plasma_bolt_a / _b: the charge bolts' noise pair */
+    BOMBARD_BOLT_A("plasma_bombardment_plasma_bolt_a", true),
+    BOMBARD_BOLT_B("plasma_bombardment_plasma_bolt_b", true),
+
+    /** fx\bitmaps\plasma\plasma_bolt_mask: a band along v, faded at both ends */
+    BOMBARD_BOLT_MASK("plasma_bombardment_plasma_bolt_mask", false),
+
+    /** fx\particles\plasma\gradients\blue_plasma_bolt: thin bright bands (lightning), 16 rows */
+    BOMBARD_BOLT_PALETTE("plasma_bombardment_blue_plasma_bolt", false),
+
+    /** fx\bitmaps\plasma\plasma_mask (luminance moved into alpha): an electric burst */
+    BOMBARD_PLASMA_MASK("plasma_bombardment_plasma_mask", false),
+
+    /** fx\bitmaps\plasma\plasma_clouds_128_b */
+    BOMBARD_NOISE_128_B("plasma_bombardment_plasma_clouds_128_b", true);
 
     private var textureId = -1
     private var configured = false

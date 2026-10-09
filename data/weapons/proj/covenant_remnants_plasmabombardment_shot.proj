@@ -1,0 +1,21 @@
+{
+	"id":"covenant_remnants_plasmabombardment_shot",
+	"specClass":"projectile",
+	# Halo: Reach Covenant AA gun round (objects\vehicles\covenant\turrets\bfg\weapon\projectiles\
+	# bfg_round.projectile). Invisible engine round (the Plasma Mortar's route): BALLISTIC spawn with
+	# zero-alpha colours, no glow and the invisible torpedo sprite draw nothing. The round is drawn by
+	# TorpedoRenderPlugin (BombardFlight, picked up from the projectile list: the .wpn onFireEffect is not
+	# called for BALLISTIC rounds); the HE splash, the rebuilt covenant_explosion_artillery_huge and the
+	# explosion sound by PlasmaBombardmentOnHit. width = collision diameter. Damage / range / speed come
+	# from weapon_data.csv. See planning/implementations/plasma-bombardment.md.
+	"onHitEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaBombardmentOnHit",
+	"spawnType":"BALLISTIC",
+	"collisionClass":"PROJECTILE_FF",
+	"collisionClassByFighter":"PROJECTILE_FIGHTER",
+	"length":10.0,
+	"width":24.0,
+	"fadeTime":0.3,
+	"fringeColor":[0,0,0,0],
+	"coreColor":[0,0,0,0],
+	"bulletSprite":"graphics/missiles/covenant_remnants_plasma_torpedo.png"
+}

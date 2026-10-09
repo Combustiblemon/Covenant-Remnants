@@ -21,7 +21,7 @@ arsenal is usable in-game now.
 | Energy Projector | L | energy | ENERGY | custom | see [energy-projector.md](energy-projector.md) |
 | Plasma Lance | L | energy | HIGH_EXPLOSIVE | hil | anti-armor beam |
 | Plasma Autocannon | L | energy | ENERGY | autopulse (+100 range, 21 OP) | Seraph quad cannon streak (2026-10-09), see [plasma-autocannon.md](plasma-autocannon.md) |
-| Plasma Bombardment | L | energy | HIGH_EXPLOSIVE | hephag | artillery |
+| Plasma Bombardment | L | energy | HIGH_EXPLOSIVE | siege shell (Hellbore / Hephaestus anchors) | Reach Covenant AA gun: 1 s charge, bolt + HE splash (2026-10-09), see [plasma-bombardment.md](plasma-bombardment.md) |
 | Plasma Torpedo (Heavy) | L | missile | HIGH_EXPLOSIVE | hurricane | MIRV / support |
 
 - Beams recolored purple via `.wpn` colors. Projectiles/missiles reference the **vanilla
@@ -48,6 +48,11 @@ arsenal is usable in-game now.
   **Plasma Mortar (2026-10-09):** Reach Wraith mortar — invisible engine round with the Reach Wraith
   round rebuilt over it (`WraithFlight`), 400 HE + 150 HE splash, Reach impact burst, Wraith fire /
   explosion sounds — see [plasma-mortar.md](plasma-mortar.md).
+  **Plasma Bombardment (2026-10-09):** Reach Covenant AA gun ("bfg") — 1 s muzzle charge, invisible
+  engine round with the AA gun's bolt rebuilt over it (`BombardFlight`, short tail), rebuilt firing
+  flash and `covenant_explosion_artillery_huge` (`ArtilleryBurst`), 1000 HE + 400 HE splash r 150,
+  2.5 s cycle, AA gun charge / fire / `cov_damage_large` sounds — see
+  [plasma-bombardment.md](plasma-bombardment.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

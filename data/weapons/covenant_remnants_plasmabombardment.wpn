@@ -4,18 +4,30 @@
   "type": "ENERGY",
   "size": "LARGE",
   "displayArcRadius": 450,
+  # Mount art deferred (weapons-pass ruling 2026-10-08): vanilla Hephaestus sprites.
   "turretSprite": "graphics/weapons/hephaestus_turret_base.png",
   "turretGunSprite": "graphics/weapons/hephaestus_turret_recoil.png",
   "hardpointSprite": "graphics/weapons/hephaestus_hardpoint_base.png",
   "hardpointGunSprite": "graphics/weapons/hephaestus_hardpoint_recoil.png",
   "visualRecoil": 10.0,
   "renderHints": ["RENDER_BARREL_BELOW"],
-  "turretOffsets": [25, -3, 25, 3],
-  "turretAngleOffsets": [0, 0],
-  "hardpointOffsets": [40, -3, 40, 3],
-  "hardpointAngleOffsets": [0, 0],
+  # One fire point on the centreline, so the charge has one known muzzle: the shell leaves between the
+  # placeholder twin barrels.
+  "turretOffsets": [25, 0],
+  "turretAngleOffsets": [0],
+  "hardpointOffsets": [40, 0],
+  "hardpointAngleOffsets": [0],
   "barrelMode": "ALTERNATING",
-  "animationType": "MUZZLE_FLASH",
-  "projectileSpecId": "hephag_shot",
-  "fireSoundTwo": "hephaestus_fire"
+  # No engine flash: the Reach charge (charging.effect) and firing flash (firing.effect) are rebuilt by
+  # TorpedoRenderPlugin (BombardCharge, ArtilleryBurst.muzzle).
+  "animationType": "NONE",
+  # Charges 1 s before each shell (weapon_data.csv chargeup; Reach charges 2 s), like the Gigacannon.
+  "autocharge": true,
+  "interruptibleBurst": false,
+  # Halo: Reach Covenant AA gun look + sounds (developer rulings 2026-10-09). See
+  # planning/implementations/plasma-bombardment.md.
+  "projectileSpecId": "covenant_remnants_plasmabombardment_shot",
+  "everyFrameEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaBombardmentEffect",
+  "fireSoundOne": "covenant_remnants_plasma_bombardment_charge",
+  "fireSoundTwo": "covenant_remnants_plasma_bombardment_fire"
 }

@@ -10,11 +10,11 @@ import org.combustiblelemon.covenantremnants.utils.render.rupture.SpriteMaterial
 
 /**
  * Draws every live torpedo ([TorpedoFlight]), Plasma Cannon round ([CannonFlight]), Plasma Mortar
- * round ([WraithFlight]) and burst
- * ([TorpedoBurst]) with the shared Reach sprite program ([RupturePrograms.sprites]) inside the
- * common GL state wrap ([SpriteGlState]). Order: trails, impact smoke and fireballs
- * (alpha-blended), impact plasma + cannon wisps, torpedo bodies, cannon glows and flares, muzzle
- * flashes, sparks, impact flares.
+ * round ([WraithFlight]), Plasma Bombardment round / charge / burst ([BombardFlight],
+ * [BombardCharge], [ArtilleryBurst]) and burst ([TorpedoBurst]) with the shared Reach sprite program
+ * ([RupturePrograms.sprites]) inside the common GL state wrap ([SpriteGlState]). Order: trails,
+ * impact smoke and fireballs (alpha-blended), plasma gas, impact plasma + cannon wisps + charge
+ * plasma / bolts, bodies, glows and star flares, muzzle flashes, sparks, impact flares.
  */
 internal class TorpedoRenderer {
     private companion object {
@@ -23,10 +23,21 @@ internal class TorpedoRenderer {
 
         val BURST_ORDER = listOf(
             SpriteMaterial.TORPEDO_SMOKE,
-            SpriteMaterial.TORPEDO_FIREBALL
+            SpriteMaterial.TORPEDO_FIREBALL,
+            SpriteMaterial.ARTILLERY_FIREBALL
+        )
+        // Additive plasma passes after the puffs / gas (TORPEDO_PLASMA first, as before the Bombardment).
+        val PLASMA_ORDER = listOf(
+            SpriteMaterial.TORPEDO_PLASMA,
+            SpriteMaterial.PROJECTOR_BLUE,
+            SpriteMaterial.BOMBARD_PULSE,
+            SpriteMaterial.BOMBARD_CORE,
+            SpriteMaterial.BOMBARD_BOLT
         )
         val FLASH_ORDER = listOf(
             SpriteMaterial.TORPEDO_FLASH,
+            SpriteMaterial.PROJECTOR_FLASH,
+            SpriteMaterial.BOMBARD_MUZZLE,
             SpriteMaterial.TORPEDO_MUZZLE_ROUND,
             SpriteMaterial.TORPEDO_SPARK,
             SpriteMaterial.TORPEDO_FLARE_SIMPLE,
@@ -46,10 +57,15 @@ internal class TorpedoRenderer {
         flights: List<TorpedoFlight>,
         cannons: List<CannonFlight>,
         wraiths: List<WraithFlight>,
+        bombards: List<BombardFlight>,
+        charges: Collection<BombardCharge>,
+        artillery: List<ArtilleryBurst>,
         bursts: List<TorpedoBurst>,
         time: Float
     ) {
-        if (flights.isEmpty() && cannons.isEmpty() && wraiths.isEmpty() && bursts.isEmpty()) return
+        if (flights.isEmpty() && cannons.isEmpty() && wraiths.isEmpty() && bombards.isEmpty() &&
+            charges.isEmpty() && artillery.isEmpty() && bursts.isEmpty()
+        ) return
         val view = RuptureView(viewport)
 
         SpriteGlState.draw {
@@ -67,9 +83,21 @@ internal class TorpedoRenderer {
                 val count = wraith.writeTrail(ribbon)
                 sprites.drawRibbon(SpriteMaterial.WRAITH_CONTRAIL, ribbon, count, 1f, view, time, EXPOSURE)
             }
+            for (bombard in bombards) {
+                val needed = bombard.maxTrailPoints * RIBBON_STRIDE
+                if (ribbon.size < needed) ribbon = FloatArray(needed)
+                var count = bombard.writeWispy(ribbon, time)
+                sprites.drawRibbon(SpriteMaterial.BOMBARD_WISPY, ribbon, count, 1f, view, time, EXPOSURE)
+                count = bombard.writeTrail(ribbon, time)
+                sprites.drawRibbon(SpriteMaterial.BOMBARD_CONTRAIL, ribbon, count, 1f, view, time, EXPOSURE)
+            }
 
+            // Every material filters its own sprites, so the Bombardment's mixed lists join the bursts.
             burstSprites.clear()
             for (burst in bursts) burstSprites.addAll(burst.sprites)
+            for (burst in artillery) burstSprites.addAll(burst.sprites)
+            for (charge in charges) burstSprites.addAll(charge.sprites)
+            for (bombard in bombards) bombard.addSprites(burstSprites)
             plasmaSprites.clear()
             plasmaSprites.addAll(burstSprites)
             for (cannon in cannons) plasmaSprites.addAll(cannon.wisps)
@@ -102,7 +130,11 @@ internal class TorpedoRenderer {
                 sprites.drawSprites(material, burstSprites, 0f, 0f, 1f, view, time, EXPOSURE)
             }
             sprites.drawSprites(SpriteMaterial.WRAITH_PLASMA_TRAIL, puffSprites, 0f, 0f, 1f, view, time, EXPOSURE)
-            sprites.drawSprites(SpriteMaterial.TORPEDO_PLASMA, plasmaSprites, 0f, 0f, 1f, view, time, EXPOSURE)
+            sprites.drawSprites(SpriteMaterial.BOMBARD_GAS, burstSprites, 0f, 0f, 1f, view, time, EXPOSURE)
+            for (material in PLASMA_ORDER) {
+                sprites.drawSprites(material, plasmaSprites, 0f, 0f, 1f, view, time, EXPOSURE)
+            }
+            bodySprites.addAll(burstSprites)
             sprites.drawSprites(SpriteMaterial.TORPEDO_BODY, bodySprites, 0f, 0f, 1f, view, time, EXPOSURE)
             sprites.drawSprites(SpriteMaterial.TORPEDO_STAR, bodySprites, 0f, 0f, 1f, view, time, EXPOSURE)
             sprites.drawSprites(SpriteMaterial.SPARK, emberSprites, 0f, 0f, 1f, view, time, EXPOSURE)

@@ -24,3 +24,10 @@ pass (developer 2026-10-02: tuning waits until all gameplay systems are finished
   Yardsticks: Mining Blaster 200 HE + 100 armor bypass, 4-shot magazine (~2 shots/s burst, 1 per
   2 s sustained), 500 range, 10 OP; Heavy Mortar 314 HE dps at 700 range for 7 OP (ballistic).
   TODO: splash vs fighter swarms may make it a strong anti-fighter tool; check in testing.
+- **Plasma Bombardment** (2026-10-09) — 1000 HE direct + 400 HE splash (core 64, radius 150, falloff
+  to 0), 2.5 s cycle (1 s chargeup + 1.5 s), 400 dps direct, 900 range, speed 500, 1000 flux/shot,
+  impact 200, 20 OP, `USE_LESS_VS_SHIELDS`. Yardsticks: Hellbore 750 HE / 3 s (250 dps), 900 range,
+  speed 500, 750 flux, 16 OP; Hephaestus 480 HE dps, 900 range, speed 800, 20 OP. Slightly above
+  Hellbore per OP on alpha and splash, below Hephaestus on sustained dps; the slow round and the 1 s
+  charge telegraph keep agile frigates out of it. TODO: the 150 su splash vs fighter swarms and
+  clustered frigates (cuts against "weak when swarmed"); check in testing.
