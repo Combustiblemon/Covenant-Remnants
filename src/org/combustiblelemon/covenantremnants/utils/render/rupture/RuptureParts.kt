@@ -144,6 +144,19 @@ internal enum class SpriteMaterial(
     /** fireball_smoke.particle: dark smoke, pre-multiplied alpha (drawn alpha-blended). */
     TORPEDO_SMOKE(MODE_TEXTURE_ALPHA, Blend.ALPHA, RuptureTexture.TORPEDO_SMOKE_LARGE),
 
+    // --- Plasma Mortar (Halo: Reach Wraith mortar round, see utils/render/torpedo/WraithMortarEffects) ---
+
+    /** projectile.contrail_system: flaming_trail ribbon through the wraith_mortar_contrail palette. */
+    WRAITH_CONTRAIL(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.WRAITH_FLAMING_TRAIL,
+        palette = RuptureTexture.WRAITH_CONTRAIL_PALETTE
+    ),
+
+    /** plasma_trail.particle: tinted puffs shaped by fire_large (its alpha map). */
+    WRAITH_PLASMA_TRAIL(
+        MODE_SMOKE, Blend.ADDITIVE, RuptureTexture.PLASMA_BEAM_FIRE, alphaMap = RuptureTexture.PLASMA_BEAM_FIRE
+    ),
+
     /** impact.cheap_particle_emitter: spark_orange_space streaks. */
     TORPEDO_SPARK(MODE_TEXTURE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_SPARK),
 
@@ -311,6 +324,9 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     TORPEDO_SPARK(SpriteMaterial.TORPEDO_SPARK),
     TORPEDO_FLARE_SIMPLE(SpriteMaterial.TORPEDO_FLARE_SIMPLE),
     TORPEDO_FLARE_ANAMORPHIC(SpriteMaterial.TORPEDO_FLARE_ANAMORPHIC),
+
+    // Plasma Mortar (utils/render/torpedo/WraithMortarEffects; body / star / plasma / embers reuse the kinds above + SPARK)
+    WRAITH_PLASMA_TRAIL(SpriteMaterial.WRAITH_PLASMA_TRAIL),
 
     // Energy Projector (utils/render/projector)
     PROJECTOR_EMP(SpriteMaterial.PROJECTOR_EMP),

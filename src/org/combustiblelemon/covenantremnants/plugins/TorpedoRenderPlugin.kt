@@ -9,11 +9,13 @@ import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.MissileAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import org.combustiblelemon.covenantremnants.utils.render.torpedo.AuraStyle
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.CannonFlight
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoBurst
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoFlight
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoLook
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoRenderer
+import org.combustiblelemon.covenantremnants.utils.render.torpedo.WraithFlight
 import org.lwjgl.util.vector.Vector2f
 import java.util.EnumSet
 import kotlin.random.Random
@@ -23,8 +25,8 @@ import kotlin.random.Random
  * [org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire]). Follows every torpedo:
  * muzzle flash at launch, body/flare/trail and the in-flight hum while it flies, and when it is
  * gone the impact and explosion sound if it hit or was shot down (a torpedo that runs out of fuel
- * just fades). Also draws the Plasma Cannon rounds' energy aura ([CannonFlight]) and their hit
- * splash. Drawn above ships and missiles.
+ * just fades). Also draws the Plasma Cannon rounds' energy aura ([CannonFlight]), the Plasma Mortar
+ * rounds' Reach Wraith look ([WraithFlight]) and their hit splashes. Drawn above ships and missiles.
  */
 class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     companion object {
@@ -36,6 +38,13 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
         private const val LOOP_FADE = 0.2f
         private const val IMPACT_PITCH_MIN = 0.891f
 
+        // Plasma Mortar rounds: give up on a round never seen in play after this long (its body already
+        // fades with the round's own fade); log ends sooner than WRAITH_EARLY_END or never seen in play.
+        private const val WRAITH_UNSEEN_TIMEOUT = 3f
+        private const val WRAITH_EARLY_END = 0.2f
+        private const val WRAITH_SHOT_ID = "covenant_remnants_plasmamortar_shot"
+        private const val WRAITH_LOGGED_ENDS = 3
+
         fun forEngine(engine: CombatEngineAPI): TorpedoRenderPlugin {
             (engine.customData[KEY] as? TorpedoRenderPlugin)?.let { return it }
             val plugin = TorpedoRenderPlugin()
@@ -45,8 +54,14 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
         }
     }
 
+    private val log = Global.getLogger(TorpedoRenderPlugin::class.java)
     private val flights = ArrayList<TorpedoFlight>()
     private val cannons = ArrayList<CannonFlight>()
+    private val wraiths = ArrayList<WraithFlight>()
+    private val wraithRounds = HashSet<DamagingProjectileAPI>()
+    private var wraithFromFireLogged = false
+    private var wraithFromScanLogged = false
+    private var wraithEndsLogged = 0
     private val bursts = ArrayList<TorpedoBurst>()
     private val renderer = TorpedoRenderer()
     private var time = 0f
@@ -65,9 +80,42 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
         bursts.add(TorpedoBurst.impact(location, unit, smoke = false))
     }
 
-    /** Follows a Plasma Cannon round with its energy aura ([org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnFire]). */
-    fun trackCannonRound(projectile: DamagingProjectileAPI, unit: Float) {
-        cannons.add(CannonFlight(projectile, unit))
+    /**
+     * Follows a Plasma Cannon round with its energy aura
+     * ([org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnFire], [AuraStyle.CANNON]).
+     */
+    internal fun trackCannonRound(projectile: DamagingProjectileAPI, unit: Float, style: AuraStyle = AuraStyle.CANNON) {
+        cannons.add(CannonFlight(projectile, unit, style))
+    }
+
+    /**
+     * Follows a Plasma Mortar round with the Reach Wraith mortar look
+     * ([org.combustiblelemon.covenantremnants.weapons.PlasmaMortarOnFire]).
+     */
+    fun trackWraithRound(projectile: DamagingProjectileAPI, unit: Float) {
+        if (!wraithFromFireLogged) {
+            wraithFromFireLogged = true
+            log.info("Wraith round registered by onFire: ${projectile.javaClass.simpleName} at ${projectile.location}")
+        }
+        addWraith(projectile, unit)
+    }
+
+    private fun addWraith(projectile: DamagingProjectileAPI, unit: Float) {
+        if (wraithRounds.add(projectile)) wraiths.add(WraithFlight(projectile, unit))
+    }
+
+    /** Plasma Mortar rounds the on-fire hook did not register (see PlasmaMortarEffect). */
+    private fun scanWraithRounds(engine: CombatEngineAPI) {
+        for (projectile in engine.projectiles) {
+            if (projectile.projectileSpecId != WRAITH_SHOT_ID || projectile in wraithRounds) continue
+            if (projectile.didDamage() || projectile.isFading) continue
+            if (!wraithFromScanLogged) {
+                wraithFromScanLogged = true
+                log.info("Wraith round picked up from the projectile list (onFire did not register it): " +
+                    "${projectile.javaClass.simpleName} at ${projectile.location}")
+            }
+            addWraith(projectile, org.combustiblelemon.covenantremnants.weapons.PlasmaMortarOnHit.ROUND_UNIT)
+        }
     }
 
     override fun advance(amount: Float) {
@@ -91,6 +139,34 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
             }
             cannon.advance(amount)
             if (cannon.isDone) cannonIterator.remove()
+        }
+        scanWraithRounds(engine)
+        val wraithIterator = wraiths.iterator()
+        while (wraithIterator.hasNext()) {
+            val wraith = wraithIterator.next()
+            if (wraith.flying) {
+                // isExpired is not used: a BALLISTIC round may report it from spawn (2026-10-09: the
+                // Wraith rounds never drew). A new round may not be in play yet: wait until seen.
+                val round = wraith.projectile
+                val inPlay = engine.isEntityInPlay(round)
+                if (inPlay) wraith.seenInPlay = true
+                val gone = (wraith.seenInPlay && !inPlay) || (!wraith.seenInPlay && wraith.age > WRAITH_UNSEEN_TIMEOUT)
+                if (round.didDamage() || gone) {
+                    if (wraith.age < WRAITH_EARLY_END || !wraith.seenInPlay || wraithEndsLogged < WRAITH_LOGGED_ENDS) {
+                        wraithEndsLogged++
+                        log.info(
+                            "Wraith round ended after ${wraith.age} s, ${wraith.distance} su: didDamage=${round.didDamage()} " +
+                                "inPlay=$inPlay seen=${wraith.seenInPlay} expired=${round.isExpired} fading=${round.isFading}"
+                        )
+                    }
+                    wraith.end()
+                }
+            }
+            wraith.advance(amount)
+            if (wraith.isDone) {
+                wraithIterator.remove()
+                if (!engine.isEntityInPlay(wraith.projectile)) wraithRounds.remove(wraith.projectile)
+            }
         }
         val burstIterator = bursts.iterator()
         while (burstIterator.hasNext()) {
@@ -121,7 +197,7 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     }
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
-        renderer.render(viewport, flights, cannons, bursts, time)
+        renderer.render(viewport, flights, cannons, wraiths, bursts, time)
     }
 
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> =

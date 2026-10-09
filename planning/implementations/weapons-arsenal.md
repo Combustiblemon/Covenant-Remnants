@@ -16,7 +16,7 @@ arsenal is usable in-game now.
 | Suppressor Beam | M | energy | ENERGY | gravitonbeam | **frigate1 built-in** + normal weapon; shield-suppress (also vs Covenant shields); hot Plasma Beam Emitter sister 2026-10-08 (250 dps, width 24, ×1.3, pitch 0.9), see [suppressor-beam.md](suppressor-beam.md) |
 | Plasma Beam Emitter | M | energy | ENERGY | gravitonbeam | shield-suppress beam (also vs Covenant shields); Reach focus rifle look + sounds 2026-10-08, see [plasma-beam-emitter.md](plasma-beam-emitter.md) |
 | Plasma Cannon | M | energy | ENERGY | heavyblaster (+100 range, 13 OP) | Reach ball-turret round + splash (2026-10-09), see [plasma-cannon.md](plasma-cannon.md) |
-| Plasma Mortar | M | energy | HIGH_EXPLOSIVE | miningblaster | anti-armor bolt |
+| Plasma Mortar | M | energy | HIGH_EXPLOSIVE | mortar-shaped (miningblaster base) | Reach Wraith mortar blob + HE splash (2026-10-09), see [plasma-mortar.md](plasma-mortar.md) |
 | Plasma Torpedo | M | missile | HIGH_EXPLOSIVE | harpoonpod | tracking |
 | Energy Projector | L | energy | ENERGY | custom | see [energy-projector.md](energy-projector.md) |
 | Plasma Lance | L | energy | HIGH_EXPLOSIVE | hil | anti-armor beam |
@@ -45,6 +45,9 @@ arsenal is usable in-game now.
   arcs kept), Reach repeater shot, 0.4 s refire — see [plasma-repeater.md](plasma-repeater.md).
   **Plasma Autocannon (2026-10-09):** Reach Seraph quad cannon streak (own `.proj` + sprite),
   Seraph cannon shot, 800 range / 21 OP — see [plasma-autocannon.md](plasma-autocannon.md).
+  **Plasma Mortar (2026-10-09):** Reach Wraith mortar — invisible engine round with the Reach Wraith
+  round rebuilt over it (`WraithFlight`), 400 HE + 150 HE splash, Reach impact burst, Wraith fire /
+  explosion sounds — see [plasma-mortar.md](plasma-mortar.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

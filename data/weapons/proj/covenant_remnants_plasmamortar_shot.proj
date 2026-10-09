@@ -1,0 +1,20 @@
+{
+	"id":"covenant_remnants_plasmamortar_shot",
+	"specClass":"projectile",
+	# Halo: Reach Wraith mortar round (wraith_mortar_round.projectile). Invisible engine round
+	# (developer 2026-10-09: the PLASMA ball read as an urchin): BALLISTIC spawn with zero-alpha colours,
+	# no glow and the invisible torpedo sprite draw nothing. The round is drawn by PlasmaMortarOnFire
+	# (the .wpn) -> WraithFlight; the HE splash, Reach impact burst and Wraith explosion sound by
+	# PlasmaMortarOnHit. width = collision diameter. Damage / range / speed come from weapon_data.csv.
+	# See planning/implementations/plasma-mortar.md.
+	"onHitEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaMortarOnHit",
+	"spawnType":"BALLISTIC",
+	"collisionClass":"PROJECTILE_FF",
+	"collisionClassByFighter":"PROJECTILE_FIGHTER",
+	"length":10.0,
+	"width":16.0,
+	"fadeTime":0.3,
+	"fringeColor":[0,0,0,0],
+	"coreColor":[0,0,0,0],
+	"bulletSprite":"graphics/missiles/covenant_remnants_plasma_torpedo.png"
+}

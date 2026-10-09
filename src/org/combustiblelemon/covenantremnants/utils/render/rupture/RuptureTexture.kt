@@ -192,6 +192,12 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     /** fx\bitmaps\fire\fire_large: a flame, tip at the top (shape in alpha) */
     PLASMA_BEAM_FIRE("plasma_beam_fire_large", false),
 
+    /** fx\bitmaps\contrails\flaming_trail: the Wraith mortar contrail (grey, length along u) */
+    WRAITH_FLAMING_TRAIL("plasma_mortar_flaming_trail", true),
+
+    /** fx\bitmaps\contrails\_gradients\wraith_mortar_contrail: black -> blue -> white, 256x1 */
+    WRAITH_CONTRAIL_PALETTE("plasma_mortar_contrail_palette", false),
+
     /** fx\bitmaps\sparks\spark_long rotated: a streak along v */
     PLASMA_BEAM_SPARK_LONG("plasma_beam_spark_long", false);
 

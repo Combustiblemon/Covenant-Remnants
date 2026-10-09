@@ -138,5 +138,19 @@
 		{"file":"sounds/plasma_autocannon/fire_1.ogg","pitch":1,"volume":0.3},
 		{"file":"sounds/plasma_autocannon/fire_2.ogg","pitch":1,"volume":0.3},
 		{"file":"sounds/plasma_autocannon/fire_3.ogg","pitch":1,"volume":0.3}
+	],
+	# Plasma Mortar. The Halo: Reach Wraith mortar: fire (vehicles/wraith/wraith_fire_mortar, FMOD bank
+	# sample 9951, cut to 2.0 s) and the round explosion (vehicles/wraith/wraith_projectile_expl 1-4,
+	# 9956-9959, cut to 2.2 s), the explosion played by PlasmaMortarOnHit. Explosion 0.6 -> 0.3
+	# (developer 2026-10-09: too loud); fire 0.7 placeholder.
+	# See planning/implementations/plasma-mortar.md.
+	"covenant_remnants_plasma_mortar_fire":[
+		{"file":"sounds/plasma_mortar/fire.ogg","pitch":1,"volume":0.7}
+	],
+	"covenant_remnants_plasma_mortar_explosion":[
+		{"file":"sounds/plasma_mortar/explosion_1.ogg","pitch":1,"volume":0.3},
+		{"file":"sounds/plasma_mortar/explosion_2.ogg","pitch":1,"volume":0.3},
+		{"file":"sounds/plasma_mortar/explosion_3.ogg","pitch":1,"volume":0.3},
+		{"file":"sounds/plasma_mortar/explosion_4.ogg","pitch":1,"volume":0.3}
 	]
 }

@@ -31,7 +31,7 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
       art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
       Lance ✔ → Plasma Beam Emitter ✔ → Suppressor Beam ✔ → Pulse Laser ✔ → Plasma Cannon ✔ → Repeater ✔ →
-      Autocannon ✔ → Mortar → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
+      Autocannon ✔ → Mortar ✔ → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
       (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
 - [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
       beam (vanilla-textured engine beam at 1.25x Tachyon width, overlay: charge rings /
@@ -88,10 +88,17 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **Plasma Autocannon — Seraph quad cannon bolt** — built 2026-10-09 (rulings: Seraph quad
       cannon dumped, cheap tracer from the dump, Seraph cannon shot, vanilla hit sounds, +100 range
       / +1 OP). See [implementations/plasma-autocannon.md](implementations/plasma-autocannon.md).
-- [ ] **Plasma Autocannon — in-game check** — 4-point list in
-      [implementations/plasma-autocannon.md](implementations/plasma-autocannon.md) (burst volume;
-      first look 2026-10-09 was a spear reaching ahead of the bolt → round head + 30-long trail,
-      re-check).
+- [x] **Plasma Autocannon — in-game check** — developer 2026-10-09: "looks good now" after the
+      spear fix (round head, 30-long trail). See
+      [implementations/plasma-autocannon.md](implementations/plasma-autocannon.md).
+- [x] **Plasma Mortar — Reach Wraith mortar** — built 2026-10-09 (rulings: Wraith blob + AOE
+      blast, kit dumped, Wraith fire + explosion sounds, mortar-shaped stats: 400 HE + 150 HE splash
+      r 75, 1.5 s, 700 range, speed 500, 10 OP). Cannon aura generalised into `AuraStyle`. See
+      [implementations/plasma-mortar.md](implementations/plasma-mortar.md).
+- [x] **Plasma Mortar — in-game check** — developer 2026-10-09: renders fine, "good job" after the
+      projectile-list tracking fix and the explosion volume 0.6 → 0.3. See
+      [implementations/plasma-mortar.md](implementations/plasma-mortar.md).
+- [ ] **Plasma Mortar — mount it** — not on any variant yet; developer to choose ships / slots.
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.

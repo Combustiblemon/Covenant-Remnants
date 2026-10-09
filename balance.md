@@ -19,3 +19,8 @@ pass (developer 2026-10-02: tuning waits until all gameplay systems are finished
   three wings, so ship balance untouched. TODO: revisit if the wings strip engines too easily.
 - **Plasma Autocannon** (2026-10-09) — 150 ENERGY, 20/s bursts of 30 (regen 2/s), 125 flux, 800
   range, 21 OP. Yardstick Autopulse Laser: same at 700 range / 20 OP. +100 range for +1 OP.
+- **Plasma Mortar** (2026-10-09) — 400 HE direct + 150 HE splash (core 20, radius 75, falloff to
+  0), 1.5 s (267 dps direct), 700 range, speed 500, 400 flux/shot, 10 OP, `USE_LESS_VS_SHIELDS`.
+  Yardsticks: Mining Blaster 200 HE + 100 armor bypass, 4-shot magazine (~2 shots/s burst, 1 per
+  2 s sustained), 500 range, 10 OP; Heavy Mortar 314 HE dps at 700 range for 7 OP (ballistic).
+  TODO: splash vs fighter swarms may make it a strong anti-fighter tool; check in testing.

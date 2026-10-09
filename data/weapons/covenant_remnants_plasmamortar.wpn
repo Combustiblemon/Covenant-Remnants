@@ -3,17 +3,31 @@
   "specClass": "projectile",
   "type": "ENERGY",
   "size": "MEDIUM",
+  # Mount art deferred (weapons-pass ruling 2026-10-08): vanilla Mining Blaster sprites, cyan glow.
   "turretSprite": "graphics/weapons/blaster2_turret_base.png",
   "turretGlowSprite": "graphics/weapons/blaster2_turret_glow.png",
   "hardpointSprite": "graphics/weapons/blaster2_hardpoint_base.png",
   "hardpointGlowSprite": "graphics/weapons/blaster2_hardpoint_glow.png",
-  "glowColor": [165, 100, 255, 255],
+  "glowColor": [106, 178, 254, 255],
   "turretOffsets": [10, 0],
   "turretAngleOffsets": [0],
   "hardpointOffsets": [15, 0],
   "hardpointAngleOffsets": [0],
   "barrelMode": "ALTERNATING",
   "animationType": "GLOW_AND_FLASH",
-  "projectileSpecId": "miningblaster_shot",
-  "fireSoundTwo": "mining_blaster_fire"
+  # Reach firing.effect: glow_soft 0.085 s (size 2), muzzle_flash_long_soft 0.125 s, smoke_fiery_large
+  # 0.25 s, flash_large 0.15 s - cyan-white.
+  "muzzleFlashSpec": {"length": 45.0,
+                      "spread": 14.0,
+                      "particleSizeMin": 14.0,
+                      "particleSizeRange": 16.0,
+                      "particleDuration": 0.25,
+                      "particleCount": 10,
+                      "particleColor": [160, 210, 255, 220]},
+  # Reach Wraith mortar look + sounds (developer rulings 2026-10-09). See
+  # planning/implementations/plasma-mortar.md.
+  "projectileSpecId": "covenant_remnants_plasmamortar_shot",
+  "onFireEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaMortarOnFire",
+  "everyFrameEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaMortarEffect",
+  "fireSoundTwo": "covenant_remnants_plasma_mortar_fire"
 }

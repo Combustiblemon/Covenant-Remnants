@@ -7,7 +7,7 @@ Plasma Repeater,covenant_remnants_plasmarepeater,,1500,500,,25,400,0,40,6,,,,ENE
 Plasma Torpedo (Light),covenant_remnants_plasmatorpedo_light,,400,1200,,100,,15,30,4,3,,,KINETIC,0,,0,1,1,,0,0,0,0,,150,50,8,300,,,GUIDED_POOR,rare_bp,,Covenant Remnants,,Anti Shield,Slow,Poor,,,,,,,TRUE,
 Plasma Beam Emitter,covenant_remnants_plasmabeam,,2000,1000,100,,,10,15,9,,,,ENERGY,,75,0.1,0.1,,,,,,,2400,,,,,,,,rare_bp,,Covenant Remnants,,Suppression,,,,,,,,,,
 Plasma Cannon,covenant_remnants_plasmacannon,,3200,700,,500,,0,15,13,,,,ENERGY,700,,0,1,,,,,,,,900,,,,,,,rare_bp,,Covenant Remnants,,General,,,,,,,,,,
-Plasma Mortar,covenant_remnants_plasmamortar,,1800,500,,200,,0,7,10,4,0.5,,HIGH_EXPLOSIVE,300,,0,0.2,,,,,,,,1000,,,,,,USE_LESS_VS_SHIELDS,rare_bp,,Covenant Remnants,,Anti Armor,,,,,,,,,,
+Plasma Mortar,covenant_remnants_plasmamortar,,1800,700,,400,,0,7,10,,,,HIGH_EXPLOSIVE,400,,0,1.5,,,,,,,,500,,,,,,USE_LESS_VS_SHIELDS,rare_bp,,Covenant Remnants,,Anti Armor,,,,,,,,,,
 Plasma Torpedo,covenant_remnants_plasmatorpedo,,1500,2500,,750,,15,10,10,12,,,HIGH_EXPLOSIVE,0,,0,8.25,4,0.25,0,0,0,,,300,100,12.5,150,,,DO_NOT_AIM,rare_bp,,Covenant Remnants,,Finisher,Medium,Medium,,,,,,,TRUE,
 Plasma Lance,covenant_remnants_plasmalance,,6000,1000,2000,,,0,5,20,,,,HIGH_EXPLOSIVE,,2400,0.5,1,0.5,4,,,,,10000,,,,,,,,rare_bp,,Covenant Remnants,,Anti Armor,,,,,,,,,,
 Plasma Autocannon,covenant_remnants_plasmaautocannon,,6000,800,,150,,0,20,21,30,2,,ENERGY,125,,0.05,0.05,1,,0,10,1,5,,1000,,,,,,,rare_bp,,Covenant Remnants,,General,,,,,,,,,,
