@@ -17,7 +17,8 @@ Keep this file current — tick items off and add new ones as work lands.
       Covenant turret/hardpoint sprites. See [implementations/weapons-arsenal.md](implementations/weapons-arsenal.md).
 - [ ] **Projectile / missile recolor** — the energy bolts still reference vanilla `projectileSpecId`,
       so they render in vanilla colours; author Covenant `.proj` (purple) when art is ready. The
-      three plasma torpedoes are done (Reach look, 2026-10-02, below).
+      three plasma torpedoes are done (Reach look, 2026-10-02, below); the Pulse Laser Turret has
+      its own cyan bolt (2026-10-09, below).
 - [x] **Plasma torpedoes — Halo: Reach look** — built 2026-10-02: the m45 space Phantom torpedo
       (muzzle flash, light-volume body, star flare, lightning ribbon trail, fireball / plasma / smoke /
       sparks / lens-flare impact, Reach fire / hum / explosion sounds) on all three torpedoes, scaled
@@ -29,7 +30,7 @@ Keep this file current — tick items off and add new ones as work lands.
       5 × 200 kinetic darts (numbers unchanged; tuning later).
 - [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
       art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
-      Lance ✔ → Plasma Beam Emitter → Suppressor Beam → Pulse Laser → Plasma Cannon → Repeater →
+      Lance ✔ → Plasma Beam Emitter ✔ → Suppressor Beam ✔ → Pulse Laser ✔ → Plasma Cannon → Repeater →
       Autocannon → Mortar → Bombardment → torpedo launcher polish. Per-weapon workflow in the plan
       (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
 - [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
@@ -63,6 +64,13 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/suppressor-beam.md](implementations/suppressor-beam.md).
 - [ ] **Suppressor Beam — in-game check** — 4-point list in
       [implementations/suppressor-beam.md](implementations/suppressor-beam.md).
+- [x] **Pulse Laser Turret — plasma machine gun** — built 2026-10-09 (rulings: machine gun not
+      beam, Seraph-style cyan streaks, cheap `.proj` + PNG route, no Kotlin, Vulcan-shaped stats
+      20 × 15 ENERGY = 300 dps / 150 flux/s / 500 range / 6 OP, Reach Spectre plasma cannon shot).
+      See [implementations/pulse-laser-turret.md](implementations/pulse-laser-turret.md).
+- [ ] **Pulse Laser Turret — in-game check** — 8-point list in
+      [implementations/pulse-laser-turret.md](implementations/pulse-laser-turret.md) (stream +
+      spread, bolt look / size, muzzle, sound volume with many mounts, PD autofire, frame rate).
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.

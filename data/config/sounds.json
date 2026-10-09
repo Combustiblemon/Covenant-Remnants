@@ -105,5 +105,14 @@
 		{"file":"sounds/plasma_beam/impact_3.ogg","pitch":0.9,"volume":0.5},
 		{"file":"sounds/plasma_beam/impact_4.ogg","pitch":0.9,"volume":0.5},
 		{"file":"sounds/plasma_beam/impact_5.ogg","pitch":0.9,"volume":0.5}
+	],
+	# Pulse Laser Turret (plasma machine gun). The Halo: Reach mounted plasma cannon shot
+	# (weapons\plasma_cannon\plasma_cannon_fire\spectre_turret14_1-3, FMOD bank samples 10207-10209),
+	# cut to the 0.45 s transient: the gun fires 20 times a second. Volume 0.25 (0.5 was too loud,
+	# developer 2026-10-09; 37 mounts fleet-wide stack). See planning/implementations/pulse-laser-turret.md.
+	"covenant_remnants_pulse_laser_fire":[
+		{"file":"sounds/pulse_laser/fire_1.ogg","pitch":1,"volume":0.25},
+		{"file":"sounds/pulse_laser/fire_2.ogg","pitch":1,"volume":0.25},
+		{"file":"sounds/pulse_laser/fire_3.ogg","pitch":1,"volume":0.25}
 	]
 }

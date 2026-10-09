@@ -10,7 +10,7 @@ arsenal is usable in-game now.
 
 | Weapon | Size | Mount | Dmg | Mirror | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Pulse Laser Turret | S | energy | ENERGY | pdburst | PD beam |
+| Pulse Laser Turret | S | energy | ENERGY | vulcan-shaped bolt | PD plasma machine gun (2026-10-09), see [pulse-laser-turret.md](pulse-laser-turret.md) |
 | Plasma Repeater | S | energy | ENERGY | ioncannon | rapid dps |
 | Plasma Torpedo (Light) | S | missile | KINETIC | sabot | anti-shield |
 | Suppressor Beam | M | energy | ENERGY | gravitonbeam | **frigate1 built-in** + normal weapon; shield-suppress (also vs Covenant shields); hot Plasma Beam Emitter sister 2026-10-08 (250 dps, width 24, ×1.3, pitch 0.9), see [suppressor-beam.md](suppressor-beam.md) |
@@ -35,6 +35,9 @@ arsenal is usable in-game now.
   (visuals + sounds + stats per weapon, mount art deferred; see [../TODO.md](../TODO.md)).
   **Plasma Lance (2026-10-08):** now a half-second burst beam, 2000 HE dps (1000 per burst), white core /
   bluish-white fringe, Halo 3 beam rifle shot — see [plasma-lance.md](plasma-lance.md).
+  **Pulse Laser Turret (2026-10-09):** no longer a beam — a Vulcan-timed plasma machine gun (20 × 15
+  ENERGY, 500 range, 150 flux/s) with its own cyan streak `.proj` + bullet sprite and the Reach
+  Spectre plasma cannon shot — see [pulse-laser-turret.md](pulse-laser-turret.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

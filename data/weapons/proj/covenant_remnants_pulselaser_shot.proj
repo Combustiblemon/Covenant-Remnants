@@ -1,0 +1,21 @@
+{
+	"id":"covenant_remnants_pulselaser_shot",
+	"specClass":"projectile",
+	# Seraph-style plasma streak: BALLISTIC_AS_BEAM tracer (vanilla vulcan_shot / lightmg_shot shape)
+	# with heavyblaster_shot's glow. Developer rulings 2026-10-09, see
+	# planning/implementations/pulse-laser-turret.md. Damage / range / speed come from weapon_data.csv.
+	"spawnType":"BALLISTIC_AS_BEAM",
+	"collisionClass":"RAY",
+	"collisionClassByFighter":"RAY_FIGHTER",
+	"length":55.0,
+	"width":5.0,
+	"fadeTime":0.25,
+	"fringeColor":[90,190,255,220],
+	"coreColor":[235,255,255,200],
+	"glowColor":[60,140,255,90],
+	"glowRadius":14,
+	"hitGlowRadius":25,
+	"textureScrollSpeed":-128.0,
+	"pixelsPerTexel":5.0,
+	"bulletSprite":"graphics/missiles/covenant_remnants_pulselaser_shot.png"
+}
