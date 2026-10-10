@@ -34,10 +34,13 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
 
 - On application load: verifies MagicLib and LazyLib are enabled; loads `shield_data.csv` (custom
   per-ship shield parameters); compiles the shared shader programs; preloads the slipspace pocket
-  background.
-- On game load: re-verifies the hullmod incompatibilities; `ensureSlipspaceSystem()` creates or
-  migrates the slipspace pocket system; registers the transient `SlipspaceCampaignPlugin` (exit
-  portal dialog).
+  background; installs the LunaLib settings bridge when LunaLib is enabled.
+- On game load:
+  - re-verifies the hullmod incompatibilities;
+  - `ensureSlipspaceSystem()` creates or migrates the slipspace pocket system;
+  - registers the transient `SlipspaceCampaignPlugin` (exit portal dialog);
+  - `TesterCache.addIfNeeded()` fills the Corvus abandoned station's storage once per save. This is
+    a temporary tester build, see [implementations/tester-cache.md](implementations/tester-cache.md).
 - On new game: `ensureSlipspaceSystem()`.
 
 ## Subsystems

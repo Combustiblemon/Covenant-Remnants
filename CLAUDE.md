@@ -55,6 +55,12 @@ These are settled. Do not re-open them without asking the developer.
   in `commands/`, loaded only via `data/console/commands.csv`).
 - **Rendering:** custom OpenGL/GLSL shaders (`.frag`/`.vert` in `data/shaders/`, Kotlin loaders in
   `src/.../utils/render/`).
+- **Game install (free to read):** `C:\Users\Tasos\Desktop\starsector mod\Starsector\starsector-core`
+  (relative to the mod: `../../starsector-core`).
+  - The game's data lives there: `data/`, `graphics/`, `sounds/`.
+  - The code lives in `starfarer.api.jar` (the API) and `starfarer_obf.jar` (obfuscated internals).
+    Decompile them when the starsector-knowledge skill does not cover something, e.g. its missing
+    `com.fs.starfarer.loading` package.
 
 ## Design references
 

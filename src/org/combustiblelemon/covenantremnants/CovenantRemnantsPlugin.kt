@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants
 
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
+import org.combustiblelemon.covenantremnants.campaign.TesterCache
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 import org.combustiblelemon.covenantremnants.campaign.entities.SlipspaceCampaignPlugin
 import org.combustiblelemon.covenantremnants.campaign.systems.ensureSlipspaceSystem
@@ -68,6 +69,9 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         // and the exit portal's dialog is routed by a transient campaign plugin.
         ensureSlipspaceSystem(Global.getSector())
         Global.getSector().registerPlugin(SlipspaceCampaignPlugin())
+
+        // Testers get all Covenant content in Corvus storage until the quests exist (once per save)
+        TesterCache.addIfNeeded()
     }
 
     override fun onNewGame() {

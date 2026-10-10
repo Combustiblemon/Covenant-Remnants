@@ -445,7 +445,17 @@ Keep this file current — tick items off and add new ones as work lands.
       staged for the developer to commit. See
       [implementations/release-packaging.md](implementations/release-packaging.md).
 - [ ] **Release packaging — clean-install check** — unzip `Covenant Remnants.zip` into a clean
-      `mods/` and start the game once.
+      `mods/` and start the game once. Static pre-check done 2026-10-10 (250 referenced paths, 77
+      sounds, 77 sprites all resolve from the zip + vanilla; 0 problems).
+- [x] **In-game test session** — skipped (developer 2026-10-10): the build goes to player testers
+      instead; the open in-game checks above stay open until their reports. The sheet stays as a
+      reference: [implementations/in-game-test-pass-2026-10-10.md](implementations/in-game-test-pass-2026-10-10.md).
+- [x] **Tester cache** — 2026-10-10 (rulings: Corvus abandoned station storage, once per save,
+      `_std` fits, 1 / 3 / 4 / 6 / 10 ships by size, 30 per weapon / wing, optional-hullmod
+      modspecs, Huragok Slipspace Engram with a vanilla placeholder icon): temporary exception to
+      quest-gated acquisition. See [implementations/tester-cache.md](implementations/tester-cache.md).
+- [ ] **Tester cache — remove for release** — turn `TesterCache.ENABLED` off (or delete the class +
+      CSV row) once the quests hand out Covenant content; engram art and final text.
 - [x] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
       (`65a5b80`), `CubicCurve2D.kt` + `README.md` row committed (`0ed9f18`). Only the rebuilt
       `jars/LemonLib.jar` showed as modified on 2026-10-10; closed by the developer the same day.
@@ -489,7 +499,9 @@ Keep this file current — tick items off and add new ones as work lands.
       the abyss mechanism — the engine only applies the colour while a shift is active, a base
       colour alone did nothing).
 - [ ] **Granting quest** — the ability is quest-gated; until the quest exists `CovenantGiveAll`
-      grants it (`SlipspaceJumpRules.grantToPlayer()`).
+      grants it (`SlipspaceJumpRules.grantToPlayer()`), and testers get a Huragok Slipspace Engram
+      (right-click to learn) in the Corvus tester cache — a candidate quest reward. See
+      [implementations/tester-cache.md](implementations/tester-cache.md).
 - [x] **`SlipspaceSystemEFS` bug** — fixed 2026-10-07: it disabled Transverse Jump sector-wide
       (non-current systems advance every frame); now guarded on the player being in the pocket.
 
@@ -520,6 +532,12 @@ Keep this file current — tick items off and add new ones as work lands.
       line, live apply on save, density 0.1, haze off, shield rings off, volume 0 / 0.5. Start with
       LunaLib disabled passed 2026-10-10 (no `NoClassDefFoundError`).
 - [ ] Items (Covenant items).
+- [x] **Custom ship-name list for Covenant hulls** — skipped 2026-10-10. The game only supports
+      name lists per faction: `data/strings/ship_names.json` sets, picked through a faction's
+      `shipNameSources`. There is no per-hull hook, and the mod has no faction (non-goal). Developer
+      ruling: no home-built renaming code. Confirmed by decompiling `com.fs.starfarer.loading.
+      ShipNameStore` from `starfarer_obf.jar`: it uses the fleet member only to name fighter wings,
+      and ships always get a random name from the picked group.
 
 ## Planetfall (ground combat library in ../Planetfall; parked 2026-10-08)
 
