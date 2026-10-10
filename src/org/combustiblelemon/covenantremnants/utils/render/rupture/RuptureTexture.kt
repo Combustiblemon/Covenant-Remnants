@@ -126,6 +126,15 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     /** fx\bitmaps\lens_flares\anamorphic_flare: a streak along v */
     TORPEDO_FLARE_ANAMORPHIC("torpedo_anamorphic_flare", false),
 
+    // Torpedo size looks (2026-10-10): the three torpedo palettes with their cool hues shifted like
+    // TorpedoHue (light -40 deg cyan, heavy +60 deg magenta-violet); generated offline.
+    TORPEDO_MUZZLE_PALETTE_LIGHT("torpedo_muzzle_flare_phantom_turret_light", false),
+    TORPEDO_MUZZLE_PALETTE_HEAVY("torpedo_muzzle_flare_phantom_turret_heavy", false),
+    TORPEDO_FIREBALL_PALETTE_LIGHT("torpedo_fireball_covenant_light", false),
+    TORPEDO_FIREBALL_PALETTE_HEAVY("torpedo_fireball_covenant_heavy", false),
+    TORPEDO_PLASMA_PALETTE_LIGHT("torpedo_blue_plasma_light", false),
+    TORPEDO_PLASMA_PALETTE_HEAVY("torpedo_blue_plasma_heavy", false),
+
     // --- Halo 3: The Ark slipspace exit (H3EK fx\cinematics\070la_waypoint_arrival\01;
     // graphics/fx/slipspace_ark/, see planning/implementations/ark-slipspace-portals.md) ---
 

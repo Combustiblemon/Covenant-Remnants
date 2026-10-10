@@ -12,17 +12,17 @@ arsenal is usable in-game now.
 | --- | --- | --- | --- | --- | --- |
 | Pulse Laser Turret | S | energy | ENERGY | vulcan-shaped bolt | PD plasma machine gun (2026-10-09), see [pulse-laser-turret.md](pulse-laser-turret.md) |
 | Plasma Repeater | S | energy | ENERGY | ioncannon (0.4 s refire) | fighter gun, Reach repeater bolt (2026-10-09), see [plasma-repeater.md](plasma-repeater.md) |
-| Plasma Torpedo (Light) | S | missile | KINETIC | sabot | anti-shield |
+| Plasma Torpedo (Light) | S | missile | HIGH_EXPLOSIVE | Atropos+ (was sabot) | strike torpedo + armor melt (launcher polish 2026-10-09), see [plasma-torpedo-launchers.md](plasma-torpedo-launchers.md) |
 | Suppressor Beam | M | energy | ENERGY | gravitonbeam | **frigate1 built-in** + normal weapon; shield-suppress (also vs Covenant shields); hot Plasma Beam Emitter sister 2026-10-08 (250 dps, width 24, ×1.3, pitch 0.9), see [suppressor-beam.md](suppressor-beam.md) |
 | Plasma Beam Emitter | M | energy | ENERGY | gravitonbeam | shield-suppress beam (also vs Covenant shields); Reach focus rifle look + sounds 2026-10-08, see [plasma-beam-emitter.md](plasma-beam-emitter.md) |
 | Plasma Cannon | M | energy | ENERGY | heavyblaster (+100 range, 13 OP) | Reach ball-turret round + splash (2026-10-09), see [plasma-cannon.md](plasma-cannon.md) |
 | Plasma Mortar | M | energy | HIGH_EXPLOSIVE | mortar-shaped (miningblaster base) | Reach Wraith mortar blob + HE splash (2026-10-09), see [plasma-mortar.md](plasma-mortar.md) |
-| Plasma Torpedo | M | missile | HIGH_EXPLOSIVE | harpoonpod | tracking |
+| Plasma Torpedo | M | missile | HIGH_EXPLOSIVE | Harpoon Pod+ | tracking + armor melt (2026-10-09), see [plasma-torpedo-launchers.md](plasma-torpedo-launchers.md) |
 | Energy Projector | L | energy | ENERGY | custom | see [energy-projector.md](energy-projector.md) |
 | Plasma Lance | L | energy | HIGH_EXPLOSIVE | hil | anti-armor beam |
 | Plasma Autocannon | L | energy | ENERGY | autopulse (+100 range, 21 OP) | Seraph quad cannon streak (2026-10-09), see [plasma-autocannon.md](plasma-autocannon.md) |
 | Plasma Bombardment | L | energy | HIGH_EXPLOSIVE | siege shell (Hellbore / Hephaestus anchors) | Reach Covenant AA gun: 1 s charge, bolt + HE splash (2026-10-09), see [plasma-bombardment.md](plasma-bombardment.md) |
-| Plasma Torpedo (Heavy) | L | missile | HIGH_EXPLOSIVE | hurricane | MIRV / support |
+| Plasma Torpedo (Heavy) | L | missile | HIGH_EXPLOSIVE | single 3000 HE hit (was hurricane) | heavy finisher + armor melt (2026-10-09), see [plasma-torpedo-launchers.md](plasma-torpedo-launchers.md) |
 
 - Beams recolored purple via `.wpn` colors. Projectiles/missiles reference the **vanilla
   `projectileSpecId`** directly (e.g. `heavyblaster_shot`, `sabot_srm`) — guaranteed load, but the
@@ -53,6 +53,11 @@ arsenal is usable in-game now.
   flash and `covenant_explosion_artillery_huge` (`ArtilleryBurst`), 1000 HE + 400 HE splash r 150,
   2.5 s cycle, AA gun charge / fire / `cov_damage_large` sounds — see
   [plasma-bombardment.md](plasma-bombardment.md).
+  **Plasma torpedoes, launcher polish (2026-10-09):** last item of the weapons pass. Stats
+  re-anchored now that the splits are gone (light Atropos+ 1200 HE, medium Harpoon Pod+ 850 HE ×
+  4, heavy one 3000 HE hit), slow ammo regen, per-size engines, a plasma armor melt on hits
+  (`PlasmaTorpedoOnHit`, molten patch on the hull), fire / impact volumes 0.25 / 0.3 pitched by size,
+  no dark smoke on the impact — see [plasma-torpedo-launchers.md](plasma-torpedo-launchers.md).
 - `.wpn` `type` = mount (ENERGY/MISSILE); `weapon_data` `type` = damage — they differ deliberately
   (HE weapons use an ENERGY mount so they fit energy slots).
 

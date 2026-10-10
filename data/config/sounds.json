@@ -32,18 +32,35 @@
 	# space_phantom_missile_fire / _lp / _expl). Reach mixes the fire and explosion at -6 dB and the
 	# in-flight hum at -18 dB, pitched +5 semitones; the explosion's 0 to -2 semitone pitch drop is
 	# randomised in TorpedoRenderPlugin. See planning/implementations/plasma-torpedo-reach.md.
+	# Launcher polish 2026-10-09 (planning/implementations/plasma-torpedo-launchers.md): fire 0.25,
+	# impact 0.3, one fire id per launcher size, pitched light 1.15 / medium 1 / heavy 0.85 (the
+	# impact takes the same size factor in TorpedoRenderPlugin).
+	"covenant_remnants_plasma_torpedo_fire_light":[
+		{"file":"sounds/plasma_torpedo/fire_1.ogg","pitch":1.15,"volume":0.25},
+		{"file":"sounds/plasma_torpedo/fire_2.ogg","pitch":1.15,"volume":0.25},
+		{"file":"sounds/plasma_torpedo/fire_3.ogg","pitch":1.15,"volume":0.25}
+	],
 	"covenant_remnants_plasma_torpedo_fire":[
-		{"file":"sounds/plasma_torpedo/fire_1.ogg","pitch":1,"volume":1},
-		{"file":"sounds/plasma_torpedo/fire_2.ogg","pitch":1,"volume":1},
-		{"file":"sounds/plasma_torpedo/fire_3.ogg","pitch":1,"volume":1}
+		{"file":"sounds/plasma_torpedo/fire_1.ogg","pitch":1,"volume":0.25},
+		{"file":"sounds/plasma_torpedo/fire_2.ogg","pitch":1,"volume":0.25},
+		{"file":"sounds/plasma_torpedo/fire_3.ogg","pitch":1,"volume":0.25}
+	],
+	"covenant_remnants_plasma_torpedo_fire_heavy":[
+		{"file":"sounds/plasma_torpedo/fire_1.ogg","pitch":0.85,"volume":0.25},
+		{"file":"sounds/plasma_torpedo/fire_2.ogg","pitch":0.85,"volume":0.25},
+		{"file":"sounds/plasma_torpedo/fire_3.ogg","pitch":0.85,"volume":0.25}
 	],
 	"covenant_remnants_plasma_torpedo_loop":[
 		{"file":"sounds/plasma_torpedo/loop.ogg","pitch":1.335,"volume":0.25}
 	],
+	# Heavy torpedo hum (2026-10-10: "heavier hum"): louder and deeper (pitch x 0.8), so it is heard coming.
+	"covenant_remnants_plasma_torpedo_loop_heavy":[
+		{"file":"sounds/plasma_torpedo/loop.ogg","pitch":1.068,"volume":0.4}
+	],
 	"covenant_remnants_plasma_torpedo_impact":[
-		{"file":"sounds/plasma_torpedo/impact_1.ogg","pitch":1,"volume":1},
-		{"file":"sounds/plasma_torpedo/impact_2.ogg","pitch":1,"volume":1},
-		{"file":"sounds/plasma_torpedo/impact_3.ogg","pitch":1,"volume":1}
+		{"file":"sounds/plasma_torpedo/impact_1.ogg","pitch":1,"volume":0.3},
+		{"file":"sounds/plasma_torpedo/impact_2.ogg","pitch":1,"volume":0.3},
+		{"file":"sounds/plasma_torpedo/impact_3.ogg","pitch":1,"volume":0.3}
 	],
 	# Energy Projector. The Halo: Reach CCS cruiser glassing beam (m52 corvette glassing, FMOD bank
 	# sample 11704: 0-1.9 s charge whine, beam roar from 1.9 s) and the Scarab beam impacts (11761-

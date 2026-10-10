@@ -11,10 +11,15 @@
 	# No vanilla explosion: the Reach impact is drawn instead.
 	"explosionColor":[0,0,0,0],
 	"explosionRadius":0,
-	# Movement from vanilla sabot_srm (the missile this weapon used before 2026-10-02).
-	"engineSpec":{"turnAcc":600,
-				  "turnRate":150,
-				  "acc":100,
-				  "dec":100},
+	# Hands the torpedo to TorpedoRenderPlugin (vanilla keeps missile onFire hooks in the .proj; the
+	# launcher's everyFrameEffect PlasmaTorpedoEffect registers it too, duplicates are skipped).
+	"onFireEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire",
+	# Plasma armor melt around the hit (planning/implementations/plasma-torpedo-launchers.md).
+	"onHitEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnHit",
+	# Movement from vanilla atropos_torp (launcher polish 2026-10-09: Atropos-shaped strike torpedo).
+	"engineSpec":{"turnAcc":500,
+				  "turnRate":75,
+				  "acc":1200,
+				  "dec":300},
 	"engineSlots":[]
 }

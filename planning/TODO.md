@@ -24,14 +24,14 @@ Keep this file current — tick items off and add new ones as work lands.
       sparks / lens-flare impact, Reach fire / hum / explosion sounds) on all three torpedoes, scaled
       by size; all three are now plain homing torpedoes with their own `.proj` (no Sabot / MIRV
       splits). See [implementations/plasma-torpedo-reach.md](implementations/plasma-torpedo-reach.md).
-- [ ] **Plasma torpedoes — in-game check** — run the checklist in
-      [implementations/plasma-torpedo-reach.md](implementations/plasma-torpedo-reach.md). Note: the
-      heavy now does one 500 hit instead of 7 × 500 MIRV warheads, the light one 100 hit instead of
-      5 × 200 kinetic darts (numbers unchanged; tuning later).
-- [ ] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
+- [x] **Plasma torpedoes — in-game check** — folded into the launcher polish check (developer
+      2026-10-09), see "Plasma torpedo launchers — in-game check" below. The split damage it noted is
+      re-ruled there.
+- [x] **Weapons pass — one weapon at a time** (rulings 2026-10-08: visuals + sounds + stats, mount
       art deferred, mixed full/cheap route ruled per weapon). Order: Energy Projector ✔ → Plasma
       Lance ✔ → Plasma Beam Emitter ✔ → Suppressor Beam ✔ → Pulse Laser ✔ → Plasma Cannon ✔ → Repeater ✔ →
-      Autocannon ✔ → Mortar ✔ → Bombardment ✔ → torpedo launcher polish. Per-weapon workflow in the plan
+      Autocannon ✔ → Mortar ✔ → Bombardment ✔ → torpedo launcher polish ✔ (all built 2026-10-09; the
+      open in-game checks are listed per weapon). Per-weapon workflow in the plan
       (`~/.claude/plans/go-through-the-weapons-generic-ritchie.md`, step 1 = ruling round).
 - [x] **Energy Projector — Halo: Reach glassing look** — built 2026-10-08: the CCS cruiser glassing
       beam (vanilla-textured engine beam at 1.25x Tachyon width, overlay: charge rings /
@@ -105,10 +105,35 @@ Keep this file current — tick items off and add new ones as work lands.
       `bfg_fire` is the Plasma Cannon's sound) / charge / `cov_damage_large` sounds at 0.25, stats
       1000 HE + 400 HE splash r 150, 2.5 s cycle, 900 range, speed 500, 1000 flux, 20 OP). See
       [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md).
-- [ ] **Plasma Bombardment — in-game check** — run the checklist in
-      [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md) (charge, flash,
-      round, impact, splash, volumes; scales are placeholders from the headless harness).
+- [x] **Plasma Bombardment — in-game check** — developer 2026-10-09: "all good" (checklist in
+      [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md); the scales stay
+      placeholders for tuning).
 - [ ] **Plasma Bombardment — mount it** — not on any variant yet; developer to choose ships / slots.
+- [x] **Plasma torpedo launchers — polish** — built 2026-10-09, last weapons-pass item (rulings:
+      stats re-anchored now the splits are gone — light Atropos+ 1200 HE / 2 ammo / 400 su/s / 5 OP,
+      medium Harpoon Pod+ 850 HE × 4 / 12 OP, heavy one 3000 HE hit / 8 ammo / HP 500 / 27 OP; no
+      splash but a **plasma armor melt**: 50 % of the hit again out of the armor within 50 / 75 / 125
+      su over 2 s, molten patch on the hull, yellow numbers; ammo regen 1 per 30 / 60 / 90 s;
+      per-size engines (light Atropos, heavy 45°/s); fire 0.25 / impact 0.3, pitched by size; no dark
+      smoke; tracking hardened: `.proj` onFire + `.wpn` everyFrame onFire + missile-list scan). See
+      [implementations/plasma-torpedo-launchers.md](implementations/plasma-torpedo-launchers.md).
+- [x] **Plasma torpedoes — size looks** — built 2026-10-10 after the first in-game look ("all the
+      same, the heavy does not read as big damage"; rulings: colour + shape per size, not red):
+      light small cyan dart with a thin trail, medium unchanged Reach violet, heavy white-hot head in
+      a breathing magenta halo at look scale 12 (flight, muzzle and impact), louder / deeper hum;
+      muzzle and impact take the size colour, melt patch unchanged. Developer 2026-10-10: "they look
+      ok for now". See "Size looks" in
+      [implementations/plasma-torpedo-launchers.md](implementations/plasma-torpedo-launchers.md).
+- [ ] **Crash on first shield raise near damaged ships — in-game check** — fixed 2026-10-10
+      (`ShieldShader.initQuad` left its VBO bound; vanilla's damage decals use client arrays and
+      LWJGL threw "Cannot use Buffers when Array Buffer Object is enabled"). Damage some armor, then
+      raise a Covenant shield for the first time in the battle: no crash. See
+      [implementations/shield-vbo-crash-fix.md](implementations/shield-vbo-crash-fix.md).
+- [ ] **Plasma torpedo launchers — in-game check** — run the 11-point checklist in
+      [implementations/plasma-torpedo-launchers.md](implementations/plasma-torpedo-launchers.md)
+      (folds in the 2026-10-02 Reach look check; check `starsector.log` for `Plasma torpedo
+      registered by …` / `Plasma torpedo hit …`). Melt glow / ember constants are placeholders from
+      the headless harness.
 - [ ] **Reach curve audit (on request)** — the stock tag dumper printed unclamped curves as raw 0..1
       and unclamped Basic constants as 0 (found 2026-10-09, see
       [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md)); the torpedo,

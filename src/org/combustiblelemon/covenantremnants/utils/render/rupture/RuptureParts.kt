@@ -144,6 +144,37 @@ internal enum class SpriteMaterial(
     /** fireball_smoke.particle: dark smoke, pre-multiplied alpha (drawn alpha-blended). */
     TORPEDO_SMOKE(MODE_TEXTURE_ALPHA, Blend.ALPHA, RuptureTexture.TORPEDO_SMOKE_LARGE),
 
+    // Torpedo size looks (2026-10-10): the palettized parts again, through the light (cyan) and heavy
+    // (magenta-violet) palettes; everything else is recoloured in code (TorpedoStyle).
+    TORPEDO_MUZZLE_ROUND_LIGHT(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_MUZZLE_ROUND,
+        palette = RuptureTexture.TORPEDO_MUZZLE_PALETTE_LIGHT, atlasCells = 2
+    ),
+    TORPEDO_MUZZLE_ROUND_HEAVY(
+        MODE_PALETTE_ADD, Blend.ADDITIVE, RuptureTexture.TORPEDO_MUZZLE_ROUND,
+        palette = RuptureTexture.TORPEDO_MUZZLE_PALETTE_HEAVY, atlasCells = 2
+    ),
+    TORPEDO_FIREBALL_LIGHT(
+        MODE_PALETTE_ALPHA, Blend.ALPHA, RuptureTexture.TORPEDO_FIREBALL_PLATE,
+        palette = RuptureTexture.TORPEDO_FIREBALL_PALETTE_LIGHT, alphaMap = RuptureTexture.TORPEDO_FIREBALL_MASK,
+        warp = 0.8f
+    ),
+    TORPEDO_FIREBALL_HEAVY(
+        MODE_PALETTE_ALPHA, Blend.ALPHA, RuptureTexture.TORPEDO_FIREBALL_PLATE,
+        palette = RuptureTexture.TORPEDO_FIREBALL_PALETTE_HEAVY, alphaMap = RuptureTexture.TORPEDO_FIREBALL_MASK,
+        warp = 0.8f
+    ),
+    TORPEDO_PLASMA_LIGHT(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_256_A, RuptureTexture.TORPEDO_NOISE_256_B,
+        RuptureTexture.TORPEDO_PLASMA_PALETTE_LIGHT, RuptureTexture.TORPEDO_SMOKE_SMALL,
+        NoiseTransform(1.8f, 5f, 1f, 4f, 1f), NoiseTransform(1.5f, 2f, -1f, 3f, 1f), warp = 0.45f
+    ),
+    TORPEDO_PLASMA_HEAVY(
+        MODE_PLASMA, Blend.ADDITIVE, RuptureTexture.NOISE_256_A, RuptureTexture.TORPEDO_NOISE_256_B,
+        RuptureTexture.TORPEDO_PLASMA_PALETTE_HEAVY, RuptureTexture.TORPEDO_SMOKE_SMALL,
+        NoiseTransform(1.8f, 5f, 1f, 4f, 1f), NoiseTransform(1.5f, 2f, -1f, 3f, 1f), warp = 0.45f
+    ),
+
     // --- Plasma Mortar (Halo: Reach Wraith mortar round, see utils/render/torpedo/WraithMortarEffects) ---
 
     /** projectile.contrail_system: flaming_trail ribbon through the wraith_mortar_contrail palette. */
@@ -373,6 +404,14 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     TORPEDO_SPARK(SpriteMaterial.TORPEDO_SPARK),
     TORPEDO_FLARE_SIMPLE(SpriteMaterial.TORPEDO_FLARE_SIMPLE),
     TORPEDO_FLARE_ANAMORPHIC(SpriteMaterial.TORPEDO_FLARE_ANAMORPHIC),
+    // Torpedo size looks (TorpedoStyle): the light / heavy palettized parts and the heavy's halo
+    TORPEDO_MUZZLE_ROUND_LIGHT(SpriteMaterial.TORPEDO_MUZZLE_ROUND_LIGHT),
+    TORPEDO_MUZZLE_ROUND_HEAVY(SpriteMaterial.TORPEDO_MUZZLE_ROUND_HEAVY),
+    TORPEDO_FIREBALL_LIGHT(SpriteMaterial.TORPEDO_FIREBALL_LIGHT),
+    TORPEDO_FIREBALL_HEAVY(SpriteMaterial.TORPEDO_FIREBALL_HEAVY),
+    TORPEDO_PLASMA_LIGHT(SpriteMaterial.TORPEDO_PLASMA_LIGHT),
+    TORPEDO_PLASMA_HEAVY(SpriteMaterial.TORPEDO_PLASMA_HEAVY),
+    TORPEDO_HALO(SpriteMaterial.TORPEDO_BODY),
 
     // Plasma Mortar (utils/render/torpedo/WraithMortarEffects; body / star / plasma / embers reuse the kinds above + SPARK)
     WRAITH_PLASMA_TRAIL(SpriteMaterial.WRAITH_PLASMA_TRAIL),
@@ -429,7 +468,13 @@ internal enum class SpriteKind(val material: SpriteMaterial) {
     ARTILLERY_SPARK(SpriteMaterial.TORPEDO_SPARK),
     ARTILLERY_SPARK_LONG(SpriteMaterial.TORPEDO_SPARK),
     ARTILLERY_GLOW(SpriteMaterial.TORPEDO_BODY),
-    ARTILLERY_LIGHT(SpriteMaterial.TORPEDO_BODY)
+    ARTILLERY_LIGHT(SpriteMaterial.TORPEDO_BODY),
+
+    // Plasma torpedo armor melt (utils/render/torpedo/MeltEffects): the molten patch on the hull
+    MELT_GLOW(SpriteMaterial.TORPEDO_BODY),
+    MELT_CORE(SpriteMaterial.TORPEDO_BODY),
+    MELT_PLASMA(SpriteMaterial.TORPEDO_PLASMA),
+    MELT_EMBER(SpriteMaterial.TORPEDO_SPARK)
 }
 
 /**

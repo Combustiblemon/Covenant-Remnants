@@ -166,6 +166,9 @@ Not on any variant: give it with `CovenantGiveAll` and fit a large energy slot.
 If something does not draw: `starsector.log` should show `Bombardment round picked up from the
 projectile list` once, and up to three `Bombardment round ended after …` lines.
 
+**Result:** developer 2026-10-09, "all good" — checklist passed; the scales stay placeholders for the
+tuning pass.
+
 ## Open items
 
 - Numbers placeholder until the balance pass (splash, cycle, speed).

@@ -14,6 +14,6 @@
   "renderHints": ["RENDER_LOADED_MISSILES"],
   "interruptibleBurst": false,
   "projectileSpecId": "covenant_remnants_plasmatorpedo",
-  "onFireEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire",
+  "everyFrameEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoEffect",
   "fireSoundTwo": "covenant_remnants_plasma_torpedo_fire"
 }

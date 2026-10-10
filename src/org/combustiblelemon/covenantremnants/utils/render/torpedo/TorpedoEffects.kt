@@ -14,6 +14,7 @@ import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -24,16 +25,7 @@ import kotlin.math.sqrt
  * `assets/reference/plasma-torpedo/reach-data/spec.md`).
  */
 internal object TorpedoLook {
-    // Starsector units per Reach unit, by weapon size. Placeholders (tuning comes later).
-    private const val UNIT_SMALL = 3f
-    private const val UNIT_MEDIUM = 5f
-    private const val UNIT_LARGE = 8f
-
-    fun unitFor(size: WeaponAPI.WeaponSize): Float = when (size) {
-        WeaponAPI.WeaponSize.SMALL -> UNIT_SMALL
-        WeaponAPI.WeaponSize.MEDIUM -> UNIT_MEDIUM
-        WeaponAPI.WeaponSize.LARGE -> UNIT_LARGE
-    }
+    fun unitFor(size: WeaponAPI.WeaponSize): Float = TorpedoSize.forWeapon(size).unit
 
     private fun hash(n: Int): Float {
         var h = n * 374761393 + 668265263
@@ -52,11 +44,157 @@ internal object TorpedoLook {
 }
 
 /**
+ * The three plasma torpedoes by launcher size (launcher polish, developer 2026-10-09): [unit] =
+ * Starsector units per Reach unit for the look (placeholders, 2026-10-02; heavy 8 -> 12 on
+ * 2026-10-10), [meltRadius] = the armor melt radius in su, [pitch] = the fire / impact sound pitch
+ * (the fire pitch lives in sounds.json), [style] = the size's look, [loopId] = its in-flight hum.
+ */
+internal enum class TorpedoSize(
+    val specId: String,
+    val unit: Float,
+    val meltRadius: Float,
+    val pitch: Float,
+    val style: TorpedoStyle,
+    val loopId: String
+) {
+    LIGHT("covenant_remnants_plasmatorpedo_light", 3f, 50f, 1.15f, TorpedoStyle.LIGHT, LOOP),
+    MEDIUM("covenant_remnants_plasmatorpedo", 5f, 75f, 1f, TorpedoStyle.REACH, LOOP),
+    HEAVY("covenant_remnants_plasmatorpedo_heavy", 12f, 125f, 0.85f, TorpedoStyle.HEAVY, LOOP_HEAVY);
+
+    companion object {
+        fun forSpec(id: String?): TorpedoSize? = entries.firstOrNull { it.specId == id }
+
+        fun forWeapon(size: WeaponAPI.WeaponSize): TorpedoSize = when (size) {
+            WeaponAPI.WeaponSize.SMALL -> LIGHT
+            WeaponAPI.WeaponSize.MEDIUM -> MEDIUM
+            WeaponAPI.WeaponSize.LARGE -> HEAVY
+        }
+    }
+}
+
+// In-flight hums (sounds.json): the Reach space Phantom torpedo loop; the heavy's louder and deeper.
+private const val LOOP = "covenant_remnants_plasma_torpedo_loop"
+private const val LOOP_HEAVY = "covenant_remnants_plasma_torpedo_loop_heavy"
+
+/**
+ * Recolouring of the Reach torpedo look per size (developer 2026-10-10: colour + shape per size,
+ * not red). Only cool hues move: full weight 180-320 deg, fading to none at 160 / 340, so the warm
+ * Reach accents (salmon body tail, orange trail flash and sparks) and whites stay; a moved hue never
+ * passes [HUE_MIN] / [HUE_MAX] (pinks would wrap into salmon, blues into green). The palette PNGs
+ * `*_light` / `*_heavy` in graphics/fx/plasma_torpedo were made offline with the same function.
+ */
+internal object TorpedoHue {
+    private const val BAND_START = 160f
+    private const val BAND_FULL_START = 180f
+    private const val BAND_FULL_END = 320f
+    private const val BAND_END = 340f
+    private const val HUE_MIN = 185f
+    private const val HUE_MAX = 325f
+
+    private fun band(hue: Float): Float {
+        val rise = ((hue - BAND_START) / (BAND_FULL_START - BAND_START)).coerceIn(0f, 1f)
+        val fall = ((BAND_END - hue) / (BAND_END - BAND_FULL_END)).coerceIn(0f, 1f)
+        return rise * fall
+    }
+
+    /** Shifts the cool hue of [color] (linear RGB, HDR allowed) by [degrees], in place. */
+    fun shift(color: FloatArray, degrees: Float) {
+        if (degrees == 0f) return
+        val r = color[0]
+        val g = color[1]
+        val b = color[2]
+        val value = max(r, max(g, b))
+        val delta = value - min(r, min(g, b))
+        if (value <= 0f || delta <= 0f) return
+        var hue = when (value) {
+            r -> 60f * (((g - b) / delta) % 6f)
+            g -> 60f * ((b - r) / delta + 2f)
+            else -> 60f * ((r - g) / delta + 4f)
+        }
+        if (hue < 0f) hue += 360f
+        val weight = band(hue)
+        if (weight <= 0f) return
+        var moved = hue + degrees * weight
+        moved = if (degrees > 0f) min(moved, max(hue, HUE_MAX)) else max(moved, min(hue, HUE_MIN))
+        moved = ((moved % 360f) + 360f) % 360f
+        val saturation = delta / value
+        val sector = moved / 60f
+        val i = floor(sector).toInt() % 6
+        val f = sector - floor(sector)
+        val p = value * (1f - saturation)
+        val q = value * (1f - saturation * f)
+        val t = value * (1f - saturation * (1f - f))
+        when (i) {
+            0 -> { color[0] = value; color[1] = t; color[2] = p }
+            1 -> { color[0] = q; color[1] = value; color[2] = p }
+            2 -> { color[0] = p; color[1] = value; color[2] = t }
+            3 -> { color[0] = p; color[1] = q; color[2] = value }
+            4 -> { color[0] = t; color[1] = p; color[2] = value }
+            else -> { color[0] = value; color[1] = p; color[2] = q }
+        }
+    }
+
+    /** Blends [color] toward white at its own brightness (its brightest channel) by [amount] 0..1. */
+    fun whiten(color: FloatArray, amount: Float) {
+        if (amount <= 0f) return
+        val value = max(color[0], max(color[1], color[2]))
+        for (c in 0..2) color[c] += (value - color[c]) * amount
+    }
+}
+
+/**
+ * One torpedo size's look on top of the Reach torpedo (developer 2026-10-10): [hueShift] for
+ * [TorpedoHue], [headWhiten] = how far the head (star flare, body front, trail head) goes white,
+ * [intensity] = flight glow multiplier, [trailWidth] / [trailLife] / [bodyThickness] = shape
+ * multipliers, [halo] = the heavy's breathing glow, and the sprite kinds of its palettized parts.
+ * [REACH] is the unchanged 2026-10-02 look (medium torpedo, Plasma Cannon splash). Placeholders.
+ */
+internal class TorpedoStyle(
+    val hueShift: Float,
+    val headWhiten: Float,
+    val intensity: Float,
+    val trailWidth: Float,
+    val trailLife: Float,
+    val bodyThickness: Float,
+    val halo: Boolean,
+    val muzzleRoundKind: SpriteKind,
+    val fireballKind: SpriteKind,
+    val plasmaKind: SpriteKind
+) {
+    /** Recolours [color] in place: the hue shift, then [whiten] toward white. */
+    fun tint(color: FloatArray, whiten: Float = 0f) {
+        TorpedoHue.shift(color, hueShift)
+        TorpedoHue.whiten(color, whiten)
+    }
+
+    companion object {
+        val REACH = TorpedoStyle(
+            0f, 0f, 1f, 1f, 1f, 1f, false,
+            SpriteKind.TORPEDO_MUZZLE_ROUND, SpriteKind.TORPEDO_FIREBALL, SpriteKind.TORPEDO_PLASMA
+        )
+
+        /** Light: a small cyan-blue dart, thin short trail. */
+        val LIGHT = TorpedoStyle(
+            -40f, 0f, 1f, 0.6f, 0.5f, 0.7f, false,
+            SpriteKind.TORPEDO_MUZZLE_ROUND_LIGHT, SpriteKind.TORPEDO_FIREBALL_LIGHT, SpriteKind.TORPEDO_PLASMA_LIGHT
+        )
+
+        /** Heavy: white-hot head, deep magenta-violet body / trail / halo, brighter. */
+        val HEAVY = TorpedoStyle(
+            60f, 0.6f, 1.3f, 1f, 1f, 1f, true,
+            SpriteKind.TORPEDO_MUZZLE_ROUND_HEAVY, SpriteKind.TORPEDO_FIREBALL_HEAVY, SpriteKind.TORPEDO_PLASMA_HEAVY
+        )
+    }
+}
+
+/**
  * One torpedo in flight: `projectile.light_volume_system` (the hot_core body: glows along the
  * travel axis), `projectile.lens_flare` (a star flare) and `projectile.contrail_system` (a ribbon).
  * The body and flare follow the missile; the trail outlives it until its last point has aged out.
+ * The [size]'s [TorpedoStyle] recolours and reshapes it (2026-10-10); the heavy adds a breathing
+ * [halo] around the head.
  */
-internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
+internal class TorpedoFlight(val missile: MissileAPI, val size: TorpedoSize) {
     private companion object {
         // hot_core: 8 Reach units long, starting 6.7 behind the projectile, 3 profiles per unit.
         const val BODY_LENGTH = 8f
@@ -79,11 +217,25 @@ internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
         const val TRAIL_MAX_SPACING = 2f
         const val FADE_TIME = 0.5f
         const val TRAIL_CAPACITY = 128
+
+        // Heavy halo (not in the tags, developer 2026-10-10): a soft glow at the head, HALO_RADIUS Reach
+        // units, breathing +-HALO_BREATH at HALO_RATE Hz, the star colour shifted to the size's hue.
+        // Placeholders.
+        const val HALO_RADIUS = 5f
+        const val HALO_BREATH = 0.25f
+        const val HALO_RATE = 2f
+        const val HALO_INTENSITY = 1f
+        const val HALO_ALPHA = 0.7f
     }
+
+    val unit = size.unit
+    val style = size.style
+    private val trailLife = TRAIL_LIFE * style.trailLife
 
     private val profiles = (BODY_LENGTH * BODY_DENSITY).toInt()
     val body = Array(profiles) { RuptureSprite(SpriteKind.TORPEDO_BODY) }
     val star = RuptureSprite(SpriteKind.TORPEDO_STAR)
+    val halo: RuptureSprite? = if (style.halo) RuptureSprite(SpriteKind.TORPEDO_HALO) else null
 
     private val trailX = FloatArray(TRAIL_CAPACITY)
     private val trailY = FloatArray(TRAIL_CAPACITY)
@@ -103,6 +255,17 @@ internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
     private var fade = 1f
     private var emitting = true
 
+    /** Impact sound pitch factor of the launcher size ([TorpedoSize.pitch]). */
+    val pitch: Float get() = size.pitch
+
+    /** Where the torpedo struck (its on-hit point); the impact burst is drawn there when known. */
+    var hitPoint: Vector2f? = null
+
+    /** Seconds since launch, and whether the missile was ever seen in play (a fresh one may not be yet). */
+    var age = 0f
+        private set
+    var seenInPlay = false
+
     val isDone: Boolean get() = !flying && trailCount == 0
 
     fun end() {
@@ -110,11 +273,13 @@ internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
         emitting = false
         for (s in body) s.alpha = 0f
         star.alpha = 0f
+        halo?.alpha = 0f
     }
 
     fun advance(dt: Float) {
+        age += dt
         for (i in 0 until trailCount) trailAge[(trailStart + i) % TRAIL_CAPACITY] += dt
-        while (trailCount > 0 && trailAge[trailStart] >= TRAIL_LIFE) {
+        while (trailCount > 0 && trailAge[trailStart] >= trailLife) {
             trailStart = (trailStart + 1) % TRAIL_CAPACITY
             trailCount--
         }
@@ -167,10 +332,11 @@ internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
             s.x = location.x + dirX * along
             s.y = location.y + dirY * along
             s.angle = facing
-            s.halfLength = TorpedoCurves.BODY_THICKNESS.at(p) * unit
+            s.halfLength = TorpedoCurves.BODY_THICKNESS.at(p) * unit * style.bodyThickness
             s.halfWidth = s.halfLength
             TorpedoCurves.BODY_COLOR.at(p, color)
-            val intensity = TorpedoCurves.BODY_INTENSITY.at(p)
+            style.tint(color, style.headWhiten * p * p)
+            val intensity = TorpedoCurves.BODY_INTENSITY.at(p) * style.intensity
             for (c in 0..2) s.color[c] = color[c] * intensity
             s.alpha = TorpedoCurves.BODY_ALPHA.at(p) * fade
         }
@@ -179,8 +345,21 @@ internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
         star.angle = 0f
         star.halfLength = STAR_RADIUS * unit
         star.halfWidth = star.halfLength
-        STAR_COLOR.copyInto(star.color)
+        STAR_COLOR.copyInto(color)
+        style.tint(color, style.headWhiten)
+        for (c in 0..2) star.color[c] = color[c] * style.intensity
         star.alpha = fade
+        halo?.let { h ->
+            h.x = location.x
+            h.y = location.y
+            h.angle = 0f
+            h.halfLength = HALO_RADIUS * unit * (1f + HALO_BREATH * sin(2f * PI.toFloat() * HALO_RATE * age))
+            h.halfWidth = h.halfLength
+            STAR_COLOR.copyInto(color)
+            style.tint(color)
+            for (c in 0..2) h.color[c] = color[c] * HALO_INTENSITY
+            h.alpha = HALO_ALPHA * fade
+        }
     }
 
     /**
@@ -201,14 +380,15 @@ internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
     }
 
     private fun writeTrailPoint(out: FloatArray, n: Int, x: Float, y: Float, age: Float, u: Float, time: Float): Int {
-        val a = age / TRAIL_LIFE
+        val a = min(1f, age / trailLife)
         val o = n * RIBBON_STRIDE
         out[o] = x
         out[o + 1] = y
-        out[o + 2] = TorpedoCurves.TRAIL_SIZE.at(a) * 0.5f * unit
+        out[o + 2] = TorpedoCurves.TRAIL_SIZE.at(a) * 0.5f * unit * style.trailWidth
         out[o + 3] = u + TRAIL_SCROLL * time
         TorpedoCurves.TRAIL_COLOR.at(a, color)
-        val intensity = TorpedoCurves.TRAIL_INTENSITY.at(a)
+        style.tint(color, style.headWhiten * (1f - a) * (1f - a))
+        val intensity = TorpedoCurves.TRAIL_INTENSITY.at(a) * style.intensity
         out[o + 4] = color[0] * intensity
         out[o + 5] = color[1] * intensity
         out[o + 6] = color[2] * intensity
@@ -228,9 +408,10 @@ internal class TorpedoFlight(val missile: MissileAPI, val unit: Float) {
 
 /**
  * A one-shot particle burst: the muzzle (`firing.effect`) or the impact (`impact.effect`). Sprites
- * carry world positions; `phase` holds a sprite's spin (rad/s), `random2` its second random.
+ * carry world positions; `phase` holds a sprite's spin (rad/s), `random2` its second random. The
+ * [style] recolours it per torpedo size (2026-10-10; sparks stay orange).
  */
-internal class TorpedoBurst private constructor(private val unit: Float) {
+internal class TorpedoBurst private constructor(private val unit: Float, private val style: TorpedoStyle) {
     val sprites = ArrayList<RuptureSprite>()
     val isDone: Boolean get() = sprites.isEmpty()
 
@@ -270,15 +451,17 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
         private const val ANAMORPHIC_ASPECT = 0.25f
         private val ANAMORPHIC_COLOR = floatArrayOf(0.169f, 0.194f, 1f)
 
-        fun muzzle(location: Vector2f, facing: Float, unit: Float): TorpedoBurst {
-            val burst = TorpedoBurst(unit)
+        fun muzzle(location: Vector2f, facing: Float, unit: Float, style: TorpedoStyle = TorpedoStyle.REACH): TorpedoBurst {
+            val burst = TorpedoBurst(unit, style)
             burst.spawnMuzzle(location.x, location.y, facing)
             return burst
         }
 
         /** The impact; [smoke] false leaves out the dark smoke (the Plasma Cannon splash, developer 2026-10-09). */
-        fun impact(location: Vector2f, unit: Float, smoke: Boolean = true): TorpedoBurst {
-            val burst = TorpedoBurst(unit)
+        fun impact(
+            location: Vector2f, unit: Float, smoke: Boolean = true, style: TorpedoStyle = TorpedoStyle.REACH
+        ): TorpedoBurst {
+            val burst = TorpedoBurst(unit, style)
             burst.spawnImpact(location.x, location.y, smoke)
             return burst
         }
@@ -318,7 +501,7 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
 
     private fun spawnMuzzle(x: Float, y: Float, facing: Float) {
         repeat(MUZZLE_ROUNDS) { frame ->
-            val s = spawn(SpriteKind.TORPEDO_MUZZLE_ROUND, x, y, rand(0.025f, 0.15f), rand(1f, 3f) * unit)
+            val s = spawn(style.muzzleRoundKind, x, y, rand(0.025f, 0.15f), rand(1f, 3f) * unit)
             s.frame = frame
             s.angle = Math.toRadians((facing + rand(-MUZZLE_ROUND_CONE, MUZZLE_ROUND_CONE)).toDouble()).toFloat()
         }
@@ -331,10 +514,10 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
             spawnOutward(SpriteKind.TORPEDO_SMOKE, x, y, 6f, 12f, 22f, 2f, rand(1.5f, 2f), rand(3.75f, 5f), 0.05f)
         }
         repeat(IMPACT_PARTICLES) {
-            spawnOutward(SpriteKind.TORPEDO_FIREBALL, x, y, 3f, 5f, 10f, 3f, rand(1.2f, 2f), rand(1.75f, 2.25f), 0.1f)
+            spawnOutward(style.fireballKind, x, y, 3f, 5f, 10f, 3f, rand(1.2f, 2f), rand(1.75f, 2.25f), 0.1f)
         }
         repeat(IMPACT_PARTICLES) {
-            spawnOutward(SpriteKind.TORPEDO_PLASMA, x, y, 3f, 5f, 10f, 2.5f, rand(1.25f, 1.8f), rand(2.5f, 3.5f), 0.07f)
+            spawnOutward(style.plasmaKind, x, y, 3f, 5f, 10f, 2.5f, rand(1.25f, 1.8f), rand(2.5f, 3.5f), 0.07f)
         }
         repeat(IMPACT_SPARKS) {
             // cheap particle sizes 0.01-0.03 × its particle scale modifier 15
@@ -367,10 +550,11 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
 
     private fun update(s: RuptureSprite, x: Float) {
         when (s.kind) {
-            SpriteKind.TORPEDO_MUZZLE_ROUND -> {
+            SpriteKind.TORPEDO_MUZZLE_ROUND, SpriteKind.TORPEDO_MUZZLE_ROUND_LIGHT, SpriteKind.TORPEDO_MUZZLE_ROUND_HEAVY -> {
                 s.halfLength = s.baseSize * 0.5f * x
                 s.halfWidth = s.halfLength
                 TorpedoCurves.MUZZLE_ROUND_TINT.at(x, color)
+                style.tint(color)
                 for (c in 0..2) s.color[c] = color[c] * MUZZLE_ROUND_INTENSITY
                 s.alpha = TorpedoCurves.MUZZLE_ROUND_ALPHA.at(x)
                 val dim = TorpedoCurves.MUZZLE_ROUND_BLACK_POINT_DIM.at(x)
@@ -381,14 +565,16 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
                 s.halfLength = s.baseSize * 0.5f * (1f - 0.5f * x)
                 s.halfWidth = s.halfLength
                 MUZZLE_FLASH_COLOR.copyInto(s.color)
+                style.tint(s.color)
                 s.alpha = TorpedoCurves.MUZZLE_FLASH_ALPHA.at(x)
             }
-            SpriteKind.TORPEDO_FIREBALL -> {
+            SpriteKind.TORPEDO_FIREBALL, SpriteKind.TORPEDO_FIREBALL_LIGHT, SpriteKind.TORPEDO_FIREBALL_HEAVY -> {
                 val small = TorpedoCurves.FIREBALL_SCALE_B.at(x)
                 val scale = small + (TorpedoCurves.FIREBALL_SCALE_A.at(x) - small) * s.random
                 s.halfLength = s.baseSize * 0.5f * scale
                 s.halfWidth = s.halfLength
                 TorpedoCurves.FIREBALL_TINT.at(x, color)
+                style.tint(color)
                 val intensity = TorpedoCurves.FIREBALL_INTENSITY.at(x)
                 for (c in 0..2) s.color[c] = color[c] * intensity
                 s.alpha = TorpedoCurves.FIREBALL_ALPHA.at(x)
@@ -397,10 +583,11 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
                 s.paletteV = slow + (TorpedoCurves.FIREBALL_PALETTE_A.at(x) - slow) * s.random2
                 s.uvScale = 0.2f + 1f * x
             }
-            SpriteKind.TORPEDO_PLASMA -> {
+            SpriteKind.TORPEDO_PLASMA, SpriteKind.TORPEDO_PLASMA_LIGHT, SpriteKind.TORPEDO_PLASMA_HEAVY -> {
                 s.halfLength = s.baseSize * 0.5f * TorpedoCurves.PLASMA_SCALE.at(x)
                 s.halfWidth = s.halfLength
                 TorpedoCurves.PLASMA_COLOR.at(x, color)
+                style.tint(color)
                 val wander = -0.25f + 1.25f * TorpedoLook.noise(s.age + s.random2 * 50f, salt)
                 val intensity = PLASMA_FLICKER * max(0f, wander)
                 for (c in 0..2) s.color[c] = color[c] * intensity
@@ -435,6 +622,7 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
                 s.halfLength = TorpedoCurves.FLARE_RADIUS.at(u) * unit
                 s.halfWidth = s.halfLength
                 TorpedoCurves.FLARE_COLOR.at(u, color)
+                style.tint(color)
                 val brightness = TorpedoCurves.FLARE_BRIGHTNESS.at(u)
                 for (c in 0..2) s.color[c] = color[c] * brightness
                 s.alpha = 1f
@@ -444,7 +632,9 @@ internal class TorpedoBurst private constructor(private val unit: Float) {
                 s.halfLength = ANAMORPHIC_RADIUS * unit
                 s.halfWidth = s.halfLength * ANAMORPHIC_ASPECT
                 val brightness = TorpedoCurves.ANAMORPHIC_BRIGHTNESS.at(u)
-                for (c in 0..2) s.color[c] = ANAMORPHIC_COLOR[c] * brightness
+                ANAMORPHIC_COLOR.copyInto(color)
+                style.tint(color)
+                for (c in 0..2) s.color[c] = color[c] * brightness
                 s.alpha = 1f
             }
             else -> {}

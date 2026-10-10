@@ -15,6 +15,6 @@
   "interruptibleBurst": false,
   "displayArcRadius": 300,
   "projectileSpecId": "covenant_remnants_plasmatorpedo_heavy",
-  "onFireEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire",
-  "fireSoundTwo": "covenant_remnants_plasma_torpedo_fire"
+  "everyFrameEffect": "org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoEffect",
+  "fireSoundTwo": "covenant_remnants_plasma_torpedo_fire_heavy"
 }

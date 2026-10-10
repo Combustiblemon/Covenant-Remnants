@@ -137,6 +137,11 @@ class ShieldShader(
         glEnableVertexAttribArray(0)
 
         glBindVertexArray(0)
+        // Leave no array buffer bound (the VAO keeps its own reference). This runs when the shield is
+        // first raised in a battle, before the ships are drawn; vanilla draws armor damage decals
+        // with client-side arrays (settings forceNoVBO), and LWJGL refuses those while an array
+        // buffer is bound ("Cannot use Buffers when Array Buffer Object is enabled", 2026-10-10 crash).
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
     }
 
     private fun updateQuadVertices() {

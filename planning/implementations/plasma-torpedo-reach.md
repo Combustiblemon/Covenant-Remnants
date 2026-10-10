@@ -1,5 +1,11 @@
 # Implementation — plasma torpedoes, Halo: Reach space Phantom look (2026-10-02)
 
+> **Superseded in part (2026-10-09):** the launcher polish
+> ([plasma-torpedo-launchers.md](plasma-torpedo-launchers.md)) re-ruled the numbers (the damage open
+> item below), dropped the dark impact smoke, lowered the fire / impact volumes (pitched by size),
+> added a plasma armor melt on hits, moved the on-fire hook into the `.proj` (plus an every-frame
+> hook and a missile-list scan), and folded this page's in-game checklist into its own.
+
 The three plasma torpedoes (`covenant_remnants_plasmatorpedo_light` / `_plasmatorpedo` /
 `_plasmatorpedo_heavy`) get the look of the plasma torpedoes the space Phantoms fire at Anchor 9's
 AA guns in m45 (Long Night of Solace), remade from the official Reach editing kit's tags.

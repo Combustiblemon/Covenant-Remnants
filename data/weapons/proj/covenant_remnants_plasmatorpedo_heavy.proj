@@ -11,9 +11,16 @@
 	# No vanilla explosion: the Reach impact is drawn instead.
 	"explosionColor":[0,0,0,0],
 	"explosionRadius":0,
-	# Movement from vanilla type_1_mirv (the missile this weapon used before 2026-10-02).
-	"engineSpec":{"turnAcc":600,
-				  "turnRate":150,
+	# Hands the torpedo to TorpedoRenderPlugin (vanilla keeps missile onFire hooks in the .proj; the
+	# launcher's everyFrameEffect PlasmaTorpedoEffect registers it too, duplicates are skipped).
+	"onFireEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire",
+	# Plasma armor melt around the hit (planning/implementations/plasma-torpedo-launchers.md).
+	"onHitEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnHit",
+	# Launcher polish 2026-10-09: a ponderous heavy torpedo. Turns 45 deg/s (the Reach Phantom torpedo
+	# turns 30-60), turn acceleration 3x the turn rate (vanilla harpoon_mrm's ratio), MIRV-carrier
+	# acceleration and deceleration (vanilla type_1_mirv).
+	"engineSpec":{"turnAcc":135,
+				  "turnRate":45,
 				  "acc":250,
 				  "dec":200},
 	"engineSlots":[]

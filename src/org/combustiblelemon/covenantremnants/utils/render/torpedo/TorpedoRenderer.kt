@@ -11,8 +11,9 @@ import org.combustiblelemon.covenantremnants.utils.render.rupture.SpriteMaterial
 /**
  * Draws every live torpedo ([TorpedoFlight]), Plasma Cannon round ([CannonFlight]), Plasma Mortar
  * round ([WraithFlight]), Plasma Bombardment round / charge / burst ([BombardFlight],
- * [BombardCharge], [ArtilleryBurst]) and burst ([TorpedoBurst]) with the shared Reach sprite program
- * ([RupturePrograms.sprites]) inside the common GL state wrap ([SpriteGlState]). Order: trails,
+ * [BombardCharge], [ArtilleryBurst]), burst ([TorpedoBurst]) and torpedo melt patch ([MeltPatch])
+ * with the shared Reach sprite program ([RupturePrograms.sprites]) inside the common GL state wrap
+ * ([SpriteGlState]). Order: trails,
  * impact smoke and fireballs (alpha-blended), plasma gas, impact plasma + cannon wisps + charge
  * plasma / bolts, bodies, glows and star flares, muzzle flashes, sparks, impact flares.
  */
@@ -24,11 +25,15 @@ internal class TorpedoRenderer {
         val BURST_ORDER = listOf(
             SpriteMaterial.TORPEDO_SMOKE,
             SpriteMaterial.TORPEDO_FIREBALL,
+            SpriteMaterial.TORPEDO_FIREBALL_LIGHT,
+            SpriteMaterial.TORPEDO_FIREBALL_HEAVY,
             SpriteMaterial.ARTILLERY_FIREBALL
         )
         // Additive plasma passes after the puffs / gas (TORPEDO_PLASMA first, as before the Bombardment).
         val PLASMA_ORDER = listOf(
             SpriteMaterial.TORPEDO_PLASMA,
+            SpriteMaterial.TORPEDO_PLASMA_LIGHT,
+            SpriteMaterial.TORPEDO_PLASMA_HEAVY,
             SpriteMaterial.PROJECTOR_BLUE,
             SpriteMaterial.BOMBARD_PULSE,
             SpriteMaterial.BOMBARD_CORE,
@@ -39,6 +44,8 @@ internal class TorpedoRenderer {
             SpriteMaterial.PROJECTOR_FLASH,
             SpriteMaterial.BOMBARD_MUZZLE,
             SpriteMaterial.TORPEDO_MUZZLE_ROUND,
+            SpriteMaterial.TORPEDO_MUZZLE_ROUND_LIGHT,
+            SpriteMaterial.TORPEDO_MUZZLE_ROUND_HEAVY,
             SpriteMaterial.TORPEDO_SPARK,
             SpriteMaterial.TORPEDO_FLARE_SIMPLE,
             SpriteMaterial.TORPEDO_FLARE_ANAMORPHIC
@@ -61,10 +68,11 @@ internal class TorpedoRenderer {
         charges: Collection<BombardCharge>,
         artillery: List<ArtilleryBurst>,
         bursts: List<TorpedoBurst>,
+        melts: List<MeltPatch>,
         time: Float
     ) {
         if (flights.isEmpty() && cannons.isEmpty() && wraiths.isEmpty() && bombards.isEmpty() &&
-            charges.isEmpty() && artillery.isEmpty() && bursts.isEmpty()
+            charges.isEmpty() && artillery.isEmpty() && bursts.isEmpty() && melts.isEmpty()
         ) return
         val view = RuptureView(viewport)
 
@@ -98,6 +106,7 @@ internal class TorpedoRenderer {
             for (burst in artillery) burstSprites.addAll(burst.sprites)
             for (charge in charges) burstSprites.addAll(charge.sprites)
             for (bombard in bombards) bombard.addSprites(burstSprites)
+            for (melt in melts) burstSprites.addAll(melt.sprites)
             plasmaSprites.clear()
             plasmaSprites.addAll(burstSprites)
             for (cannon in cannons) plasmaSprites.addAll(cannon.wisps)
@@ -111,6 +120,7 @@ internal class TorpedoRenderer {
             bodySprites.clear()
             for (flight in flights) {
                 if (!flight.flying) continue
+                flight.halo?.let { bodySprites.add(it) }
                 bodySprites.addAll(flight.body)
                 bodySprites.add(flight.star)
             }

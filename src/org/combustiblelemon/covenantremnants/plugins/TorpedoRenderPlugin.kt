@@ -7,30 +7,36 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.CombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.MissileAPI
+import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.ArtilleryBurst
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.AuraStyle
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.BombardCharge
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.BombardFlight
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.CannonFlight
+import org.combustiblelemon.covenantremnants.utils.render.torpedo.MeltPatch
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoBurst
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoFlight
-import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoLook
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoRenderer
+import org.combustiblelemon.covenantremnants.utils.render.torpedo.TorpedoSize
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.WraithFlight
+import org.combustiblelemon.covenantremnants.weapons.MeltBurn
 import org.combustiblelemon.covenantremnants.weapons.PlasmaBombardmentOnHit
 import org.combustiblelemon.covenantremnants.weapons.PlasmaMortarOnHit
+import org.lazywizard.lazylib.CollisionUtils
 import org.lwjgl.util.vector.Vector2f
 import java.util.EnumSet
 import kotlin.random.Random
 
 /**
- * One-per-combat owner of the plasma torpedoes' Halo: Reach look (created on the first launch by
- * [org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire]). Follows every torpedo:
- * muzzle flash at launch, body/flare/trail and the in-flight hum while it flies, and when it is
- * gone the impact and explosion sound if it hit or was shot down (a torpedo that runs out of fuel
- * just fades). Also draws the Plasma Cannon rounds' energy aura ([CannonFlight]), the Plasma Mortar
+ * One-per-combat owner of the plasma torpedoes' Halo: Reach look (created by the launchers'
+ * every-frame hook [org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoEffect]). Follows
+ * every torpedo: muzzle flash at launch, body/flare/trail and the in-flight hum while it flies, and
+ * when it is gone the impact and explosion sound if it hit or was shot down (a torpedo that runs
+ * out of fuel just fades); runs and draws the plasma armor melt of their hits ([MeltBurn],
+ * [MeltPatch]). Also draws the Plasma Cannon rounds' energy aura ([CannonFlight]), the Plasma Mortar
  * rounds' Reach Wraith look ([WraithFlight]), the Plasma Bombardment's Reach AA gun charge, firing
  * flash, round and detonation ([BombardCharge], [BombardFlight], [ArtilleryBurst]) and the hit
  * splashes. Drawn above ships and missiles.
@@ -38,7 +44,6 @@ import kotlin.random.Random
 class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     companion object {
         private const val KEY = "covenant_remnants_torpedo_render_plugin"
-        const val SOUND_LOOP = "covenant_remnants_plasma_torpedo_loop"
         const val SOUND_IMPACT = "covenant_remnants_plasma_torpedo_impact"
 
         // Reach: the hum fades in and out over 0.2 s; the explosion pitches 0 to -2 semitones down.
@@ -56,6 +61,11 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
         // projectile list, the .wpn onFireEffect is not called for them).
         private const val BOMBARD_SHOT_ID = "covenant_remnants_plasmabombardment_shot"
 
+        // Plasma torpedoes: give up on one never seen in play after this long (as the Wraith rounds);
+        // log the first few hits (the melt trigger reads the hit's damage result).
+        private const val TORPEDO_UNSEEN_TIMEOUT = 3f
+        private const val TORPEDO_LOGGED_HITS = 3
+
         fun forEngine(engine: CombatEngineAPI): TorpedoRenderPlugin {
             (engine.customData[KEY] as? TorpedoRenderPlugin)?.let { return it }
             val plugin = TorpedoRenderPlugin()
@@ -67,6 +77,12 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
 
     private val log = Global.getLogger(TorpedoRenderPlugin::class.java)
     private val flights = ArrayList<TorpedoFlight>()
+    private val torpedoes = HashMap<MissileAPI, TorpedoFlight>()
+    private val torpedoPathsLogged = HashSet<String>()
+    private var torpedoHitsLogged = 0
+    private val melts = ArrayList<MeltSession>()
+    private val meltPatches = ArrayList<MeltPatch>()
+    private val meltDirty = LinkedHashSet<ShipAPI>()
     private val cannons = ArrayList<CannonFlight>()
     private val wraiths = ArrayList<WraithFlight>()
     private val wraithRounds = HashSet<DamagingProjectileAPI>()
@@ -83,10 +99,101 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     private val renderer = TorpedoRenderer()
     private var time = 0f
 
-    fun launch(missile: MissileAPI, weapon: WeaponAPI) {
-        val unit = TorpedoLook.unitFor(weapon.size)
-        flights.add(TorpedoFlight(missile, unit))
-        bursts.add(TorpedoBurst.muzzle(missile.location, missile.facing, unit))
+    /**
+     * Starts following a plasma torpedo (muzzle flash + flight). Called by the launchers' on-fire
+     * paths ([via] names the path for the log): the `.proj` onFireEffect and the `.wpn`
+     * everyFrameEffect (the engine calls both, obf weapon fire), plus the missile-list scan here;
+     * a torpedo already followed is skipped.
+     */
+    fun launch(missile: MissileAPI, weapon: WeaponAPI?, via: String) {
+        val size = TorpedoSize.forSpec(missile.projectileSpecId)
+            ?: weapon?.let { TorpedoSize.forWeapon(it.size) } ?: return
+        register(missile, size, via, missile.location)
+    }
+
+    private fun register(missile: MissileAPI, size: TorpedoSize, via: String, muzzle: Vector2f) {
+        if (missile in torpedoes) return
+        if (torpedoPathsLogged.add(via)) {
+            log.info("Plasma torpedo registered by $via: ${missile.projectileSpecId} at ${missile.location}")
+        }
+        val flight = TorpedoFlight(missile, size)
+        torpedoes[missile] = flight
+        flights.add(flight)
+        bursts.add(TorpedoBurst.muzzle(muzzle, missile.facing, size.unit, size.style))
+    }
+
+    /** Torpedoes no on-fire path registered, picked up from the engine's missile list. */
+    private fun scanTorpedoes(engine: CombatEngineAPI) {
+        for (missile in engine.missiles) {
+            val size = TorpedoSize.forSpec(missile.projectileSpecId) ?: continue
+            if (missile in torpedoes || missile.didDamage() || missile.isFading || missile.isFizzling) continue
+            register(missile, size, "the missile list", missile.spawnLocation)
+        }
+    }
+
+    /**
+     * A plasma torpedo struck at [point] ([org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnHit]):
+     * its impact burst is drawn there.
+     */
+    fun torpedoHit(missile: MissileAPI, point: Vector2f, shieldHit: Boolean, toArmor: Float?, toHull: Float?) {
+        torpedoes[missile]?.hitPoint = Vector2f(point)
+        if (torpedoHitsLogged < TORPEDO_LOGGED_HITS) {
+            torpedoHitsLogged++
+            log.info(
+                "Plasma torpedo hit (${missile.projectileSpecId}): shieldHit=$shieldHit damage to armor=$toArmor " +
+                    "hull=$toHull tracked=${missile in torpedoes}"
+            )
+        }
+    }
+
+    /**
+     * Starts the plasma armor melt of a torpedo hit at [point] on [target]: [pool] armor damage over
+     * [MeltBurn.DURATION] s within the size's melt radius, and the molten patch ([MeltPatch]) for a
+     * torpedo travelling at [travelAngle] degrees.
+     */
+    internal fun startMelt(target: ShipAPI, source: ShipAPI?, point: Vector2f, travelAngle: Float, size: TorpedoSize, pool: Float) {
+        val grid = target.armorGrid ?: return
+        val inHull = { p: Vector2f -> CollisionUtils.isPointWithinBounds(p, target) }
+        val burn = MeltBurn.pick(grid, target.facing, point, size.meltRadius, pool, inHull) ?: return
+        melts.add(MeltSession(target, source, burn, MeltPatch.forHit(target, point, travelAngle, size.meltRadius, inHull)))
+    }
+
+    /** One running melt: the burn (null once it stopped) and its patch. */
+    private class MeltSession(val target: ShipAPI, val source: ShipAPI?, var burn: MeltBurn?, val patch: MeltPatch)
+
+    private fun advanceMelts(engine: CombatEngineAPI, amount: Float) {
+        val iterator = melts.iterator()
+        while (iterator.hasNext()) {
+            val melt = iterator.next()
+            val target = melt.target
+            val inPlay = engine.isEntityInPlay(target)
+            val burn = melt.burn
+            if (burn != null) {
+                // Melting stops when the target dies (developer: the glow keeps cooling on the wreck).
+                if (!inPlay || target.isHulk || !target.isAlive) {
+                    showMelted(engine, melt, burn)
+                    melt.burn = null
+                } else {
+                    if (burn.advance(amount)) showMelted(engine, melt, burn)
+                    if (burn.isDone) melt.burn = null
+                }
+            }
+            if (!inPlay) melt.patch.detach()
+            melt.patch.advance(amount)
+            if (melt.burn == null && melt.patch.isDone) iterator.remove()
+        }
+        for (ship in meltDirty) ship.syncWithArmorGridState()
+        meltDirty.clear()
+    }
+
+    /** The armor melted since the last tick as a floating number; the ship's decals are re-synced. */
+    private fun showMelted(engine: CombatEngineAPI, melt: MeltSession, burn: MeltBurn) {
+        val amount = burn.takePending()
+        if (amount <= 0f) return
+        if (Misc.shouldShowDamageFloaty(melt.source, melt.target)) {
+            engine.addFloatingDamageText(melt.patch.center, amount, Misc.FLOATY_ARMOR_DAMAGE_COLOR, melt.target, melt.source)
+        }
+        meltDirty.add(melt.target)
     }
 
     /**
@@ -181,13 +288,18 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
         if (engine.isPaused) return
         time += amount
 
+        scanTorpedoes(engine)
         val flightIterator = flights.iterator()
         while (flightIterator.hasNext()) {
             val flight = flightIterator.next()
             if (flight.flying) track(engine, flight)
             flight.advance(amount)
-            if (flight.isDone) flightIterator.remove()
+            if (flight.isDone) {
+                flightIterator.remove()
+                if (!engine.isEntityInPlay(flight.missile)) torpedoes.remove(flight.missile)
+            }
         }
+        advanceMelts(engine, amount)
         val cannonIterator = cannons.iterator()
         while (cannonIterator.hasNext()) {
             val cannon = cannonIterator.next()
@@ -274,26 +386,35 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
 
     private fun track(engine: CombatEngineAPI, flight: TorpedoFlight) {
         val missile = flight.missile
-        if (missile.isExpired || !engine.isEntityInPlay(missile)) {
+        // A torpedo registered on fire may not be in play yet: it only ends once it was seen in play.
+        val inPlay = engine.isEntityInPlay(missile)
+        if (inPlay) flight.seenInPlay = true
+        val gone = (flight.seenInPlay && !inPlay) || (!flight.seenInPlay && flight.age > TORPEDO_UNSEEN_TIMEOUT)
+        if ((flight.seenInPlay && missile.isExpired) || gone) {
             flight.end()
             if (missile.didDamage() || missile.hitpoints <= 0f) {
-                val location = Vector2f(missile.location)
-                bursts.add(TorpedoBurst.impact(location, flight.unit))
+                // At the on-hit point when known (the missile has moved on by a frame), no dark smoke
+                // (developer 2026-10-09); impact pitch by launcher size.
+                val location = Vector2f(flight.hitPoint ?: missile.location)
+                bursts.add(TorpedoBurst.impact(location, flight.unit, smoke = false, style = flight.style))
                 Global.getSoundPlayer().playSound(
-                    SOUND_IMPACT, Random.nextFloat() * (1f - IMPACT_PITCH_MIN) + IMPACT_PITCH_MIN, 1f, location, Vector2f()
+                    SOUND_IMPACT, flight.pitch * (Random.nextFloat() * (1f - IMPACT_PITCH_MIN) + IMPACT_PITCH_MIN),
+                    1f, location, Vector2f()
                 )
             }
             return
         }
         if (!missile.isFizzling && !missile.isFading) {
             Global.getSoundPlayer().playLoop(
-                SOUND_LOOP, missile, 1f, 1f, missile.location, missile.velocity, LOOP_FADE, LOOP_FADE
+                flight.size.loopId, missile, 1f, 1f, missile.location, missile.velocity, LOOP_FADE, LOOP_FADE
             )
         }
     }
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {
-        renderer.render(viewport, flights, cannons, wraiths, bombards, charges.values, artillery, bursts, time)
+        meltPatches.clear()
+        for (melt in melts) meltPatches.add(melt.patch)
+        renderer.render(viewport, flights, cannons, wraiths, bombards, charges.values, artillery, bursts, meltPatches, time)
     }
 
     override fun getActiveLayers(): EnumSet<CombatEngineLayers> =

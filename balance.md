@@ -31,3 +31,20 @@ pass (developer 2026-10-02: tuning waits until all gameplay systems are finished
   Hellbore per OP on alpha and splash, below Hephaestus on sustained dps; the slow round and the 1 s
   charge telegraph keep agile frigates out of it. TODO: the 150 su splash vs fighter swarms and
   clustered frigates (cuts against "weak when swarmed"); check in testing.
+- **Plasma torpedoes** (launcher polish 2026-10-09) — plain homing torpedoes (no splits) with a plasma
+  armor melt: a hit that reaches armor / hull takes another 50 % of its damage out of the armor
+  within 50 / 75 / 125 su over 2 s (armor only, direct grid write, so no armor reduction). Ammo
+  regenerates 1 per 30 / 60 / 90 s. (Hits × 1.6 — 1920 / 1360 / 4800 — were tried 2026-10-10 and
+  reverted the same day: well above the anchors.)
+  - Light: 1200 HE, 2 ammo, 400 su/s, 1200 range, 75°/s, 5 OP. Yardstick Atropos rack 1000 HE / 2 /
+    400 / 1200 / 3 OP (no regen; 125 su explosion).
+  - Medium: 850 HE × 4-burst, 12 ammo, 300 su/s, 2500 range, 12 OP. Yardstick Harpoon Pod 750 × 4 /
+    12 / 10 OP.
+  - Heavy: 3000 HE single hit, 8 ammo, 250 su/s, 2500 range, 45°/s, torpedo HP 500, 27 OP.
+    Yardsticks Hurricane 7 × 500 HE MIRV / 10 ammo / 25 OP; Cyclone Reaper 2 × 4000 HE unguided / 14
+    ammo / 1200 range / 26 OP.
+  - TODO: the melt makes every hit worth ~1.5× vs armor (more with damage-to-size skills); the
+    guided 3000 HE heavy at 2500 range plus melt may outclass the Hurricane. The light also arms the
+    Covenant bomber (3 launchers per fighter, wing of 2): 6 × 2 torpedoes per sortie plus regen in
+    flight — check bomber strike strength. Light melt concentrates its 600 pool in a 50 su patch, so
+    it strips centre cells on lightly armored hulls (part of the pool is lost there).

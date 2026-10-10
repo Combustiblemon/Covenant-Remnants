@@ -11,6 +11,11 @@
 	# No vanilla explosion: the Reach impact is drawn instead.
 	"explosionColor":[0,0,0,0],
 	"explosionRadius":0,
+	# Hands the torpedo to TorpedoRenderPlugin (vanilla keeps missile onFire hooks in the .proj; the
+	# launcher's everyFrameEffect PlasmaTorpedoEffect registers it too, duplicates are skipped).
+	"onFireEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnFire",
+	# Plasma armor melt around the hit (planning/implementations/plasma-torpedo-launchers.md).
+	"onHitEffect":"org.combustiblelemon.covenantremnants.weapons.PlasmaTorpedoOnHit",
 	# Movement from vanilla harpoon_mrm (the missile this weapon used before 2026-10-02).
 	"engineSpec":{"turnAcc":210,
 				  "turnRate":70,
