@@ -37,7 +37,8 @@ Build steps:
 2. Open the project in IntelliJ IDEA (Gradle import) or your IDE of choice.
 3. Build the mod jar: `./gradlew buildMod` — compiles `src/` into `jars/CovenantRemnants.jar`.
 4. Enable "Covenant Remnants" in the launcher and run the game to test.
-5. Package a release: `./gradlew packageMod` — assembles the distributable zip.
+5. Package a release: `./gradlew packageMod` (or `package_mod.bat` / `package_mod.sh`). It writes
+   `Covenant Remnants.zip` with only the files the game needs at runtime.
 
 `./gradlew cleanMod` clears build output. See [GRADLE_README.md](GRADLE_README.md) for prerequisites,
 IDE setup, and troubleshooting.

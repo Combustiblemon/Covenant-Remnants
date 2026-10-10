@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11.glTexParameteri
 
 /**
  * The Halo: Reach noise maps the shield's plasma layer samples (`fx\bitmaps\plasma\plasma_clouds_512_a/b`,
- * shipped as `graphics/fx/shield/`, registered in `data/config/settings.json` under [CATEGORY]).
+ * shipped as `graphics/covenant_remnants/fx/shield/`, registered in `data/config/settings.json` under [CATEGORY]).
  * Same pattern as the rupture's `RuptureTexture`.
  */
 internal enum class ShieldTexture(private val spriteId: String) {

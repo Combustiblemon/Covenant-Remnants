@@ -47,11 +47,23 @@ This project has been converted from IntelliJ IDEA to use Gradle as the build sy
 
 ```bash
 # Windows
-.\gradlew.bat packageMod
+.\gradlew.bat packageMod      # or double-click package_mod.bat
 
 # Linux/Mac
-./gradlew packageMod
+./gradlew packageMod          # or ./package_mod.sh
 ```
+
+This builds a fresh jar and writes `Covenant Remnants.zip`. The zip holds one
+`Covenant Remnants/` folder that players unzip into `mods/`. It contains only the files the game
+needs at runtime:
+
+- `mod_info.json` and `covenant-remnants.version`;
+- `jars/CovenantRemnants.jar`;
+- `data/`, `graphics/` and `sounds/`.
+
+Two unused repo assets are excluded: `graphics/covenant_remnants/fx/shield/noise.png` and
+`sounds/plasma_lance/fire_fp_*.ogg`. The file list lives only in `packageMod`. The two scripts just
+call it.
 
 ### Clean Build
 
@@ -67,7 +79,8 @@ This project has been converted from IntelliJ IDEA to use Gradle as the build sy
 
 - `build` - Compiles and tests the project
 - `buildMod` - Creates the mod JAR file in the `jars/` directory
-- `packageMod` - Creates a complete mod package in `build/mod_package/`
+- `stageMod` - Copies the runtime files into `build/mod_package/Covenant Remnants/`
+- `packageMod` - Zips the staged folder into `Covenant Remnants.zip` (runs `stageMod` and `buildMod` first)
 - `cleanMod` - Removes build artifacts and the `jars/` directory
 - `jar` - Creates the basic JAR file
 - `test` - Runs tests

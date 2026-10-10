@@ -350,7 +350,7 @@ flash layers) were removed.
 - **`RuptureParts.kt`** — `NoiseTransform` (Reach's animated texture scale + looping translation),
   `SpriteMaterial` (Reach particle shader → sprite mode, blend, textures, transforms, warp),
   `SpriteKind`, `RuptureSprite`, `SphereMode`, `SphereDraw`, `FlareDraw`.
-- **`RuptureTexture.kt`** — the 21 Reach bitmaps (`graphics/fx/slipspace_rupture/`, registered in
+- **`RuptureTexture.kt`** — the 21 Reach bitmaps (`graphics/covenant_remnants/fx/slipspace_rupture/`, registered in
   `data/config/settings.json` under `covenant_remnants`, ids `rupture_*`); noise maps tile, palettes
   and shapes clamp; linear filtering; set once on first bind.
 - **`data/shaders/rupture/ruptureSphere.vert/.frag`** ↔ **`RuptureSphereShader.kt`** — analytic
@@ -408,7 +408,7 @@ to **0** (full jump) on 2026-10-01 — `FleetJumpTune VISUAL_ONLY 1` brings it b
   `data/hulls/ship_data.csv`, `data/console/commands.csv`
 - `data/shaders/rupture/` (new: `ruptureSphere.vert/.frag`, `ruptureSprite.vert/.frag`; the
   procedural `rupture.vert`, `base.frag` and `*.glsl` layer modules of passes 1–2 were removed)
-- `graphics/fx/slipspace_rupture/` (new: 21 Reach bitmaps, 0.7 MB; `large_flare.png` removed with
+- `graphics/covenant_remnants/fx/slipspace_rupture/` (new: 21 Reach bitmaps, 0.7 MB; `large_flare.png` removed with
   the arming flare), `data/config/settings.json` (their sprite ids)
 - `src/.../systems/FleetSlipspaceJump.kt`, `FleetSlipspaceJumpStats.kt`, `FleetSlipspaceJumpSession.kt` (new)
 - `src/.../ai/FleetSlipspaceJumpAI.kt` (new)

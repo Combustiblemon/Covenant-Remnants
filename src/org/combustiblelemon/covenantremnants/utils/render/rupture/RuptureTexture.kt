@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE
 
 /**
  * The Halo: Reach bitmaps the rupture and the plasma torpedoes are drawn with, exported from the
- * official Reach editing kit (`graphics/fx/slipspace_rupture/`, `graphics/fx/plasma_torpedo/`,
+ * official Reach editing kit (`graphics/covenant_remnants/fx/slipspace_rupture/`, `graphics/covenant_remnants/fx/plasma_torpedo/`,
  * registered in `data/config/settings.json` under [CATEGORY]). Noise maps and sphere-wrapped maps
  * tile; palettes and sprite shapes clamp.
  */
@@ -136,7 +136,7 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     TORPEDO_PLASMA_PALETTE_HEAVY("torpedo_blue_plasma_heavy", false),
 
     // --- Halo 3: The Ark slipspace exit (H3EK fx\cinematics\070la_waypoint_arrival\01;
-    // graphics/fx/slipspace_ark/, see planning/implementations/ark-slipspace-portals.md) ---
+    // graphics/covenant_remnants/fx/slipspace_ark/, see planning/implementations/ark-slipspace-portals.md) ---
 
     /** fx\particles\models\mesh_fx\slipspace_tube\_bitmaps\slipspace_tube: streaks along the tube (v = 1 at the mouth) */
     ARK_TUBE("ark_tube", false),
@@ -151,7 +151,7 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     ARK_FLARE("ark_flare", false),
 
     // --- Energy Projector (Reach CCS cruiser glassing beam, objects\vehicles\covenant\covenant_fleet\
-    // cruiser\fx\glassing; graphics/fx/energy_projector/, see planning/implementations/energy-projector-reach.md) ---
+    // cruiser\fx\glassing; graphics/covenant_remnants/fx/energy_projector/, see planning/implementations/energy-projector-reach.md) ---
 
     /** fx\particles\_gradients\glassing_beam_01, re-hued orange to violet: 2 rows */
     PROJECTOR_BEAM_PALETTE("projector_glassing_beam_palette", false),
@@ -178,7 +178,7 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     PROJECTOR_CLOUD("projector_rolling_smoke_cloud", false),
 
     // --- Plasma Beam Emitter (Reach focus rifle, objects\weapons\rifle\focus_rifle\fx;
-    // graphics/fx/plasma_beam/, see planning/implementations/plasma-beam-emitter.md) ---
+    // graphics/covenant_remnants/fx/plasma_beam/, see planning/implementations/plasma-beam-emitter.md) ---
 
     /** fx\bitmaps\contrails\_gradients\focus_rifle_plasma: pale blue-white - purple - violet - black */
     PLASMA_BEAM_PALETTE("plasma_beam_focus_rifle_plasma", false),
@@ -210,8 +210,8 @@ internal enum class RuptureTexture(private val spriteId: String, private val til
     /** fx\bitmaps\sparks\spark_long rotated: a streak along v */
     PLASMA_BEAM_SPARK_LONG("plasma_beam_spark_long", false),
 
-    // --- Plasma Bombardment (Reach Covenant AA gun, objects\vehicles\covenant\turrets\bfg; graphics/fx/
-    // plasma_bombardment/, see planning/implementations/plasma-bombardment.md) ---
+    // --- Plasma Bombardment (Reach Covenant AA gun, objects\vehicles\covenant\turrets\bfg;
+    // graphics/covenant_remnants/fx/plasma_bombardment/, see planning/implementations/plasma-bombardment.md) ---
 
     /** fx\bitmaps\contrails\_gradients\energy_trail_blue: black -> blue -> white, 256x1 (the hunter_beam contrail's palette) */
     BOMBARD_TRAIL_PALETTE("plasma_bombardment_energy_trail_blue", false),

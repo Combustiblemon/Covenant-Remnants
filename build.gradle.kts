@@ -124,32 +124,44 @@ tasks.register("cleanMod") {
     }
 }
 
-// Task to package the mod
-tasks.register("packageMod") {
+// Release packaging (developer rulings 2026-10-10): only what the game needs to run, inside one
+// "Covenant Remnants/" folder so players unzip it straight into mods/. The single file list for
+// releases; package_mod.bat / package_mod.sh just run packageMod.
+val modFolderName = "Covenant Remnants"
+
+val runtimeFiles: CopySpec = copySpec {
+    from(".") {
+        include("mod_info.json")
+        // Version Checker: data/config/version/version_files.csv points at this root file;
+        // shipping the CSV without it makes LunaLib's loadJSON throw at startup.
+        include("*.version")
+        include("data/**", "graphics/**", "sounds/**")
+        // Not the jars/*.stale-* copies left by locked rebuilds
+        include("jars/CovenantRemnants.jar")
+        // In the repo but unused at runtime: the shield noise sprite (kept for the art pass) and the
+        // Plasma Lance's first-person fire takes (alternates to the shipped third-person ones)
+        exclude("graphics/covenant_remnants/fx/shield/noise.png")
+        exclude("sounds/plasma_lance/fire_fp_*.ogg")
+    }
+    includeEmptyDirs = false
+}
+
+// Fresh jar + runtime files in build/mod_package/Covenant Remnants/ (Sync drops files from older runs)
+val stageMod = tasks.register<Sync>("stageMod") {
     dependsOn("buildMod")
+    into(layout.buildDirectory.dir("mod_package/$modFolderName"))
+    with(runtimeFiles)
+}
+
+// "Covenant Remnants.zip" in the project root (git-ignored), holding the staged folder only: other
+// files under mod_package/ are ignored
+tasks.register<Zip>("packageMod") {
+    archiveFileName.set("$modFolderName.zip")
+    destinationDirectory.set(layout.projectDirectory)
+    from(stageMod) {
+        into(modFolderName)
+    }
     doLast {
-        copy {
-            from(".")
-            into("build/mod_package")
-            include("mod_info.json")
-            // Version Checker: data/config/version/version_files.csv points at this root file;
-            // shipping the CSV without it makes LunaLib's loadJSON throw at startup.
-            include("*.version")
-            include("data/**")
-            include("graphics/**")
-            include("sounds/**")
-            include("jars/**")
-            exclude("build/**")
-            exclude("src/**")
-            exclude("*.iml")
-            exclude("*.ipr")
-            exclude("*.iws")
-            exclude(".idea/**")
-            exclude("gradle/**")
-            exclude("*.gradle")
-            exclude("*.gradle.kts")
-            exclude("gradlew*")
-        }
-        println("Mod packaged to build/mod_package/")
+        println("Mod packaged to ${archiveFile.get().asFile}")
     }
 }

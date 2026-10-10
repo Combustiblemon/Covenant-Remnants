@@ -1,1 +1,7 @@
-tar.exe -a -cf TheCovenant.zip ./data ./graphics ./mod_info.json
+@echo off
+rem Builds the jar and packages a release: Covenant Remnants.zip
+rem The file list lives in packageMod (build.gradle.kts).
+cd /d "%~dp0"
+call "%~dp0gradlew.bat" packageMod
+pause
+exit /b %errorlevel%

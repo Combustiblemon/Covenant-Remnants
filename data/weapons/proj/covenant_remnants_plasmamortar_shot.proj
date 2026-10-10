@@ -16,5 +16,5 @@
 	"fadeTime":0.3,
 	"fringeColor":[0,0,0,0],
 	"coreColor":[0,0,0,0],
-	"bulletSprite":"graphics/missiles/covenant_remnants_plasma_torpedo.png"
+	"bulletSprite":"graphics/covenant_remnants/missiles/covenant_remnants_plasma_torpedo.png"
 }

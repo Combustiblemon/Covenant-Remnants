@@ -74,7 +74,7 @@ at 0.5 → 0 (peaks (0.208,0.384,0.980) / (0.118,0.400,1.0)), intensities 2 / 1;
 | Hit filter | **Every hit** (projectiles, missiles, beam ticks), strength = `max(0.25, level)`. The old rule (raw > 100, no beams) is gone. |
 | Break | Shader collapse flare + polygon expansion, **keep EMP arcs**, **pop sound**, **ring + spark particles**, **0.1 s flash**. |
 | Recharge wave | **Included.** Fires on every regen paused → running transition while visible (post-hit pause ending, **Fortress ending included**), and **after a break once the activation sweep completes** (effectLevel reaches 1). |
-| Textures | **Copy** `plasma_clouds_512_a/b.png` to `graphics/fx/shield/`, keys `shield_plasma_clouds_a/b`. Oscillation textures skipped. |
+| Textures | **Copy** `plasma_clouds_512_a/b.png` to `graphics/covenant_remnants/fx/shield/`, keys `shield_plasma_clouds_a/b`. Oscillation textures skipped. |
 | Hit distortion (2nd round, after the first in-game test) | **Expanding refraction ring** from the hit point; **amplitude and travel both scale with level** (small hits: weak bend, dies after ~25 % of the body; big hits: strong, crosses the whole shield); the Reach hit colour spot is **kept and boosted** (mostly unmasked by the filament pattern). |
 
 ### Defaults chosen by the assistant (tunables — not asked, flagged here)
@@ -161,7 +161,7 @@ COLLAPSE replaces everything with the collapse curves, clears hits, drives `shel
 19 curves (`ReachCurve` / `ReachColorCurve` from the rupture package) + the scalar fields of the
 three tags. Regenerate instead of editing.
 
-### Textures — `utils/render/shield/ShieldTexture.kt`, `graphics/fx/shield/`, `settings.json`
+### Textures — `utils/render/shield/ShieldTexture.kt`, `graphics/covenant_remnants/fx/shield/`, `settings.json`
 
 `RuptureTexture` pattern: sprite → textureId once, REPEAT + LINEAR.
 
@@ -235,7 +235,7 @@ Developer ruling: compile at game start, hooked into the mod plugin.
 ## Files touched
 
 New: `data/shaders/shield/{plasma,distortion}.glsl`; `src/.../utils/render/shield/{PlasmaLayer,
-ShieldImpactEffect, ShieldImpactCurves, ShieldTexture, DistortionLayer, ShieldScreenCopy, ShieldProgram}.kt`; `graphics/fx/shield/plasma_clouds_512_{a,b}.png`;
+ShieldImpactEffect, ShieldImpactCurves, ShieldTexture, DistortionLayer, ShieldScreenCopy, ShieldProgram}.kt`; `graphics/covenant_remnants/fx/shield/plasma_clouds_512_{a,b}.png`;
 `sounds/covenant_shield/pop_{1,2,3}.ogg`; `assets/reference/elite-shield/` (local).
 Modified: `data/shaders/shield/{base.frag, fill.glsl, border.glsl, fortress.glsl, debug.glsl}`;
 `data/config/{settings,sounds}.json`; `src/.../CovenantRemnantsPlugin.kt`;

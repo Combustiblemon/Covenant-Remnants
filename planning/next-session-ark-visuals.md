@@ -47,8 +47,8 @@ entry rupture) and the combat jump are not in scope.
   slide out of the tube. `campaign/abilities/SlipspaceJump.kt` — `onArrivalBurst`, `beginExit`,
   `debugBurst`. `campaign/abilities/SlipspaceJumpRules.kt` — the `ARK_*` tunables (section
   "Ark portals") and `arrivalPlan`.
-- Textures: `graphics/fx/slipspace_ark/` (Halo 3: `slipspace_tube`, `glow_hard`, `flash_soft`,
-  `simple_flare`), `graphics/fx/slipspace_rupture/` (Reach: noise, palettes, flares, glitter,
+- Textures: `graphics/covenant_remnants/fx/slipspace_ark/` (Halo 3: `slipspace_tube`, `glow_hard`, `flash_soft`,
+  `simple_flare`), `graphics/covenant_remnants/fx/slipspace_rupture/` (Reach: noise, palettes, flares, glitter,
   `distortion_ring`, `beam`, `light_volume_glow`) — all registered in `data/config/settings.json`
   under `covenant_remnants`.
 

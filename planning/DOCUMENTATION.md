@@ -73,7 +73,10 @@ task list. This documentation duty is a fixed AI-assistant rule — see
   (`ShieldShader.kt` ↔ `data/shaders/shield/`), with the layer classes in a `<system>/` subpackage
   of `utils/render/` (see
   [implementations/shield-shader-composition.md](implementations/shield-shader-composition.md)).
-- **VFX textures** go under `graphics/fx/<effect>/` and are registered in
+- **All mod graphics** live under `graphics/covenant_remnants/`: ships, weapons, projectile and
+  missile sprites (`missiles/`), backgrounds, misc. Nothing goes directly under `graphics/` (ruling
+  2026-10-10).
+- **VFX textures** go under `graphics/covenant_remnants/fx/<effect>/` and are registered in
   `data/config/settings.json` (`graphics` → `covenant_remnants`). Halo game assets may be shipped
   (developer decision 2026-10-01); note the source tag path where the texture is used.
 - **Reference material** for art/VFX (screenshots, extracted video frames) goes under

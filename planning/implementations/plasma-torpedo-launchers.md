@@ -159,7 +159,7 @@ Choices made inside those rulings (stated in the approved plan; say if any is wr
   - Warm accents stay on every size: the salmon body tail, the orange flash at the trail head and
     the orange sparks.
   - The palettized parts use offline-made PNG copies with the same function:
-    `graphics/fx/plasma_torpedo/{fireball_covenant,blue_plasma,muzzle_flare_phantom_turret}_{light,heavy}.png`.
+    `graphics/covenant_remnants/fx/plasma_torpedo/{fireball_covenant,blue_plasma,muzzle_flare_phantom_turret}_{light,heavy}.png`.
 - **Heavy white-hot:**
   - The star flare goes 60 % toward white.
   - The body's front goes up to 60 % toward white, by p² along the body.
@@ -250,7 +250,7 @@ the same day: "ok you are correct, revert the numbers change". The stats stay as
 - Size looks (2026-10-10): `TorpedoEffects.kt` (`TorpedoHue`, `TorpedoStyle`, `TorpedoSize.style` /
   `loopId`, styled `TorpedoFlight` / `TorpedoBurst`), `RuptureParts.kt` / `RuptureTexture.kt` (6
   materials + kinds, `TORPEDO_HALO`, 6 textures), `TorpedoRenderer.kt`, `TorpedoRenderPlugin.kt`
-  (styled muzzle / impact, per-size hum), `graphics/fx/plasma_torpedo/*_light.png` / `*_heavy.png` (6,
+  (styled muzzle / impact, per-size hum), `graphics/covenant_remnants/fx/plasma_torpedo/*_light.png` / `*_heavy.png` (6,
   new), `data/config/settings.json` (6 ids), `data/config/sounds.json` (`…_loop_heavy`).
 - `assets/reference/plasma-torpedo-launchers/` (gitignored) — `tools/MeltHarness.java`,
   `tools/render_melt.py`, `tools/TorpedoSizesHarness.java`, `tools/render_torpedo_sizes.py`,
@@ -326,7 +326,7 @@ never melt: check the `Plasma torpedo hit …` lines (the trigger reads the dama
   placeholders. The light's trail is still ~200 su long in absolute terms because it flies faster.
 - The palette PNGs `*_light` / `*_heavy` are generated (hue band function in `TorpedoHue`). If a
   base palette or the shifts change, rerun
-  `assets/reference/plasma-torpedo-launchers/tools/make_torpedo_palettes.py <graphics/fx/plasma_torpedo>`
+  `assets/reference/plasma-torpedo-launchers/tools/make_torpedo_palettes.py <graphics/covenant_remnants/fx/plasma_torpedo>`
   and keep its constants in step with `TorpedoHue` / `TorpedoStyle`.
 - The light's 600 pool in a 50 su patch strips centre cells on lightly armored hulls; the lost share
   is the ruled behaviour.

@@ -388,7 +388,7 @@ Keep this file current — tick items off and add new ones as work lands.
       (m45 `045lf_jorge`) was dumped from the official Reach editing kit (ManagedBlam, curves
       included) and rebuilt faithfully: `utils/render/rupture/` (`RuptureRenderer`, sphere + sprite
       programs, `RuptureEffect` timeline, generated `ReachCurves`), `data/shaders/rupture/`
-      (`ruptureSphere`, `ruptureSprite`), 21 Reach bitmaps in `graphics/fx/slipspace_rupture/`.
+      (`ruptureSphere`, `ruptureSprite`), 21 Reach bitmaps in `graphics/covenant_remnants/fx/slipspace_rupture/`.
       Replaces the composed procedural rupture shader (passes 1–2, removed). Extracted data and
       tools: `assets/reference/long-night-of-solace/reach-data/`. See
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
@@ -426,6 +426,20 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **`SlipspaceJumpTune` console command** — lists / sets / resets every campaign Slipspace
       Jump tunable; `NO_SHIP_RESTRICTION 1` and `FREE 1` for testing. See
       [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
+- [x] **Release packaging** — 2026-10-10 (rulings: Gradle zips, scripts wrap; `Covenant
+      Remnants.zip` without version; no LICENSE; skip `noise.png` + lance `fire_fp_*`):
+      `packageMod` → `Covenant Remnants.zip`, one `Covenant Remnants/` folder, runtime files
+      only (271 files, 6.4 MB). `package_mod.bat` / `.sh` call it. See
+      [implementations/release-packaging.md](implementations/release-packaging.md).
+- [x] **Graphics under `graphics/covenant_remnants/`** — 2026-10-10 (developer ruling: that folder
+      holds all mod graphics): `graphics/fx/` → `graphics/covenant_remnants/fx/`, `graphics/missiles/`
+      → `graphics/covenant_remnants/missiles/` (81 files, `git mv`); `settings.json`, 8 `.proj`, docs
+      and reference tools re-pathed, vanilla `graphics/fx/` refs untouched. See
+      [implementations/graphics-folder-move.md](implementations/graphics-folder-move.md).
+- [ ] **Graphics move — in-game check** — no missing-sprite errors in the log; bolts, torpedoes,
+      shells and all fx (shield, rupture, Ark, projector, beam) still render.
+- [ ] **Release packaging — clean-install check** — unzip `Covenant Remnants.zip` into a clean
+      `mods/` and start the game once.
 - [x] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
       (`65a5b80`), `CubicCurve2D.kt` + `README.md` row committed (`0ed9f18`). Only the rebuilt
       `jars/LemonLib.jar` showed as modified on 2026-10-10; closed by the developer the same day.

@@ -64,7 +64,7 @@ remake.
 - Sprites: materials `ARK_RING` (`glow_hard`), `ARK_FLASH` (`flash_soft`, new fragment mode 7 =
   UV rotation + mirror), `ARK_FLARE` (`simple_flare`); kinds `ARK_RING`, `ARK_FLASH`, `ARK_CLOSE`,
   `ARK_DISTORTION` (reuses Reach's `rupture_distortion_ring`). Textures `ark_tube`, `ark_ring`,
-  `ark_flash`, `ark_flare` in `graphics/fx/slipspace_ark/`, registered in settings.json.
+  `ark_flash`, `ark_flare` in `graphics/covenant_remnants/fx/slipspace_ark/`, registered in settings.json.
 - One world-units-per-Halo-unit conversion `u = R × ARK_MOUTH_RADII / (ARK_TUBE_SCALE1_CRUISER ×
   mesh mouth radius)`, R = the fleet's Ark radius (`ARK_RADIUS_MULT` × fleet radius, floor
   `ARK_RADIUS_MIN`) or the portal's idle radius (`ARK_PORTAL_RADIUS_MULT` × entity radius), so
@@ -95,7 +95,7 @@ changes an in-flight sprite's curves); idle flickers are always cruiser-sized.
 ## Files
 
 New: `utils/render/rupture/{ArkTimeline,ArkTubeShader,ArkTubeMesh}.kt`,
-`data/shaders/rupture/arkTube.{vert,frag}`, `graphics/fx/slipspace_ark/*.png`,
+`data/shaders/rupture/arkTube.{vert,frag}`, `graphics/covenant_remnants/fx/slipspace_ark/*.png`,
 `assets/reference/ark-slipspace-exit/` (README, data, tools).
 Changed: `RuptureEffect.kt`, `RuptureParts.kt`, `RuptureTexture.kt`, `RupturePrograms.kt`,
 `RuptureRenderer.kt`, `ruptureSprite.frag`, `campaign/entities/SlipspacePortalEntity.kt`,

@@ -58,7 +58,7 @@ plus the Reach dump/export scripts. `preview/` — the offline renders (`project
   chargedown 1, burst size 3, burst delay 10.
 - `data/config/settings.json` — `projector_*` texture ids; `data/config/sounds.json` —
   `covenant_remnants_energy_projector_charge` / `_fire` / `_impact`.
-- `graphics/fx/energy_projector/` (new, 8 overlay textures) and `sounds/energy_projector/` (new, 6 OGG).
+- `graphics/covenant_remnants/fx/energy_projector/` (new, 8 overlay textures) and `sounds/energy_projector/` (new, 6 OGG).
 - `src/.../plugins/EnergyProjectorRenderPlugin.kt` (new) — one per combat (`engine.customData`),
   one `ProjectorEffect` per weapon, impact sound on first contact, layer
   `ABOVE_SHIPS_AND_MISSILES_LAYER`.

@@ -48,7 +48,7 @@ attachments and the impact `fx\fx_library\explosions\covenant_explosion_artiller
   the space Phantom torpedo, hence the reuse.
 - Bitmaps exported: `fx\bitmaps\contrails\plasma` (512×128 grey noise), `_gradients\
   energy_trail_blue` (256×1, black → blue → white); `hunter_beam`, `light_volume_glow`,
-  `star_flare` already in `graphics/fx/`. None shipped this pass.
+  `star_flare` already in `graphics/covenant_remnants/fx/`. None shipped this pass.
 
 Data under `assets/reference/plasma-cannon/reach-data/` (gitignored): `dump32/`, `summary/`,
 `textures/`, `audio/raw_*.wav`, `tools/`.

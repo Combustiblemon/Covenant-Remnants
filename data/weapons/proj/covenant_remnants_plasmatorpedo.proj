@@ -3,7 +3,7 @@
 	"specClass":"missile",
 	"missileType":"MISSILE",
 	# Invisible: the Reach space Phantom torpedo look is drawn by utils/render/torpedo/TorpedoRenderer.
-	"sprite":"graphics/missiles/covenant_remnants_plasma_torpedo.png",
+	"sprite":"graphics/covenant_remnants/missiles/covenant_remnants_plasma_torpedo.png",
 	"size":[8,16],
 	"center":[4,8],
 	"collisionRadius":16,

@@ -78,7 +78,7 @@ to 125 su.
 ## Files
 
 - `data/weapons/proj/covenant_remnants_plasmatorpedo{_light,,_heavy}.proj` (new) — `MISSILE`,
-  invisible 8×16 sprite (`graphics/missiles/covenant_remnants_plasma_torpedo.png`), no engine
+  invisible 8×16 sprite (`graphics/covenant_remnants/missiles/covenant_remnants_plasma_torpedo.png`), no engine
   slots, no vanilla explosion (`explosionRadius 0`); `engineSpec` copied from the vanilla missile
   each used (Sabot 600/150/100/100, Harpoon 210/70/1000/500, MIRV 600/150/250/200).
 - `data/weapons/covenant_remnants_plasmatorpedo*.wpn` — own `projectileSpecId`, `onFireEffect`
@@ -98,7 +98,7 @@ to 125 su.
   5 `PALETTE_ADD` and 6 `PALETTE_ALPHA`), `RuptureParts.kt` (torpedo `SpriteMaterial`s /
   `SpriteKind`s), `RuptureTexture.kt` (`TORPEDO_*`), `RuptureEffect.kt` (`else` branch for the new
   kinds).
-- `graphics/fx/plasma_torpedo/` (new, 14 Reach textures; the fireball mask's shape moved into alpha,
+- `graphics/covenant_remnants/fx/plasma_torpedo/` (new, 14 Reach textures; the fireball mask's shape moved into alpha,
   the 2-frame muzzle sheet repacked as a 2×2 atlas), registered in `data/config/settings.json` as
   `torpedo_*`. Reused from the rupture: `light_volume_glow`, `star_flare`, `plasma_clouds_256_a`.
 - `sounds/plasma_torpedo/` (new: `fire_1-3`, `loop`, `impact_1-3`, mono OGG) and

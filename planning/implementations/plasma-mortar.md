@@ -132,7 +132,7 @@ Data under `assets/reference/plasma-mortar/reach-data/` (gitignored): `dump32/`,
 - `src/.../utils/render/rupture/RuptureTexture.kt` — `WRAITH_FLAMING_TRAIL`,
   `WRAITH_CONTRAIL_PALETTE`; `RuptureParts.kt` — materials `WRAITH_CONTRAIL`,
   `WRAITH_PLASMA_TRAIL`, kind `WRAITH_PLASMA_TRAIL`.
-- `graphics/fx/plasma_mortar/flaming_trail.png`, `wraith_mortar_contrail.png` (Reach exports),
+- `graphics/covenant_remnants/fx/plasma_mortar/flaming_trail.png`, `wraith_mortar_contrail.png` (Reach exports),
   registered in `data/config/settings.json` (`plasma_mortar_*`).
 - `src/.../utils/render/torpedo/TorpedoRenderer.kt` — draws the Wraith rounds (contrail with the
   trails, puffs before the plasma, light / body / star with the bodies, embers before the flashes).

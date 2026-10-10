@@ -81,7 +81,7 @@ private const val LOOP_HEAVY = "covenant_remnants_plasma_torpedo_loop_heavy"
  * not red). Only cool hues move: full weight 180-320 deg, fading to none at 160 / 340, so the warm
  * Reach accents (salmon body tail, orange trail flash and sparks) and whites stay; a moved hue never
  * passes [HUE_MIN] / [HUE_MAX] (pinks would wrap into salmon, blues into green). The palette PNGs
- * `*_light` / `*_heavy` in graphics/fx/plasma_torpedo were made offline with the same function.
+ * `*_light` / `*_heavy` in graphics/covenant_remnants/fx/plasma_torpedo were made offline with the same function.
  */
 internal object TorpedoHue {
     private const val BAND_START = 160f

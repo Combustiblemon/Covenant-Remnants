@@ -58,7 +58,7 @@ scripts. `preview/` — the offline renders (`plasma_beam.png` sheet, `_muzzle` 
   ROUGH, scroll unchanged).
 - `data/config/settings.json` — `plasma_beam_*` texture ids; `data/config/sounds.json` —
   `covenant_remnants_plasma_beam_fire_in` / `_fire_loop` / `_fire_out` / `_impact` (5 takes).
-- `graphics/fx/plasma_beam/` (new, 8 textures: palette, gold palette, 2 trails, profile, pulse,
+- `graphics/covenant_remnants/fx/plasma_beam/` (new, 8 textures: palette, gold palette, 2 trails, profile, pulse,
   fire shape, spark) and `sounds/plasma_beam/` (new, 8 OGG).
 - `data/shaders/rupture/ruptureSprite.frag` — mode 11 `TEXTURE_STRIP` (base map tiled /
   scrolled by `xformA`, shaped by the alpha map). moderngl compile / link OK.

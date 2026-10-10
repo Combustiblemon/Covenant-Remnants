@@ -81,7 +81,7 @@ vanilla one:
   (`DistortionLayer.kt`, framebuffer copy via `ShieldScreenCopy.kt`) adds a refraction ring per hit,
   scaled by damage. All ships share one GL program (`ShieldProgram.kt`, point capacity 128, count as
   a uniform), compiled at game start from `CovenantRemnantsPlugin.onApplicationLoad`. Noise maps:
-  `graphics/fx/shield/`. See
+  `graphics/covenant_remnants/fx/shield/`. See
   [implementations/shield-reach-impact.md](implementations/shield-reach-impact.md).
 
 ### Slipspace Jump (campaign travel)
@@ -107,7 +107,7 @@ origin. See [implementations/campaign-slipspace-jump.md](implementations/campaig
   `campaign/entities/SlipspacePortalEntity.kt`, the Halo 3 "The Ark" slipspace exit as a
   `RuptureEffect` of kind ARK (`utils/render/rupture/ArkTimeline.kt`, tube mesh
   `ArkTubeShader.kt` + `ArkTubeMesh.kt` (lathed at load from the generated `ArkTubeProfile.kt`) + `data/shaders/rupture/arkTube.*`, textures
-  `graphics/fx/slipspace_ark/`); idle dim, full burst on use; the destination arrival uses the same
+  `graphics/covenant_remnants/fx/slipspace_ark/`); idle dim, full burst on use; the destination arrival uses the same
   effect, the fleet sliding out of the tube. See
   [implementations/ark-slipspace-portals.md](implementations/ark-slipspace-portals.md). Exit
   dialog `SlipspaceExitDialogPlugin.kt` routed by `SlipspaceCampaignPlugin.kt`;
@@ -175,7 +175,7 @@ portal — ships of any side, fighters, shots, hulks, asteroids — to the desti
   slipspace bomb: `RuptureSphereShader` (`data/shaders/rupture/ruptureSphere.*`, analytic spheres)
   and `RuptureSpriteShader` (`ruptureSprite.*`, batched particles + heat haze over a screen copy);
   `RuptureEffect.kt` is the per-rupture timeline, driven by Reach's curves (`ReachCurves.kt`,
-  generated) and textures (`graphics/fx/slipspace_rupture/`, ids in `data/config/settings.json`).
+  generated) and textures (`graphics/covenant_remnants/fx/slipspace_rupture/`, ids in `data/config/settings.json`).
 - See [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
 
 ### Weapons
@@ -219,8 +219,13 @@ Gradle Kotlin DSL, Kotlin JVM 2.1.0, Java 8 target (`build.gradle.kts`):
   jars, `json.jar`, `lwjgl`), LemonLib (composite build — `settings.gradle.kts`
   `includeBuild("../LemonLib")`, resolved to LemonLib's classes), LazyLib, MagicLib, LunaLib,
   Console Commands, log4j 1.2.17.
-- **Tasks:** `buildMod` (compiled classes → `jars/CovenantRemnants.jar`), `cleanMod`,
-  `packageMod` (assemble `build/mod_package/` → `Covenant Remnants.zip`).
+- **Tasks:**
+  - `buildMod`: compiled classes → `jars/CovenantRemnants.jar`.
+  - `cleanMod`.
+  - `stageMod`: runtime files → `build/mod_package/Covenant Remnants/`.
+  - `packageMod`: the staged folder → `Covenant Remnants.zip`.
+  - The release file list lives only in `packageMod`'s `runtimeFiles`. `package_mod.bat` / `.sh`
+    wrap it. See [implementations/release-packaging.md](implementations/release-packaging.md).
 
 > **Runtime dependencies:** `mod_info.json` declares LemonLib, MagicLib, LazyLib (required).
 > MagicLib is used only for `MagicUI`: the Covenant shield HUD bars (`CovenantShieldsUIRenderPlugin`)

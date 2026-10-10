@@ -128,7 +128,7 @@ Data under `assets/reference/plasma-bombardment/reach-data/` (gitignored): `dump
   materials `BOMBARD_CONTRAIL`, `BOMBARD_WISPY`, `BOMBARD_MUZZLE`, `BOMBARD_PULSE`, `BOMBARD_GAS`,
   `BOMBARD_CORE`, `BOMBARD_BOLT`, `ARTILLERY_FIREBALL`; kinds `BOMBARD_*` / `ARTILLERY_*`. No shader
   change.
-- `graphics/fx/plasma_bombardment/` (new, 12 Reach exports) — registered in `data/config/settings.json`
+- `graphics/covenant_remnants/fx/plasma_bombardment/` (new, 12 Reach exports) — registered in `data/config/settings.json`
   (`plasma_bombardment_*`).
 - `sounds/plasma_bombardment/charge.ogg`, `fire_1-3.ogg`, `explosion_1-4.ogg` (new),
   `data/config/sounds.json` — `covenant_remnants_plasma_bombardment_{charge,fire,explosion}` at 0.25.

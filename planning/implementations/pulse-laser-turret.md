@@ -42,7 +42,7 @@ The new gun sits "slightly above vanilla" (300 dps at 500 range) and pays in flu
   `covenant_remnants_pulselaser_shot`, `fireSoundTwo` `covenant_remnants_pulse_laser_fire`. All beam
   fields dropped.
 - `data/weapons/proj/covenant_remnants_pulselaser_shot.proj` (new).
-- `graphics/missiles/covenant_remnants_pulselaser_shot.png` (new, generated).
+- `graphics/covenant_remnants/missiles/covenant_remnants_pulselaser_shot.png` (new, generated).
 - `sounds/pulse_laser/fire_1-3.ogg` (new), `data/config/sounds.json` —
   `covenant_remnants_pulse_laser_fire` (3 permutations, volume 0.25).
 - `assets/reference/pulse-laser/` (gitignored): `README.md`, `tools/make_bolt.py`,
