@@ -57,6 +57,41 @@ the `.md` files and LICENSE.
 - No `noise.png`, `fire_fp_*`, `*.stale-*`, `.kt`, `.md`, `.py` or `.kts` in the zip.
 - Old flat leftovers of the previous task in `build/mod_package/` were deleted (generated output).
 
+## LemonLib (same day)
+
+The same build system in `../LemonLib` (its own repo). Developer rulings:
+
+- Same shape as Covenant: `stageMod` / `packageMod`, with the zip in the project root.
+- **Jar code-only.**
+- **Ship the modder docs.**
+
+Changes:
+
+- **`build.gradle.kts`**
+  - `buildMod` is code only. The `resources.srcDirs("data")` source set, `from("data")` and
+    `from("mod_info.json")` are gone; they had put the data in the jar twice (at the jar root and
+    under `data/`).
+  - A new `releaseFiles` list: `mod_info.json`, `*.version`, `data/**`, `jars/LemonLib.jar`,
+    `README.md` and `docs/**`.
+  - `stageMod` writes `build/mod_package/LemonLib/`, and `packageMod` writes `LemonLib.zip` in the
+    LemonLib root.
+- **New files:** `package_mod.bat` (CRLF, explicit `gradlew.bat` path, with the `pause` the developer
+  added to Covenant's) and `package_mod.sh`.
+- **`gradlew.bat`** — copied from Covenant. LemonLib had only the Unix `gradlew`. Both use the same
+  Gradle 8.4 wrapper.
+- **`.gitignore`** — `/LemonLib.zip` added. The file also lacked a final newline.
+- **`README.md`** — the Building section now covers `packageMod`. It also fixes the stale claim that
+  dependent mods compile against `jars/LemonLib.jar`; they compile against the classes through the
+  composite build.
+
+Verification:
+
+- `package_mod.sh` and `package_mod.bat` both end with BUILD SUCCESSFUL and exit code 0.
+- `LemonLib.zip` has 12 files under `LemonLib/`: the jar, `mod_info.json`, `lemonlib.version`,
+  2 data CSVs, the README and 6 docs.
+- The jar now holds only classes plus `META-INF`.
+- Covenant's `buildMod`, which builds LemonLib through the composite build, still succeeds.
+
 ## Open items
 
 - When a file is added to the repo but not used at runtime, either add an `exclude` to

@@ -438,6 +438,11 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/graphics-folder-move.md](implementations/graphics-folder-move.md).
 - [ ] **Graphics move — in-game check** — no missing-sprite errors in the log; bolts, torpedoes,
       shells and all fx (shield, rupture, Ark, projector, beam) still render.
+- [x] **LemonLib release packaging** — 2026-10-10 (rulings: same shape as Covenant, jar code-only,
+      ship README + docs/): `packageMod` → `LemonLib/LemonLib.zip` (12 files), `package_mod.bat` /
+      `.sh`, `gradlew.bat` added, jar no longer carries `data/` + `mod_info.json`. Uncommitted in the
+      LemonLib repo (developer's). See
+      [implementations/release-packaging.md](implementations/release-packaging.md).
 - [ ] **Release packaging — clean-install check** — unzip `Covenant Remnants.zip` into a clean
       `mods/` and start the game once.
 - [x] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
