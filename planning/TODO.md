@@ -312,6 +312,9 @@ Keep this file current — tick items off and add new ones as work lands.
 
 - [ ] **Tune all numbers** — every ship, weapon, shield, and system value is a vanilla-anchored
       placeholder. Developer 2026-10-02: tuning waits until all gameplay systems are finished.
+- [x] **Campaign burn speed raise** — 2026-10-10 (ruling: +2, cap 9, hulls already above 9 kept):
+      cruiser1 / 2 / 4 and capital2 8→9, capital1 7→9, supercaps 6→8; frigate1 / 2 stay 10, the
+      9s unchanged. See [implementations/burn-speed-raise.md](implementations/burn-speed-raise.md).
 - [x] **Supercap mobility** — CAS + CVS base speed 15→30, accel 10→15, decel 8→12 (effective 36
       at-flux with Nanolaminate, just above Invictus). See
       [implementations/supercap-speed-tune.md](implementations/supercap-speed-tune.md). In-game
