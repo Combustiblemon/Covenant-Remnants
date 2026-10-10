@@ -101,8 +101,10 @@ Verification:
 Developer rulings:
 
 - v0.1.0 is the 19:58 zip of 2026-10-10, which already held the tester cache, the Huragok Slipspace
-  Engram and the max-burn change. v0.1.1 covers only the UI-scaling work: see
-  [shield-ui-scaling-fix.md](shield-ui-scaling-fix.md).
+  Engram and the max-burn change. v0.1.1 covers the UI-scaling work
+  ([shield-ui-scaling-fix.md](shield-ui-scaling-fix.md)). On 2026-10-11, before release, the
+  developer added the save-load crash fix
+  ([slipspace-stream-load-crash-fix.md](slipspace-stream-load-crash-fix.md)).
 - `CHANGELOG.md` starts at v0.1.1, with no back-filled v0.1.0 entry. New versions go on top. The
   whole file ships in the zip.
 - The entries follow the changelog style in [../../CLAUDE.md](../../CLAUDE.md): categories by

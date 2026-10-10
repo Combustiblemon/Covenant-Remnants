@@ -455,9 +455,15 @@ Keep this file current — tick items off and add new ones as work lands.
       only (271 files, 6.4 MB). `package_mod.bat` / `.sh` call it. See
       [implementations/release-packaging.md](implementations/release-packaging.md).
 - [x] **v0.1.1 + `CHANGELOG.md`** — 2026-10-10: the version is bumped in `mod_info.json`, the
-      `.version` file and `build.gradle.kts`. `CHANGELOG.md` starts at v0.1.1 (UI-scaling fixes)
-      and the whole file ships in the zip. See "v0.1.1" in
+      `.version` file and `build.gradle.kts`. `CHANGELOG.md` starts at v0.1.1 (UI-scaling fixes, plus
+      the save-load crash fix added 2026-10-11 before release), and the whole file ships in the zip. See "v0.1.1" in
       [implementations/release-packaging.md](implementations/release-packaging.md).
+- [ ] **Crash on loading a save made after a slipspace jump — in-game check** — fixed 2026-10-11.
+      `SlipspaceStreamTerrainPlugin` never got vanilla's package-private `readResolve` (XStream
+      skips it across packages), so `bounds` / `particles` were null after any load. It now has its
+      own. Load the crashing save, then jump → exit → save → load, then save / load inside the
+      pocket. See
+      [implementations/slipspace-stream-load-crash-fix.md](implementations/slipspace-stream-load-crash-fix.md).
 - [ ] **Publish v0.1.1 to Version Checker** — the online master `.version` on GitHub `master` must
       read patch 1 once the release is merged, or players on 0.1.0 get no update notice.
 - [x] **Graphics under `graphics/covenant_remnants/`** — 2026-10-10 (developer ruling: that folder

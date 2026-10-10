@@ -1,12 +1,14 @@
 package org.combustiblelemon.covenantremnants.campaign.terrain
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.CampaignEngineLayers
 import com.fs.starfarer.api.campaign.CampaignFleetAPI
 import com.fs.starfarer.api.campaign.SectorEntityToken
 import com.fs.starfarer.api.impl.campaign.ids.Tags
 import com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 import org.lwjgl.util.vector.Vector2f
+import java.util.EnumSet
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sqrt
@@ -19,10 +21,31 @@ import kotlin.math.sqrt
  * at most one fleet length outside).
  *
  * The vanilla containment query returns null outside the stream and off its ends, so the
- * push-back uses its own nearest-point-on-polyline over the saved segments. No `readResolve`
- * here on purpose: the superclass's is package-private and ours would shadow it.
+ * push-back uses its own nearest-point-on-polyline over the saved segments.
  */
 class SlipspaceStreamTerrainPlugin : SlipstreamTerrainPlugin2() {
+
+    private companion object {
+        /** What the superclass's `readResolve` sets; its own field is private, see [getActiveLayers]. */
+        val LAYERS: EnumSet<CampaignEngineLayers> = EnumSet.of(CampaignEngineLayers.TERRAIN_SLIPSTREAM)
+    }
+
+    /**
+     * Rebuilds the transient state after a save load, as the superclass's `readResolve` does. The
+     * game's XStream (1.4.10) only runs an inherited `readResolve` that is public / protected or in
+     * the same package; the superclass's is package-private in another package, so it never ran for
+     * this class. `bounds` and `particles` came back null and the first campaign frame after loading
+     * any save holding the pocket path crashed in `getSegmentsNear` (2026-10-11).
+     */
+    fun readResolve(): Any {
+        particles = ArrayList()
+        bounds = ArrayList()
+        setNeedsRecompute()
+        return this
+    }
+
+    /** The superclass's layer set is private and only restored by its (skipped) `readResolve`. */
+    override fun getActiveLayers(): EnumSet<CampaignEngineLayers> = LAYERS
 
     /** Where a point sits relative to the path. */
     class PathOffset(
