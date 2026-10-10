@@ -132,6 +132,9 @@ tasks.register("packageMod") {
             from(".")
             into("build/mod_package")
             include("mod_info.json")
+            // Version Checker: data/config/version/version_files.csv points at this root file;
+            // shipping the CSV without it makes LunaLib's loadJSON throw at startup.
+            include("*.version")
             include("data/**")
             include("graphics/**")
             include("sounds/**")

@@ -11,6 +11,7 @@ import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.input.InputEventAPI
 import com.fs.starfarer.api.util.Misc
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureEffect
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
@@ -133,7 +134,7 @@ class FleetSlipspaceJumpSession private constructor(
                     entryEffect.startFade()
                     if (!openSoundPlayed) {
                         openSoundPlayed = true
-                        Global.getSoundPlayer().playSound(SOUND_OPEN, 1f, 1f, entryCenter, Vector2f())
+                        Global.getSoundPlayer().playSound(SOUND_OPEN, 1f, CovenantSettings.effectVolume, entryCenter, Vector2f())
                     }
                     playExitHum()
                     if (!visualOnly) markStep()
@@ -201,7 +202,8 @@ class FleetSlipspaceJumpSession private constructor(
     /** The charge hum at [location], keyed by [source]; must be called every frame it should play. */
     private fun playChargeHum(source: Any, location: Vector2f, level: Float, volumeMult: Float) {
         val pitch = HUM_PITCH_START + (HUM_PITCH_END - HUM_PITCH_START) * level
-        val volume = (HUM_VOLUME_START + (HUM_VOLUME_END - HUM_VOLUME_START) * level) * volumeMult
+        val volume = (HUM_VOLUME_START + (HUM_VOLUME_END - HUM_VOLUME_START) * level) * volumeMult *
+            CovenantSettings.effectVolume
         Global.getSoundPlayer().playLoop(SOUND_CHARGE_LOOP, source, pitch, volume, location, Vector2f())
     }
 
@@ -377,8 +379,8 @@ class FleetSlipspaceJumpSession private constructor(
     /** The collapse and boom where the fleet left, the slipspace arrival where it lands. */
     private fun playJumpSounds(from: Vector2f, to: Vector2f) {
         val sounds = Global.getSoundPlayer()
-        sounds.playSound(SOUND_COLLAPSE, 1f, 1f, from, Vector2f())
-        sounds.playSound(SOUND_ARRIVAL, 1f, 1f, to, Vector2f())
+        sounds.playSound(SOUND_COLLAPSE, 1f, CovenantSettings.effectVolume, from, Vector2f())
+        sounds.playSound(SOUND_ARRIVAL, 1f, CovenantSettings.effectVolume, to, Vector2f())
     }
 
     /** VISUAL_ONLY jump: entry collapses off the bow (no lurch), exit dissolves at the destination. */

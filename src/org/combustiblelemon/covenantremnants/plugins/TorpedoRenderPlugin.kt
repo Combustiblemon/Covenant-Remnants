@@ -11,6 +11,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.combat.WeaponAPI
 import com.fs.starfarer.api.util.Misc
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.ArtilleryBurst
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.AuraStyle
 import org.combustiblelemon.covenantremnants.utils.render.torpedo.BombardCharge
@@ -406,14 +407,14 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
                 bursts.add(TorpedoBurst.impact(location, flight.unit, smoke = false, style = flight.style))
                 Global.getSoundPlayer().playSound(
                     SOUND_IMPACT, flight.pitch * (Random.nextFloat() * (1f - IMPACT_PITCH_MIN) + IMPACT_PITCH_MIN),
-                    1f, location, Vector2f()
+                    CovenantSettings.effectVolume, location, Vector2f()
                 )
             }
             return
         }
         if (!missile.isFizzling && !missile.isFading) {
             Global.getSoundPlayer().playLoop(
-                flight.size.loopId, missile, 1f, 1f, missile.location, missile.velocity, LOOP_FADE, LOOP_FADE
+                flight.size.loopId, missile, 1f, CovenantSettings.effectVolume, missile.location, missile.velocity, LOOP_FADE, LOOP_FADE
             )
         }
     }

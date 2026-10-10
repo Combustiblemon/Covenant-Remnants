@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.CombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.utils.render.plasmabeam.PlasmaBeamLook
 import org.combustiblelemon.covenantremnants.utils.render.plasmabeam.PlasmaBeamRenderer
 import org.lwjgl.util.vector.Vector2f
@@ -63,7 +64,7 @@ class PlasmaBeamRenderPlugin private constructor() : CombatLayeredRenderingPlugi
     }
 
     private fun play(id: String, at: Vector2f, velocity: Vector2f?) {
-        Global.getSoundPlayer().playSound(id, 1f, 1f, Vector2f(at), velocity ?: Vector2f())
+        Global.getSoundPlayer().playSound(id, 1f, CovenantSettings.effectVolume, Vector2f(at), velocity ?: Vector2f())
     }
 
     override fun render(layer: CombatEngineLayers, viewport: ViewportAPI) {

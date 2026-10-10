@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.CombatEntityAPI
 import com.fs.starfarer.api.combat.CombatLayeredRenderingPlugin
 import com.fs.starfarer.api.combat.ViewportAPI
 import com.fs.starfarer.api.combat.WeaponAPI
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.utils.render.projector.ProjectorEffect
 import org.combustiblelemon.covenantremnants.utils.render.projector.ProjectorRenderer
 import org.lwjgl.util.vector.Vector2f
@@ -63,7 +64,7 @@ class EnergyProjectorRenderPlugin private constructor() : CombatLayeredRendering
             effect.advance(amount)
             if (effect.impactThisFrame) {
                 val at = Vector2f(effect.hitPoint)
-                Global.getSoundPlayer().playSound(SOUND_IMPACT, 1f, 1f, at, Vector2f())
+                Global.getSoundPlayer().playSound(SOUND_IMPACT, 1f, CovenantSettings.effectVolume, at, Vector2f())
             }
             val ship = entry.key.ship
             if (effect.isDone && (ship == null || !ship.isAlive)) iterator.remove()

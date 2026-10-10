@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants.utils.render.rupture
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.systems.FleetSlipspaceJump
 import org.combustiblelemon.lemonlib.render.Shader
 import org.lwjgl.BufferUtils
@@ -131,7 +132,8 @@ class RuptureRenderer : Shader {
     private fun renderAll(viewport: ViewportAPI) {
         val view = RuptureView(viewport)
         val exposure = FleetSlipspaceJump.exposure.value
-        val distortion = FleetSlipspaceJump.distortion.value
+        // Player setting off = no heat haze, which also skips the full-screen copy below
+        val distortion = if (CovenantSettings.heatHaze) FleetSlipspaceJump.distortion.value else 0f
 
         // Capture the GL state before anything binds - including the lazy program construction.
         glPushAttrib(GL_ALL_ATTRIB_BITS)

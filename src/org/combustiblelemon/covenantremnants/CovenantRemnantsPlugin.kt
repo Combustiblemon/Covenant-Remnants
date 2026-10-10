@@ -6,6 +6,8 @@ import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRul
 import org.combustiblelemon.covenantremnants.campaign.entities.SlipspaceCampaignPlugin
 import org.combustiblelemon.covenantremnants.campaign.systems.ensureSlipspaceSystem
 import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilities
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
+import org.combustiblelemon.covenantremnants.settings.LunaSettingsBridge
 import org.combustiblelemon.covenantremnants.utils.initShieldData
 import org.combustiblelemon.covenantremnants.utils.render.blink.BlinkRenderer
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RupturePrograms
@@ -39,6 +41,12 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         logger.info(shieldData.toString())
 
         HullmodIncompatibilityInstaller.install(CovenantIncompatibilities.registry())
+
+        // Player options. LunaLib is optional: without it CovenantSettings keeps its defaults, and the
+        // bridge class (the only one importing lunalib) is never loaded.
+        if (Global.getSettings().modManager.isModEnabled(CovenantSettings.LUNALIB_ID)) {
+            LunaSettingsBridge.install()
+        }
 
         // Compile the (one, shared) Covenant shield program now, on the GL thread, instead of on the
         // first shield activation in combat (developer request 2026-10-02: ~250 ms per compile

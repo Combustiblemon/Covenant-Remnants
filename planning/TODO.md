@@ -26,6 +26,7 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/variant-refit.md](implementations/variant-refit.md): refit screens, destroyer1
       deploys, destroyer2 wings launch from the new bays (move them in the editor if wrong), supercap
       carriers launch all wings and act as carriers, capital1 nose Projector, AI uses the new groups.
+      Supercaps got the missing `CARRIER` hint 2026-10-10 (CAS `CARRIER, COMBAT`, CVS `CARRIER`).
 - [ ] **Bespoke weapon art** — the 13 weapons use vanilla-analog sprites recolored purple; make real
       Covenant turret/hardpoint sprites. See [implementations/weapons-arsenal.md](implementations/weapons-arsenal.md).
 - [x] **Projectile / missile recolor** — done by the weapons pass (checked 2026-10-10): every
@@ -147,7 +148,7 @@ Keep this file current — tick items off and add new ones as work lands.
       (folds in the 2026-10-02 Reach look check; check `starsector.log` for `Plasma torpedo
       registered by …` / `Plasma torpedo hit …`). Melt glow / ember constants are placeholders from
       the headless harness.
-- [ ] **Reach curve audit** — requested by the developer 2026-10-10. The stock tag dumper printed
+- [x] **Reach curve audit** — requested by the developer 2026-10-10, closed the same day. The stock tag dumper printed
       unclamped curves as raw 0..1 and unclamped Basic constants as 0 (found 2026-10-09, see
       [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md)).
       - [x] Report — done 2026-10-10: 134 tags re-dumped with the patched dumper, 211 curves + every
@@ -159,14 +160,15 @@ Keep this file current — tick items off and add new ones as work lands.
         [implementations/reach-curve-audit.md](implementations/reach-curve-audit.md).
       - [x] Developer rulings 2026-10-10: keep the current look for all four effects (beam,
         torpedoes, projector, rupture); no code change, differences recorded as deliberate.
-      - [ ] Open question: non-ranged Basic "ramps" in the Halo 3 Ark tags (Reach evaluates them as
-        constant min); settling it needs the H3 kit's evaluator (developer's call).
+      - [x] Open question: non-ranged Basic "ramps" in the Halo 3 Ark tags (Reach evaluates them as
+        constant min) — not pursued (developer 2026-10-10); the Ark portals keep the ramp reading
+        they passed in game with.
 - [x] **Plasma Cannon splash — switch to the new impact** — built 2026-10-10 (rulings: the
       Bombardment's rebuilt `covenant_explosion_artillery_huge` (`ArtilleryBurst`) at unit 8 after a
       headless preview of 6 / 8 / 10 / 12, 30 sparks, 1 s blast light, quiet `cov_damage_large` boom at
       0.15 pitched ~1.2, still visual only). See
       [implementations/plasma-cannon-artillery-impact.md](implementations/plasma-cannon-artillery-impact.md).
-- [ ] **Plasma Cannon impact — in-game check** — 5-point list in
+- [x] **Plasma Cannon impact — in-game check** — closed by the developer 2026-10-10. 5-point list in
       [implementations/plasma-cannon-artillery-impact.md](implementations/plasma-cannon-artillery-impact.md):
       blue flash / fireballs / sparks at the old splash size, glow gone within 1 s, quiet boom, no area
       damage, Bombardment and Mortar unchanged, frame rate.
@@ -424,9 +426,9 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **`SlipspaceJumpTune` console command** — lists / sets / resets every campaign Slipspace
       Jump tunable; `NO_SHIP_RESTRICTION 1` and `FREE 1` for testing. See
       [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
-- [ ] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
-      (`65a5b80`). Still uncommitted as of 2026-10-02: `jars/LemonLib.jar`, new
-      `src/.../lemonlib/geometry/CubicCurve2D.kt`, `README.md` row. Developer to commit.
+- [x] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
+      (`65a5b80`), `CubicCurve2D.kt` + `README.md` row committed (`0ed9f18`). Only the rebuilt
+      `jars/LemonLib.jar` showed as modified on 2026-10-10; closed by the developer the same day.
 
 ## Campaign Slipspace Jump (built 2026-10-07)
 
@@ -480,8 +482,23 @@ Keep this file current — tick items off and add new ones as work lands.
       pointed at a class moved to LemonLib.
 - [x] **LunaLib settings were dead config** — `data/config/LunaSettings.csv` (25 old debug shield
       settings no code read) deleted 2026-10-01 per developer.
-- [ ] **LunaLib settings (future)** — add real LunaLib settings to control mod options. LunaLib
-      stays optional: every setting needs a built-in default used when LunaLib is absent.
+- [x] **LunaLib settings** — built 2026-10-10 (rulings: performance + effect volume, isolated
+      bridge, live apply): slipspace particle density 0.1–1, slipspace heat haze on/off, shield hit
+      distortion on/off, effect volume 0–1 for code-played sounds (clamped from 0–2 the same day). `settings/CovenantSettings`
+      holds the defaults; `settings/LunaSettingsBridge` is the only `lunalib` importer, loaded only
+      when LunaLib is enabled. See [implementations/lunalib-settings.md](implementations/lunalib-settings.md).
+- [x] **Version Checker support** — 2026-10-10: `data/config/version/version_files.csv` registers
+      the existing `covenant-remnants.version` with LunaLib's Version Checker; `packageMod` now ships
+      the `.version` file (it was left out). LemonLib got the same: new `lemonlib.version` + CSV. See
+      [implementations/version-checker.md](implementations/version-checker.md).
+- [ ] **Version Checker — master URLs 404** — both `masterVersionFile`s (Covenant GitHub raw
+      `master`, LemonLib `main`) returned 404 on 2026-10-10: the repos look private. Update checks
+      need them reachable. Optional later: `modThreadId`, `modNexusId`, `directDownloadURL`,
+      `changelogURL`. LemonLib: commit the two new files (its repo is the developer's).
+- [ ] **LunaLib settings — in-game check** — 7-point list in
+      [implementations/lunalib-settings.md](implementations/lunalib-settings.md): page + startup log
+      line, live apply on save, density 0.1, haze off, shield rings off, volume 0 / 0.5. Start with
+      LunaLib disabled passed 2026-10-10 (no `NoClassDefFoundError`).
 - [ ] Items (Covenant items).
 
 ## Planetfall (ground combat library in ../Planetfall; parked 2026-10-08)

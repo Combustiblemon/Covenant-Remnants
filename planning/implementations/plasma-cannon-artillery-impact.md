@@ -93,6 +93,8 @@ close-up) and `preview/impact_final_vs_old.png`.
    is unchanged.
 5. Frame rate with several Cannons firing (64 sprites per hit at most, vs 72 before).
 
+Closed by the developer 2026-10-10.
+
 ## Open items
 
 - `IMPACT_UNIT` 8, 30 sparks, 1 s light and the 0.15 volume are placeholders for the in-game look.

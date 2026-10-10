@@ -10,6 +10,7 @@ import com.fs.starfarer.api.combat.OnHitEffectPlugin
 import com.fs.starfarer.api.combat.listeners.ApplyDamageResultAPI
 import com.fs.starfarer.api.loading.DamagingExplosionSpec
 import org.combustiblelemon.covenantremnants.plugins.TorpedoRenderPlugin
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.random.Random
@@ -75,7 +76,7 @@ class PlasmaBombardmentOnHit : OnHitEffectPlugin {
 
         TorpedoRenderPlugin.forEngine(engine).artilleryImpact(location, UNIT)
         Global.getSoundPlayer().playSound(
-            SOUND_EXPLOSION, Random.nextFloat() * (PITCH_MAX - PITCH_MIN) + PITCH_MIN, 1f, location, Vector2f()
+            SOUND_EXPLOSION, Random.nextFloat() * (PITCH_MAX - PITCH_MIN) + PITCH_MIN, CovenantSettings.effectVolume, location, Vector2f()
         )
     }
 }

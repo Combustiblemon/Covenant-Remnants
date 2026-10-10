@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipCommand
 import com.fs.starfarer.api.combat.ShipSystemAPI
 import com.fs.starfarer.api.input.InputEventAPI
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.systems.FleetSlipspaceJump
 import org.lwjgl.input.Keyboard
 import org.lwjgl.util.vector.Vector2f
@@ -82,7 +83,7 @@ class FleetSlipspaceJumpTargetingPlugin : BaseEveryFrameCombatPlugin() {
             event.consume()
             FleetSlipspaceJump.prime(ship)
             updateAim(engine)
-            Global.getSoundPlayer().playUISound(PRIME_SOUND, 1f, 1f)
+            Global.getSoundPlayer().playUISound(PRIME_SOUND, 1f, CovenantSettings.effectVolume)
             return
         }
     }

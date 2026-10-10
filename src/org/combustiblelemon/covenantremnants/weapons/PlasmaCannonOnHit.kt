@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.DamagingProjectileAPI
 import com.fs.starfarer.api.combat.OnHitEffectPlugin
 import com.fs.starfarer.api.combat.listeners.ApplyDamageResultAPI
 import org.combustiblelemon.covenantremnants.plugins.TorpedoRenderPlugin
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.lwjgl.util.vector.Vector2f
 import kotlin.random.Random
 
@@ -54,7 +55,7 @@ class PlasmaCannonOnHit : OnHitEffectPlugin {
         val location = Vector2f(point ?: projectile.location)
         TorpedoRenderPlugin.forEngine(engine).artilleryImpact(location, IMPACT_UNIT, IMPACT_SPARKS, IMPACT_LIGHT_LIFE)
         Global.getSoundPlayer().playSound(
-            SOUND_EXPLOSION, Random.nextFloat() * (PITCH_MAX - PITCH_MIN) + PITCH_MIN, 1f, location, Vector2f()
+            SOUND_EXPLOSION, Random.nextFloat() * (PITCH_MAX - PITCH_MIN) + PITCH_MIN, CovenantSettings.effectVolume, location, Vector2f()
         )
     }
 }

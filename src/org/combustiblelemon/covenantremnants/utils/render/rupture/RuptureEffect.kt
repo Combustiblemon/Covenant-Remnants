@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils.render.rupture
 
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.systems.FleetSlipspaceJump
 import org.lwjgl.util.vector.Vector2f
 import java.util.Random
@@ -449,7 +450,7 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
 
     private fun charge(dt: Float) {
         val c = chargeLevel.coerceIn(0f, 1f)
-        val density = FleetSlipspaceJump.particleDensity.value
+        val density = particleDensity()
         if (!chargeStarted) {
             chargeStarted = true
             repeat(count(2f)) { spawnCharge() }
@@ -601,7 +602,7 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
 
         val a = b / BURST_EMIT_DURATION
         if (a < 1f) {
-            val density = FleetSlipspaceJump.particleDensity.value
+            val density = particleDensity()
             burstPlasmaAccumulator += 7f * density * dt
             while (burstPlasmaAccumulator >= 1f) {
                 burstPlasmaAccumulator -= 1f
@@ -683,7 +684,7 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
             repeat(count(120f)) { spawnTwinkle(linger = false) }
         }
         val a = phaseTime / BURST_EMIT_DURATION
-        if (a < 1f) emitTwinkles(dt, a, FleetSlipspaceJump.particleDensity.value)
+        if (a < 1f) emitTwinkles(dt, a, particleDensity())
 
         val u = phaseTime / EXIT_FLARE_DURATION
         if (u < 1f) {
@@ -766,7 +767,10 @@ class RuptureEffect private constructor(val kind: Kind, center: Vector2f, val ra
 
     // --- Spawning -----------------------------------------------------------------------------
 
-    private fun count(n: Float): Int = max(0, (n * FleetSlipspaceJump.particleDensity.value).roundToInt())
+    /** Dev tunable (`FleetJumpTune PARTICLE_DENSITY`) times the player's setting. */
+    private fun particleDensity(): Float = FleetSlipspaceJump.particleDensity.value * CovenantSettings.particleDensity
+
+    private fun count(n: Float): Int = max(0, (n * particleDensity()).roundToInt())
 
     private fun rnd(): Float = random.nextFloat()
 

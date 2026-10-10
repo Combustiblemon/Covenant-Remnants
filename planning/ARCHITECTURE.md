@@ -223,7 +223,12 @@ Gradle Kotlin DSL, Kotlin JVM 2.1.0, Java 8 target (`build.gradle.kts`):
   `packageMod` (assemble `build/mod_package/` → `Covenant Remnants.zip`).
 
 > **Runtime dependencies:** `mod_info.json` declares LemonLib, MagicLib, LazyLib (required).
+> MagicLib is used only for `MagicUI`: the Covenant shield HUD bars (`CovenantShieldsUIRenderPlugin`)
+> and the `BLUCOLOR` of the shield damage numbers. It stays required (developer ruling 2026-10-10:
+> nearly every player has it, and rewriting the HUD bars is not worth it).
 > LunaLib and Console Commands are **optional** (developer ruling 2026-10-01): compile-only, not
 > declared, and the mod must run without them. Console Commands code is isolated in `commands/`.
-> LunaLib is currently unused (old debug `LunaSettings.csv` removed 2026-10-01); mod settings via
-> LunaLib are planned — see [PLAN.md](PLAN.md).
+> LunaLib code is isolated in `settings/LunaSettingsBridge.kt` (built 2026-10-10). The plugin loads
+> that class only after `isModEnabled("lunalib")`. It copies `data/config/LunaSettings.csv` values
+> into the plain `settings/CovenantSettings` object, which holds the defaults and is what every
+> reader uses. See [implementations/lunalib-settings.md](implementations/lunalib-settings.md).

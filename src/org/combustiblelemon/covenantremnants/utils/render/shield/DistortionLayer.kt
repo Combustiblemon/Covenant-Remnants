@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants.utils.render.shield
 
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.lemonlib.render.composition.ShaderLayer
 import org.lwjgl.opengl.GL13.GL_TEXTURE0
 import org.lwjgl.opengl.GL13.glActiveTexture
@@ -80,6 +81,8 @@ class DistortionLayer(private val ship: ShipAPI?) : ShaderLayer {
 
     /** A hit at a world position; [level] is the damage level 0..1. */
     fun addWave(worldX: Float, worldY: Float, level: Float) {
+        // Player setting off = no rings, so no screen copy (rings already running finish)
+        if (!CovenantSettings.shieldDistortion) return
         val ship = ship ?: return
         val dx = worldX - ship.location.x
         val dy = worldY - ship.location.y

@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants.plugins
 
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.*
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
 import org.combustiblelemon.covenantremnants.systems.FortressShield
 import org.combustiblelemon.lemonlib.geometry.getRandomPointsInPolygon
@@ -80,7 +81,7 @@ class CovenantShieldsRenderPlugin(
         spawnLightning()
         shader.startCollapse()
         spawnBreakFx()
-        Global.getSoundPlayer().playSound(SOUND_ID, 1f, 1f, attachedTo.location, attachedTo.velocity)
+        Global.getSoundPlayer().playSound(SOUND_ID, 1f, CovenantSettings.effectVolume, attachedTo.location, attachedTo.velocity)
         pendingRaiseWave = true
     }
 

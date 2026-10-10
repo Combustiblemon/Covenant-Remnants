@@ -96,15 +96,38 @@ total of 105 / 105 was right and is what was built.
   obf `coreui.refit.java` ~5924).
 - **Bays.** Each launch bay object pairs a wing with a `LAUNCH_BAY` slot (obf `combat.entities.java`
   ~12202). Every launch path loops over the ship's launch bays.
-- **Carrier AI.** The AI treats a ship as a carrier when `launchBays.size() >= fighterBays × 0.66`
-  (~7335).
+- **Carrier AI.** The AI treats a ship as a carrier when `variant.isCarrier()` **and**
+  `launchBays.size() >= fighterBays × 0.66` (~7335). The readable hull-side `isCarrier()`
+  (`campaign.command.java` ~9170) is the `CARRIER` hint. The variant's version lives in
+  `loading.specs`, which is not bundled, but it is almost certainly the same. Without the hint, a ship
+  with bays launches its wings but fights as a warship (vanilla Odyssey, Apex).
+- **The bay count is probably not the gate.** Vanilla Condor (`CARRIER`, 2 bays, 1 slot) would fail
+  the 0.66 test if launch bays were counted per slot, yet it plays as a carrier. So the launch-bay
+  list is most likely one per fighter bay, with slots shared.
 - **Not readable.** The bay factory (`loading.specs`) is not in the skill bundle. So it is not proven
   how wings share slots when there are fewer slots than bays. Vanilla ships with fewer slots than bays
   (Heron, Condor, Odyssey, Apex) and the Tempest (1 bay, 0 slots) exist; supercap1 / supercap2 follow
   that precedent.
 
+## Follow-up — supercap carrier hints (2026-10-10)
+
+Found while preparing the in-game check: supercap1 and supercap2 had no `CARRIER` hint (only
+`NEVER_DODGE_MISSILES, RENDER_ENGINES_BELOW_HULL`). By the rule above they would launch their wings
+but never act as carriers. destroyer2 and cruiser2 already had `CARRIER`.
+
+Developer ruling (split by role, with vanilla analogs):
+
+| Hull | Hints now | Vanilla analog |
+| --- | --- | --- |
+| supercap1 CAS Assault Carrier | `CARRIER, COMBAT, NEVER_DODGE_MISSILES, RENDER_ENGINES_BELOW_HULL` | Legion / Mora (battle carrier) |
+| supercap2 CVS Supercarrier | `CARRIER, NEVER_DODGE_MISSILES, RENDER_ENGINES_BELOW_HULL` | Astral (pure carrier, stays back) |
+
+No mod code reads `isCarrier` or these hints. The `.ship` files carry no `hints` field; the CSV is the
+only source.
+
 ## Files
 
+- `data/hulls/ship_data.csv` — supercap1 / supercap2 hints (follow-up above).
 - `data/hulls/covenant_remnants_destroyer2.ship` — `LB 1` and `LB 2` added.
 - `data/hulls/covenant_remnants_capital1.ship` — `WS0014` size `SMALL` → `MEDIUM`.
 - `data/variants/covenant_remnants_capital3_std.variant` → `covenant_remnants_cruiser5_std.variant`
@@ -147,7 +170,11 @@ simulator.
      in the ship editor and re-check `builtInMods` after the save.
 4. **supercap1 / supercap2.**
    - All 3 / 9 wings launch.
-   - The AI uses them as carriers: wings sent at targets, the ship holds back.
+   - The CVS (supercap2) plays as a carrier: wings sent at targets, the ship holds back.
+   - The CAS (supercap1) plays as a battle carrier: wings sent at targets, and the ship still fights.
+   - If either ignores carrier logic, the bay count may be the gate after all (one launch bay per
+     slot). The fix is then more `LAUNCH_BAY` slots in the editor: at least 2 on supercap1 and 6 on
+     supercap2.
 5. **capital1 (Reverence).** The Energy Projector fires from the nose slot (`WS0008`); `WS0014` shows
    as a medium slot with a Plasma Cannon.
 6. **AI handling.** The AI keeps fighting with the new groups: torpedoes fired, Pulse Lasers on
@@ -156,8 +183,10 @@ simulator.
 ## Open items
 
 - destroyer2 bay positions are placeholders until the developer checks them in the editor.
-- Whether the carrier AI treats supercap1 (3 bays, 1 slot) and supercap2 (9 bays, 5 slots) as
-  carriers. Check in game; the fix would be more `LAUNCH_BAY` slots in the editor.
+- Carrier AI on supercap1 (3 bays, 1 slot) and supercap2 (9 bays, 5 slots): the missing `CARRIER`
+  hint is fixed (follow-up above). The bay-count half of the rule is unproven until checklist
+  item 4 passes. Developer 2026-10-10: wings without a slot launch from the ship's centre (0, 0); any
+  bay issue found in game the developer fixes by hand in the editor.
 - cruiser5 (CPV Heavy Destroyer) has 280 OP. Its slots use 248 of it with every ruled hullmod;
   balance-pass question.
 - The fits are role-first placeholders until the balance pass.

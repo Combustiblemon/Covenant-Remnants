@@ -506,8 +506,8 @@ No code changed. The differences are now recorded as deliberate in each effect's
 
 ## Open items
 
-- Open question above: non-ranged Basic ramps in the Halo 3 Ark tags (needs the H3 kit's evaluator if
-  the developer wants it settled).
+- ~~Open question above: non-ranged Basic ramps in the Halo 3 Ark tags~~ — not pursued (developer
+  2026-10-10). The Ark portals keep the ramp reading they passed in game with.
 
 - If any look is revisited later, the hand-pasted curve objects (`TorpedoCurves`, `WraithCurves`,
   `ProjectorCurves`, `PlasmaBeamCurves`) could get `gen_*` scripts on the patched pipeline, as

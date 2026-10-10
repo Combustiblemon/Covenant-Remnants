@@ -64,7 +64,8 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   the swarm weakness (see [CLAUDE.md](../CLAUDE.md)).
 - Ongoing polish of shaders and feel.
 - **LunaLib settings** — in-game options to control the mod. LunaLib is optional, so each setting
-  needs a default for when LunaLib is absent.
+  needs a default for when LunaLib is absent. First set built 2026-10-10 (performance + effect
+  volume), see [implementations/lunalib-settings.md](implementations/lunalib-settings.md).
 - **Ground combat** — via the separate Planetfall library mod (OpenRA engine in a child process,
   shown in a dialog panel). Parked 2026-10-08 after its skeleton. See
   [ground-combat-planetfall.md](ground-combat-planetfall.md).

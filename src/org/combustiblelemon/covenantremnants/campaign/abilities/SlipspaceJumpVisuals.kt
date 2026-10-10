@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.campaign.abilities
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.LocationAPI
 import com.fs.starfarer.api.combat.ViewportAPI
+import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureEffect
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureRenderer
 import org.lwjgl.util.vector.Vector2f
@@ -55,12 +56,12 @@ class SlipspaceJumpVisuals {
     /** Charge hum: pitch 0.7 → 1.25 and volume 0.35 → 1 with the charge (combat session values). */
     fun playChargeHum(effect: RuptureEffect, level: Float, volumeMult: Float = 1f) {
         val pitch = 0.7f + 0.55f * level
-        val volume = (0.35f + 0.65f * level) * volumeMult
+        val volume = (0.35f + 0.65f * level) * volumeMult * CovenantSettings.effectVolume
         Global.getSoundPlayer().playLoop(SlipspaceJumpRules.SOUND_CHARGE_LOOP, effect, pitch, volume, effect.center, Vector2f())
     }
 
     fun playOneShot(id: String, at: Vector2f) {
-        Global.getSoundPlayer().playSound(id, 1f, 1f, at, Vector2f())
+        Global.getSoundPlayer().playSound(id, 1f, CovenantSettings.effectVolume, at, Vector2f())
     }
 
     fun cleanup() {

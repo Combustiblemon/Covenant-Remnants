@@ -1,0 +1,8 @@
+fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
+covenant_remnants_header_performance,Performance Header,Header,Performance,,,,,
+covenant_remnants_particle_density,Slipspace particle density,Double,1.0,,"Particles in slipspace ruptures, blinks and Ark portals. [Lower] is faster.",0.1,1.0,
+covenant_remnants_heat_haze,Slipspace heat haze,Boolean,true,,"Screen-warp rings around slipspace ruptures and portals. Off skips a [full-screen copy] each frame while one is open.",,,
+covenant_remnants_shield_distortion,Shield hit distortion,Boolean,true,,"Refraction rings on Covenant shields when they are hit. Off skips a [screen copy] per hit ship each frame.",,,
+,,,,,,,,
+covenant_remnants_header_audio,Audio Header,Header,Audio,,,,,
+covenant_remnants_effect_volume,Effect volume,Double,1.0,,"Volume of Covenant impact, shield and slipspace sounds. Weapon fire follows the game's [sound] slider.",0,1,
