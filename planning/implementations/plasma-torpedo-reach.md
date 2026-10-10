@@ -119,6 +119,8 @@ to 125 su.
 
 ## Open items
 
+- Curve audit (2026-10-10, [reach-curve-audit.md](reach-curve-audit.md)): the muzzle round grows 0→1 (tag 0.5→1), the muzzle flash has
+  intensity 1 (tag 1.5) and 2 muzzle rounds spawn (tag 1) — kept as they are by developer ruling.
 - **Damage dropped with the splits** (values untouched, tuning later): the heavy was 7 MIRV
   warheads × 500 HE, now one 500 hit; the light was 5 Sabot darts × 200 kinetic + EMP, now one 100
   hit. Damage types also unchanged (light KINETIC, others HE).

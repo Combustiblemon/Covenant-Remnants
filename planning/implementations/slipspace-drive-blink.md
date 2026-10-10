@@ -68,7 +68,7 @@ Summaries and XML under `assets/reference/odst-carrier-jump/odst-data/` (gitigno
   cloud `fx\emitter_shapes\cov_capital_ship\cov_capital_ship.particle_emitter_custom_points`
   (374 points ordered bow → stern — that ordering *is* the sweep): `radiation_energy` (200/s,
   life 0.25–0.5 s, velocity 40–50 along the normals, size 25–40, tint `#2141e3` through the
-  `fire_01` palette = blue-white sparks) and `radiation_plasma` (50/s, life 0.1–0.35 s, size 30–40,
+  `fire_01` palette = blue-white sparks) and `radiation_plasma` (50/s, life 0.25–0.35 s (corrected 2026-10-10 by the [curve audit](reach-curve-audit.md); was misread as 0.1–0.35), size 30–40,
   `plasma_clouds_a/b` + `thick_smoke_large` through the `plasma_clouds_1` palette, intensity 2–5 =
   violet-blue puffs). Event `flash` at 2.5 s: `radiation_flash` (soft flash, size 75, 0.65 s) at the
   bow marker + `distortion_bubble` ×5 (white → `#2d47da`). `radiation_crackle.effect`: the same

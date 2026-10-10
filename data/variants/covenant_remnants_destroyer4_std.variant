@@ -3,11 +3,15 @@
   "hullId": "covenant_remnants_destroyer4",
   "displayName": "Standard",
   "goalVariant": true,
-  "fluxCapacitors": 14,
-  "fluxVents": 14,
+  "fluxCapacitors": 20,
+  "fluxVents": 20,
   "quality": 1,
   "permaMods": [],
-  "hullMods": [],
+  "hullMods": [
+    "covenant_remnants_huragok_crew",
+    "covenant_remnants_plasma_capacitors",
+    "armoredweapons"
+  ],
   "weaponGroups": [
     {
       "autofire": false,
@@ -21,7 +25,9 @@
       "mode": "LINKED",
       "weapons": {
         "WS0002": "covenant_remnants_pulselaserturret",
-        "WS0003": "covenant_remnants_pulselaserturret"
+        "WS0003": "covenant_remnants_pulselaserturret",
+        "WS0004": "covenant_remnants_pulselaserturret",
+        "WS0005": "covenant_remnants_pulselaserturret"
       }
     }
   ],

@@ -108,6 +108,8 @@ bubble + half-dome flash white-lavender at the hit, tongues and cloud ring linge
 
 ## Open items
 
+- Curve audit (2026-10-10, [reach-curve-audit.md](reach-curve-audit.md)): the flicker glow (tag aspect 1.7), impact half glow (1.7) and
+  bubble (1→1.25) are drawn square — kept as they are by developer ruling.
 - **Beam strips dropped (2026-10-08):** a Reach `plasma_trail` / `wispy_trail` fringe+core pair for
   the vanilla renderer looked blobby in game; reverted to ROUGH, the strips are no longer built.
   The engine draws a faint beam during the 2 s chargeup

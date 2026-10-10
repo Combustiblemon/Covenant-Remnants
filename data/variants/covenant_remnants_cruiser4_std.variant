@@ -3,17 +3,33 @@
   "hullId": "covenant_remnants_cruiser4",
   "displayName": "Standard",
   "goalVariant": true,
-  "fluxCapacitors": 18,
-  "fluxVents": 18,
+  "fluxCapacitors": 26,
+  "fluxVents": 26,
   "quality": 1,
   "permaMods": [],
-  "hullMods": [],
+  "hullMods": [
+    "covenant_remnants_huragok_crew"
+  ],
   "weaponGroups": [
     {
       "autofire": false,
       "mode": "LINKED",
       "weapons": {
         "WS0001": "covenant_remnants_plasmalance"
+      }
+    },
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0007": "covenant_remnants_plasmaautocannon"
+      }
+    },
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0006": "covenant_remnants_plasmabombardment"
       }
     },
     {
@@ -29,7 +45,9 @@
       "mode": "LINKED",
       "weapons": {
         "WS0004": "covenant_remnants_pulselaserturret",
-        "WS0005": "covenant_remnants_pulselaserturret"
+        "WS0005": "covenant_remnants_pulselaserturret",
+        "WS0012": "covenant_remnants_pulselaserturret",
+        "WS0013": "covenant_remnants_pulselaserturret"
       }
     }
   ],

@@ -190,5 +190,11 @@
 		{"file":"sounds/plasma_bombardment/explosion_2.ogg","pitch":1,"volume":0.25},
 		{"file":"sounds/plasma_bombardment/explosion_3.ogg","pitch":1,"volume":0.25},
 		{"file":"sounds/plasma_bombardment/explosion_4.ogg","pitch":1,"volume":0.25}
+	],
+	"covenant_remnants_plasma_cannon_explosion":[
+		{"file":"sounds/plasma_bombardment/explosion_1.ogg","pitch":1,"volume":0.15},
+		{"file":"sounds/plasma_bombardment/explosion_2.ogg","pitch":1,"volume":0.15},
+		{"file":"sounds/plasma_bombardment/explosion_3.ogg","pitch":1,"volume":0.15},
+		{"file":"sounds/plasma_bombardment/explosion_4.ogg","pitch":1,"volume":0.15}
 	]
 }

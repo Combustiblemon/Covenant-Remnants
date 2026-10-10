@@ -198,7 +198,7 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
 
     /**
      * The impact burst alone (no torpedo, no sound, no smoke) at [location], [unit] su per Reach
-     * unit: the Plasma Cannon's hit splash ([org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnHit]).
+     * unit: the Plasma Mortar's hit splash ([org.combustiblelemon.covenantremnants.weapons.PlasmaMortarOnHit]).
      */
     fun splash(location: Vector2f, unit: Float) {
         bursts.add(TorpedoBurst.impact(location, unit, smoke = false))
@@ -244,11 +244,18 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
     }
 
     /**
-     * The Plasma Bombardment's rebuilt `covenant_explosion_artillery_huge` at [location] (no sound):
-     * [org.combustiblelemon.covenantremnants.weapons.PlasmaBombardmentOnHit].
+     * The rebuilt `covenant_explosion_artillery_huge` at [location] (no sound), [unit] su per Reach unit,
+     * with [sparks] sparks and a [lightLife] s blast light: the Plasma Bombardment's hit
+     * ([org.combustiblelemon.covenantremnants.weapons.PlasmaBombardmentOnHit], the defaults) and the
+     * Plasma Cannon's ([org.combustiblelemon.covenantremnants.weapons.PlasmaCannonOnHit]).
      */
-    fun artilleryImpact(location: Vector2f) {
-        artillery.add(ArtilleryBurst.impact(location, PlasmaBombardmentOnHit.UNIT))
+    fun artilleryImpact(
+        location: Vector2f,
+        unit: Float,
+        sparks: Int = ArtilleryBurst.SPARKS,
+        lightLife: Float = ArtilleryBurst.BLAST_LIGHT_LIFE
+    ) {
+        artillery.add(ArtilleryBurst.impact(location, unit, sparks, lightLife))
     }
 
     /**

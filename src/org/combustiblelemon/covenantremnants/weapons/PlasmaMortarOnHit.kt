@@ -24,7 +24,7 @@ import kotlin.random.Random
  */
 class PlasmaMortarOnHit : OnHitEffectPlugin {
     companion object {
-        /** Impact splash scale in su per Reach unit (the cannon uses 4). */
+        /** Impact splash scale in su per Reach unit (the torpedoes use 3 / 5 / 12). */
         const val UNIT = 6f
 
         /** The round's look in su per Reach unit: Reach proportions read small at 6 (placeholder). */

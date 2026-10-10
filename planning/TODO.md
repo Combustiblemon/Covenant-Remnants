@@ -6,19 +6,32 @@ Keep this file current — tick items off and add new ones as work lands.
 
 ## Art / geometry (placeholders in place)
 
-- [ ] **Ship bounds + weapon-slot positions** — currently outline-traced / placeholder; refine each
-      hull in the in-game ship editor. See [implementations/ships.md](implementations/ships.md).
-      In progress (developer): slots sit off the hull in-game (2026-10-01 test). The editor pass
-      dropped Covenant Shield from `builtInMods` (restored) and removed slots on cruiser1 /
-      destroyer2 (incl. both launch bays) / supercap1 — see
+- [x] **Ship bounds + weapon-slot positions** — done by the developer in the ship editor
+      (reported 2026-10-10; hulls committed in `13af425`). See
+      [implementations/ships.md](implementations/ships.md) and
       [implementations/in-game-test-pass-2026-10-01.md](implementations/in-game-test-pass-2026-10-01.md).
       Re-check `builtInMods` after every editor save.
+- [x] **After the editor pass — built-ins + variant refit** (read-only check 2026-10-10):
+      - [x] `cruiser5` and `supercap1` lost `covenant_remnants_covenantshieldhullmod` from `builtInMods`
+        (both use the Covenant shield defense; same editor drop as 2026-10-01) — restored
+        2026-10-10, all 16 combat hulls re-checked. See
+        [implementations/editor-pass-builtins.md](implementations/editor-pass-builtins.md).
+      - [x] Variants lag the new slot layouts — refit 2026-10-10 (rulings: role first, empty slots
+        OK, core set + Mortar / Bombardment, spare OP to vents / caps + hullmods; all 16 fits
+        approved). Also fixed: dead `WS0004` on destroyer1, wrong-size weapons on destroyer3 /
+        cruiser1 / supercap1 / supercap2, destroyer2 over OP. Hull edits: destroyer2 gets `LB 1` /
+        `LB 2`, capital1 `WS0014` → MEDIUM; `capital3_std.variant` renamed `cruiser5_std.variant`.
+        See [implementations/variant-refit.md](implementations/variant-refit.md).
+- [ ] **Variant refit — in-game check** — 6-point list in
+      [implementations/variant-refit.md](implementations/variant-refit.md): refit screens, destroyer1
+      deploys, destroyer2 wings launch from the new bays (move them in the editor if wrong), supercap
+      carriers launch all wings and act as carriers, capital1 nose Projector, AI uses the new groups.
 - [ ] **Bespoke weapon art** — the 13 weapons use vanilla-analog sprites recolored purple; make real
       Covenant turret/hardpoint sprites. See [implementations/weapons-arsenal.md](implementations/weapons-arsenal.md).
-- [ ] **Projectile / missile recolor** — the energy bolts still reference vanilla `projectileSpecId`,
-      so they render in vanilla colours; author Covenant `.proj` (purple) when art is ready. The
-      three plasma torpedoes are done (Reach look, 2026-10-02, below); the Pulse Laser Turret has
-      its own cyan bolt and the Plasma Cannon its Reach ball (2026-10-09, below).
+- [x] **Projectile / missile recolor** — done by the weapons pass (checked 2026-10-10): every
+      projectile weapon now has its own Covenant `.proj` (Pulse Laser, Plasma Cannon, Repeater,
+      Autocannon, Mortar, Bombardment, the three torpedoes); no `.wpn` references a vanilla
+      `projectileSpecId` any more. The beams use their own `.wpn` beam specs.
 - [x] **Plasma torpedoes — Halo: Reach look** — built 2026-10-02: the m45 space Phantom torpedo
       (muzzle flash, light-volume body, star flare, lightning ribbon trail, fireball / plasma / smoke /
       sparks / lens-flare impact, Reach fire / hum / explosion sounds) on all three torpedoes, scaled
@@ -46,8 +59,7 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **Plasma Lance — burst beam** — 2026-10-08: Tachyon-style burst (0.5 / 0.5 / 1 / 4), 2000 HE dps (1000 per
       burst), 2400 flux/s, white core / bluish-white fringe, Halo 3 beam rifle shot. See
       [implementations/plasma-lance.md](implementations/plasma-lance.md).
-- [ ] **Plasma Lance — in-game check** — burst feel, colours, sound tail length (first-person
-      takes available as the short alternative).
+- [x] **Plasma Lance — in-game check** — burst feel, colours, sound tail length; developer 2026-10-10: "all ok".
 - [x] **Plasma Beam Emitter — Reach focus rifle** — built 2026-10-08 (rulings: Reach colours
       as-is, 80 su/WU, continuous, numbers unchanged, fire in+loop+out + 5 impacts, suppression
       kept and extended to Covenant shields): violet plasma sheath + peach centre + 30/s pulses
@@ -62,8 +74,8 @@ Keep this file current — tick items off and add new ones as work lands.
       rifle data, "a better Emitter that actually deals damage": 250 ENERGY dps / 200 flux / 14 OP,
       width 24, ×1.3 brightness, own sound ids at pitch 0.9). See
       [implementations/suppressor-beam.md](implementations/suppressor-beam.md).
-- [ ] **Suppressor Beam — in-game check** — 4-point list in
-      [implementations/suppressor-beam.md](implementations/suppressor-beam.md).
+- [x] **Suppressor Beam — in-game check** — 4-point list in
+      [implementations/suppressor-beam.md](implementations/suppressor-beam.md); developer 2026-10-10: "all ok".
 - [x] **Pulse Laser Turret — plasma machine gun** — built 2026-10-09 (rulings: machine gun not
       beam, Seraph-style cyan streaks, cheap `.proj` + PNG route, no Kotlin, Vulcan-shaped stats
       20 × 15 ENERGY = 300 dps / 150 flux/s / 500 range / 6 OP, Reach Spectre plasma cannon shot).
@@ -98,7 +110,8 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **Plasma Mortar — in-game check** — developer 2026-10-09: renders fine, "good job" after the
       projectile-list tracking fix and the explosion volume 0.6 → 0.3. See
       [implementations/plasma-mortar.md](implementations/plasma-mortar.md).
-- [ ] **Plasma Mortar — mount it** — not on any variant yet; developer to choose ships / slots.
+- [x] **Plasma Mortar — mount it** — not needed (developer 2026-10-10: "they are weapons, they can
+      go on anything"): players fit it; no variant placement planned.
 - [x] **Plasma Bombardment — Reach Covenant AA gun** — built 2026-10-09 (rulings: heavy siege shell,
       AA gun "bfg" dumped, full rebuilt round + 1 s muzzle charge + rebuilt
       `covenant_explosion_artillery_huge`, short tail, AA gun fire (+ core fire mixed in: plain
@@ -108,7 +121,7 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **Plasma Bombardment — in-game check** — developer 2026-10-09: "all good" (checklist in
       [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md); the scales stay
       placeholders for tuning).
-- [ ] **Plasma Bombardment — mount it** — not on any variant yet; developer to choose ships / slots.
+- [x] **Plasma Bombardment — mount it** — not needed (developer 2026-10-10, as the Mortar).
 - [x] **Plasma torpedo launchers — polish** — built 2026-10-09, last weapons-pass item (rulings:
       stats re-anchored now the splits are gone — light Atropos+ 1200 HE / 2 ammo / 400 su/s / 5 OP,
       medium Harpoon Pod+ 850 HE × 4 / 12 OP, heavy one 3000 HE hit / 8 ammo / HP 500 / 27 OP; no
@@ -124,23 +137,39 @@ Keep this file current — tick items off and add new ones as work lands.
       muzzle and impact take the size colour, melt patch unchanged. Developer 2026-10-10: "they look
       ok for now". See "Size looks" in
       [implementations/plasma-torpedo-launchers.md](implementations/plasma-torpedo-launchers.md).
-- [ ] **Crash on first shield raise near damaged ships — in-game check** — fixed 2026-10-10
+- [x] **Crash on first shield raise near damaged ships — in-game check** — developer 2026-10-10: "all ok". Fixed 2026-10-10
       (`ShieldShader.initQuad` left its VBO bound; vanilla's damage decals use client arrays and
       LWJGL threw "Cannot use Buffers when Array Buffer Object is enabled"). Damage some armor, then
       raise a Covenant shield for the first time in the battle: no crash. See
       [implementations/shield-vbo-crash-fix.md](implementations/shield-vbo-crash-fix.md).
-- [ ] **Plasma torpedo launchers — in-game check** — run the 11-point checklist in
+- [x] **Plasma torpedo launchers — in-game check** — developer 2026-10-10: "all ok". The 11-point checklist in
       [implementations/plasma-torpedo-launchers.md](implementations/plasma-torpedo-launchers.md)
       (folds in the 2026-10-02 Reach look check; check `starsector.log` for `Plasma torpedo
       registered by …` / `Plasma torpedo hit …`). Melt glow / ember constants are placeholders from
       the headless harness.
-- [ ] **Reach curve audit (on request)** — the stock tag dumper printed unclamped curves as raw 0..1
-      and unclamped Basic constants as 0 (found 2026-10-09, see
-      [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md)); the torpedo,
-      Wraith, projector and beam curves may hold such values.
-- [ ] **Plasma Cannon splash — artillery_huge?** — the Cannon's hit stands in for the same
-      `covenant_explosion_artillery_huge` the Bombardment now rebuilds (`ArtilleryBurst`); switch it at
-      a cannon-sized unit? Developer call.
+- [ ] **Reach curve audit** — requested by the developer 2026-10-10. The stock tag dumper printed
+      unclamped curves as raw 0..1 and unclamped Basic constants as 0 (found 2026-10-09, see
+      [implementations/plasma-bombardment.md](implementations/plasma-bombardment.md)).
+      - [x] Report — done 2026-10-10: 134 tags re-dumped with the patched dumper, 211 curves + every
+        suspect constant checked, Ark / ODST blobs re-decoded. 12 Reach-side values differ from the
+        tags (beam impact plasma aspect + spark_long + muzzle light / plasma aspect; torpedo muzzle
+        round scale / flash intensity / count; projector flicker / half glow / bubble aspect; rupture
+        flame aspect + spark stretch); `ReachCurves.kt` / `ShieldImpactCurves.kt` regenerate
+        byte-identical; one ODST doc number fixed. See
+        [implementations/reach-curve-audit.md](implementations/reach-curve-audit.md).
+      - [x] Developer rulings 2026-10-10: keep the current look for all four effects (beam,
+        torpedoes, projector, rupture); no code change, differences recorded as deliberate.
+      - [ ] Open question: non-ranged Basic "ramps" in the Halo 3 Ark tags (Reach evaluates them as
+        constant min); settling it needs the H3 kit's evaluator (developer's call).
+- [x] **Plasma Cannon splash — switch to the new impact** — built 2026-10-10 (rulings: the
+      Bombardment's rebuilt `covenant_explosion_artillery_huge` (`ArtilleryBurst`) at unit 8 after a
+      headless preview of 6 / 8 / 10 / 12, 30 sparks, 1 s blast light, quiet `cov_damage_large` boom at
+      0.15 pitched ~1.2, still visual only). See
+      [implementations/plasma-cannon-artillery-impact.md](implementations/plasma-cannon-artillery-impact.md).
+- [ ] **Plasma Cannon impact — in-game check** — 5-point list in
+      [implementations/plasma-cannon-artillery-impact.md](implementations/plasma-cannon-artillery-impact.md):
+      blue flash / fireballs / sparks at the old splash size, glow gone within 1 s, quiet boom, no area
+      damage, Bombardment and Mortar unchanged, frame rate.
 - [ ] **Energy Projector art** — bespoke turret sprite (currently vanilla Tachyon Lance); deferred
       by the weapons-pass ruling. The beam, including the pierce segment, renders from the `.wpn`
       beam spec.
@@ -203,7 +232,7 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md).
 - [x] **Fleet Slipspace Jump in-game test** — developer 2026-10-02: "all good" (checklist in
       [implementations/fleet-slipspace-jump.md](implementations/fleet-slipspace-jump.md)).
-- [ ] **Fleet Slipspace Jump — warp-in + stations AI (in-game check)** — built 2026-10-02: only
+- [x] **Fleet Slipspace Jump — warp-in + stations AI (in-game check)** — developer 2026-10-10: "all ok". Built 2026-10-02: only
       live ships block the CAS's exit; hulks under it are shoved aside, asteroids under any arrival
       explode (vanilla death); the AI counts friendly stations as allies and enemy stations
       against a group, weighs flux/hull on both sides, and has two new plans — Reinforce (losing
@@ -296,14 +325,14 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **UI indicator for paused/slowed shield regen** — built 2026-10-02: player status line
       "Shield regen — paused / 50% rate / full rate" while the shield is below full. See
       [implementations/shield-regen-status.md](implementations/shield-regen-status.md).
-- [ ] **Shield regen status line (in-game check)** — player Covenant ship: take shield hits, watch
+- [x] **Shield regen status line (in-game check)** — developer 2026-10-10: "all ok". Player Covenant ship: take shield hits, watch
       the top-left status list go paused → 50% rate → full rate, gone at full shield and while
       broken; capital1 with Fortress on shows "frozen by Fortress Shield".
 - [x] Decide Suppressor Beam damage type — **ENERGY** (developer ruling 2026-10-01; no change).
 
 ## Rendering / shaders
 
-- [ ] **Engines below hull — in-game check** — all 16 Covenant hulls now carry the
+- [x] **Engines below hull — in-game check** — developer 2026-10-10: "all ok". All 16 Covenant hulls now carry the
       `RENDER_ENGINES_BELOW_HULL` hint (2026-10-07): in combat, engine flames should sit under the
       sprite edge, not over it. Also note what the campaign fleet view does (the hint is read by the
       combat ship). See [implementations/engines-below-hull.md](implementations/engines-below-hull.md).
@@ -401,7 +430,7 @@ Keep this file current — tick items off and add new ones as work lands.
 
 ## Campaign Slipspace Jump (built 2026-10-07)
 
-- [ ] **In-game checklist** — run the 9-point list in
+- [x] **In-game checklist** — developer 2026-10-10: "all ok". The 9-point list in
       [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md)
       (old-save migration, gating tooltip, picker, charge + cancel, transition, pocket path and
       push-back, exit + edge arrival, Tuning, save/load mid-flight, visuals / log).
@@ -419,7 +448,7 @@ Keep this file current — tick items off and add new ones as work lands.
       pre-roll, afterglow, idle life; split passes around the fleets (back wall + far ring half
       below on `TERRAIN_7A`, the rest above). See
       [implementations/ark-portal-visuals-pass.md](implementations/ark-portal-visuals-pass.md).
-- [ ] **Ark portals — in-game checklist** — the 5-point list in
+- [x] **Ark portals — in-game checklist** — developer 2026-10-10: "all ok". The 5-point list in
       [implementations/ark-portal-visuals-pass.md](implementations/ark-portal-visuals-pass.md)
       (`SlipspaceJumpTune ark cruiser|carrier` for the look, combat jump / blink / torpedo
       unchanged, then pocket idle / entrance / exit / destination, variants, save/load, pause);

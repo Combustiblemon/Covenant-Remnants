@@ -137,7 +137,7 @@
     },
     {
       "id": "WS0014",
-      "size": "SMALL",
+      "size": "MEDIUM",
       "type": "ENERGY",
       "mount": "TURRET",
       "arc": 191,

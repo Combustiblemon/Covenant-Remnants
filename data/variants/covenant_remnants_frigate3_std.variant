@@ -3,11 +3,15 @@
   "hullId": "covenant_remnants_frigate3",
   "displayName": "Standard",
   "goalVariant": true,
-  "fluxCapacitors": 4,
-  "fluxVents": 4,
+  "fluxCapacitors": 10,
+  "fluxVents": 10,
   "quality": 1,
   "permaMods": [],
-  "hullMods": [],
+  "hullMods": [
+    "covenant_remnants_huragok_crew",
+    "covenant_remnants_slipspace_tuning",
+    "reinforcedhull"
+  ],
   "weaponGroups": [
     {
       "autofire": true,

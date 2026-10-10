@@ -177,10 +177,13 @@ tuning pass.
 - `plasma_blue_02` palette exports corrupt: plasma gas uses the particle colour instead.
 - Not built: in-flight `wraith_projectile` hum, `muzzle_smoke`, vent gas, turret-body core effects,
   overheat vent, Reach's 3-shot volley.
-- Earlier weapons' generated / hand-copied curves (torpedo, Wraith, projector, beam) may contain
-  unclamped functions read as raw 0..1 (see Decoder fix) — audit on request.
-- The Plasma Cannon's splash stands in for this same `covenant_explosion_artillery_huge`
-  (`TorpedoBurst`); it could switch to `ArtilleryBurst` at a cannon-sized unit (developer call).
+- ~~Earlier weapons' generated / hand-copied curves may contain unclamped functions read as raw 0..1~~
+  — audited 2026-10-10, see [reach-curve-audit.md](reach-curve-audit.md) (12 values differ; rulings
+  pending).
+- ~~The Plasma Cannon's splash stands in for this same `covenant_explosion_artillery_huge`
+  (`TorpedoBurst`)~~ — switched 2026-10-10: the Cannon now uses `ArtilleryBurst` at unit 8 (30 sparks,
+  1 s light); `artilleryImpact` takes a unit, spark count and light life (defaults = Bombardment). See
+  [plasma-cannon-artillery-impact.md](plasma-cannon-artillery-impact.md).
 - `WraithFlight` could share `BombardContrail` (left untouched; it is in-game verified).
 - No tooltip line for the splash (the Mortar has none either).
 - Not mounted on any variant (developer to place when ready). Mount art.

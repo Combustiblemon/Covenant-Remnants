@@ -551,6 +551,9 @@ only the animation (items 1–3 and the look in 4).
 
 ## Open items
 
+- Curve audit (2026-10-10, [reach-curve-audit.md](reach-curve-audit.md)): `FLAME_ASPECT` 2 (tag `plasma_vertical` aspect 1.5→3) and
+  `SPARK_STRETCH` 6 (tag charge-spark aspect 15) differ from the tags — kept as they are by developer
+  ruling. `ReachCurves.kt` regenerates byte-identical from a patched re-dump.
 - **Reach remake: first in-game look.** Built and checked offline only. Things the offline check
   cannot settle: Starsector's texture row order (the flame sprites assume the bitmap's top row is
   v = 0 — flames pointing inward would mean it is flipped), how the tone-mapped HDR reads over

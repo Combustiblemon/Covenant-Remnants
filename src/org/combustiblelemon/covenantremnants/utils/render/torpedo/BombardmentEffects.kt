@@ -617,8 +617,9 @@ internal class ArtilleryBurst private constructor(private val unit: Float) {
         // newticles (0.05 s): sparks_huge (3000 / s: 150; explosion_covenant_spark, sphere, 8-10 WU/s,
         // 2.5-4 s, drag 1.5, fade from 75 %) and sparks_long_huge (100 / s: 5; explosion_covenant_spark_long,
         // 12 WU/s, 0.5-0.75 s, drag 2, motion blur 5). Blue (0.18,0.31,1) x 15. Their sizes (0.015-0.03 WU)
-        // are sub-pixel here: floored (placeholder), as is the huge spark count.
-        private const val SPARKS = 60
+        // are sub-pixel here: floored (placeholder), as is the huge spark count. [SPARKS] is the default
+        // count; the Plasma Cannon spawns fewer (PlasmaCannonOnHit.IMPACT_SPARKS).
+        const val SPARKS = 60
         private const val LONG_SPARKS = 5
         private const val SPARK_SIZE = 0.2f
         private const val LONG_SPARK_SIZE = 0.3f
@@ -629,8 +630,8 @@ internal class ArtilleryBurst private constructor(private val unit: Float) {
         // lens_flare (0.3 s): huge_glow (0.30,0.34,1), read back to front.
         private const val HUGE_GLOW_LIFE = 0.3f
         private val HUGE_GLOW_COLOR = floatArrayOf(0.298f, 0.3416f, 1f)
-        // covenant_explosion_huge.light: sphere to 4 WU, 2 s.
-        private const val BLAST_LIGHT_LIFE = 2f
+        // covenant_explosion_huge.light: sphere to 4 WU, 2 s (the default; the Plasma Cannon's is shorter).
+        const val BLAST_LIGHT_LIFE = 2f
         private const val BLAST_LIGHT_RADIUS = 4f
 
         // Not in the tags (physics templates): velocity falls off as exp(-drag t). Placeholders.
@@ -645,9 +646,13 @@ internal class ArtilleryBurst private constructor(private val unit: Float) {
             return burst
         }
 
-        fun impact(location: Vector2f, unit: Float): ArtilleryBurst {
+        /**
+         * The detonation at [location], [unit] su per Reach unit, with [sparks] `sparks_huge` sparks and a
+         * blast light living [lightLife] s (defaults: the Plasma Bombardment's).
+         */
+        fun impact(location: Vector2f, unit: Float, sparks: Int = SPARKS, lightLife: Float = BLAST_LIGHT_LIFE): ArtilleryBurst {
             val burst = ArtilleryBurst(unit)
-            burst.spawnImpact(location.x, location.y)
+            burst.spawnImpact(location.x, location.y, sparks, lightLife)
             return burst
         }
     }
@@ -731,9 +736,9 @@ internal class ArtilleryBurst private constructor(private val unit: Float) {
         spawn(SpriteKind.BOMBARD_LIGHT, x, y, FIRING_LIGHT_LIFE, 0f).angle = 0f
     }
 
-    private fun spawnImpact(x: Float, y: Float) {
+    private fun spawnImpact(x: Float, y: Float, sparks: Int, lightLife: Float) {
         spawn(SpriteKind.ARTILLERY_FLASH, x, y, BLAST_FLASH_LIFE, BLAST_FLASH_SIZE * unit)
-        spawn(SpriteKind.ARTILLERY_LIGHT, x, y, BLAST_LIGHT_LIFE, 0f).angle = 0f
+        spawn(SpriteKind.ARTILLERY_LIGHT, x, y, lightLife, 0f).angle = 0f
         spawn(SpriteKind.ARTILLERY_GLOW, x, y, HUGE_GLOW_LIFE, 0f).angle = 0f
         repeat(FIREBALLS) {
             val c = random.nextFloat()
@@ -755,7 +760,7 @@ internal class ArtilleryBurst private constructor(private val unit: Float) {
                 HUGE_DRAG, BombardLook.lerp(3f, 1f, c), BombardLook.lerp(1.25f, 0.85f, c), 0.1f, HUGE_DELAY
             )
         }
-        repeat(SPARKS) {
+        repeat(sparks) {
             spawnOutward(SpriteKind.ARTILLERY_SPARK, x, y, 2f, rand(8f, 10f), 1.5f, rand(2.5f, 4f), SPARK_SIZE, 0f)
         }
         repeat(LONG_SPARKS) {

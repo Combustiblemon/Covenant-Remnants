@@ -173,6 +173,9 @@ Choices made inside those rulings (stated in the approved plan; say if any is wr
 - **Heavy hum:** `covenant_remnants_plasma_torpedo_loop_heavy`, volume 0.4, pitch 1.068
   (Reach 1.335 × 0.8).
 - The Plasma Cannon splash (the same impact burst) keeps the unchanged `TorpedoStyle.REACH`.
+  (Since 2026-10-10 the Cannon no longer uses the torpedo burst: it draws the Bombardment's
+  `ArtilleryBurst`, see [plasma-cannon-artillery-impact.md](plasma-cannon-artillery-impact.md). The
+  Plasma Mortar still uses the torpedo burst.)
 - All the new constants are placeholders.
 
 How it is wired:
@@ -331,7 +334,8 @@ never melt: check the `Plasma torpedo hit …` lines (the trigger reads the dama
 - `syncWithArmorGridState` rebuilds decals: a cosmetic Energy Projector exit scorch on the same
   ship may be redrawn at the real armor value (cosmetic only).
 - The loaded missiles on the launchers stay invisible (`RENDER_LOADED_MISSILES` with the invisible
-  torpedo sprite) until the mount art pass.
+  torpedo sprite): developer ruling 2026-10-10, "the missiles should stay invisible".
+- In-game check: developer 2026-10-10, "all ok" (the 11-point checklist below).
 - The old `TorpedoHarness.java` (plasma-torpedo/reach-data) no longer compiles (`TorpedoBurst.impact`
   gained a parameter in the Cannon pass); `MeltHarness` is based on `BombardHarness`.
 - Mount art.

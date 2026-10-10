@@ -72,6 +72,24 @@
       "angle": 0,
       "locations": [69.5, -0],
     },
+    {
+      "id": "LB 1",
+      "size": "LARGE",
+      "type": "LAUNCH_BAY",
+      "mount": "HIDDEN",
+      "arc": 360,
+      "angle": 0,
+      "locations": [-5, 15, -20, 15],
+    },
+    {
+      "id": "LB 2",
+      "size": "LARGE",
+      "type": "LAUNCH_BAY",
+      "mount": "HIDDEN",
+      "arc": 360,
+      "angle": 0,
+      "locations": [-5, -15, -20, -15],
+    },
   ],
   "engineSlots": [
     {

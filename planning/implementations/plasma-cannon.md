@@ -91,10 +91,18 @@ Data under `assets/reference/plasma-cannon/reach-data/` (gitignored): `dump32/`,
 6. Frame rate with several cannons firing (each hit adds one impact burst).
 7. Turret and hardpoint identical.
 
+## Impact switch (2026-10-10)
+
+The hit splash is now the Bombardment's rebuilt `covenant_explosion_artillery_huge` (`ArtilleryBurst`)
+at unit 8 with 30 sparks and a 1 s blast light, plus a quiet `cov_damage_large` boom (volume 0.15,
+pitch ~1.2). It replaces the torpedo burst described above. See
+[plasma-cannon-artillery-impact.md](plasma-cannon-artillery-impact.md).
+
 ## Open items
 
 - Numbers placeholder until the balance pass.
-- Splash unit (4) and whether the splash wants its own impact sound (Reach: `cov_damage_large`).
+- ~~Splash unit (4) and whether the splash wants its own impact sound~~ — resolved 2026-10-10 by the
+  impact switch above.
 - No in-flight ribbon trail (developer: aura only). Aura constants in `CannonFlight` are placeholders
   (glow radii / intensities, wisp count / radius / speed, core width 16).
 - Alternative fire sounds pulled raw: wraith mortar, Phantom turret, concussion rifle.

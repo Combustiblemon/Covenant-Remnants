@@ -113,6 +113,9 @@ the close-ups. The first render whited the beam out (6 overlapping pulses at Rea
 
 ## Open items
 
+- Curve audit (2026-10-10, [reach-curve-audit.md](reach-curve-audit.md)): the impact plasma width (raw 0→1, tag 1→2), the `spark_long`
+  placeholders (tag 15 / 0.15–0.25 s / 1–2 WU/s / 45–70°), the muzzle light (tag periodic 2.5–6) and the
+  muzzle plasma aspect (tag 1–1.5) differ from the tags — kept as they are by developer ruling.
 - Scale check in game (80 su/WU): sheath vs engine beam, muzzle / impact sizes, the sheath's
   streak speed (`PLASMA_BEAM_SHEATH` xforms — Reach scrolls 8 beam lengths / s, ours 1 and 0.5)
   and the pulse scroll (mode 11 xform).

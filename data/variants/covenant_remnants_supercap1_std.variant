@@ -3,17 +3,35 @@
   "hullId": "covenant_remnants_supercap1",
   "displayName": "Standard",
   "goalVariant": true,
-  "fluxCapacitors": 40,
-  "fluxVents": 40,
+  "fluxCapacitors": 50,
+  "fluxVents": 50,
   "quality": 1,
   "permaMods": [],
-  "hullMods": [],
+  "hullMods": [
+    "covenant_remnants_huragok_crew",
+    "expanded_deck_crew"
+  ],
   "weaponGroups": [
     {
       "autofire": false,
       "mode": "LINKED",
       "weapons": {
-        "WS0001": "covenant_remnants_energyprojector",
+        "WS0008": "covenant_remnants_energyprojector"
+      }
+    },
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0005": "covenant_remnants_plasmalance",
+        "WS0006": "covenant_remnants_plasmalance"
+      }
+    },
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "covenant_remnants_plasmaautocannon",
         "WS0002": "covenant_remnants_plasmaautocannon",
         "WS0003": "covenant_remnants_plasmaautocannon",
         "WS0004": "covenant_remnants_plasmaautocannon"
@@ -23,20 +41,31 @@
       "autofire": false,
       "mode": "LINKED",
       "weapons": {
-        "WS0005": "covenant_remnants_plasmabeam",
-        "WS0006": "covenant_remnants_plasmabeam",
-        "WS0007": "covenant_remnants_plasmabeam",
-        "WS0008": "covenant_remnants_plasmabeam"
+        "WS0007": "covenant_remnants_plasmabombardment"
+      }
+    },
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0009": "covenant_remnants_plasmatorpedo",
+        "WS0010": "covenant_remnants_plasmatorpedo"
       }
     },
     {
       "autofire": true,
       "mode": "LINKED",
       "weapons": {
-        "WS0009": "covenant_remnants_pulselaserturret",
-        "WS0010": "covenant_remnants_pulselaserturret",
         "WS0011": "covenant_remnants_pulselaserturret",
-        "WS0012": "covenant_remnants_pulselaserturret"
+        "WS0012": "covenant_remnants_pulselaserturret",
+        "WS0013": "covenant_remnants_pulselaserturret",
+        "WS0014": "covenant_remnants_pulselaserturret",
+        "WS0015": "covenant_remnants_pulselaserturret",
+        "WS0016": "covenant_remnants_pulselaserturret",
+        "WS0023": "covenant_remnants_pulselaserturret",
+        "WS0024": "covenant_remnants_pulselaserturret",
+        "WS0025": "covenant_remnants_pulselaserturret",
+        "WS0026": "covenant_remnants_pulselaserturret"
       }
     }
   ],

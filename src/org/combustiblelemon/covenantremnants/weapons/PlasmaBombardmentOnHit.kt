@@ -73,7 +73,7 @@ class PlasmaBombardmentOnHit : OnHitEffectPlugin {
         spec.setShowGraphic(false)
         engine.spawnDamagingExplosion(spec, projectile.source, location, false)
 
-        TorpedoRenderPlugin.forEngine(engine).artilleryImpact(location)
+        TorpedoRenderPlugin.forEngine(engine).artilleryImpact(location, UNIT)
         Global.getSoundPlayer().playSound(
             SOUND_EXPLOSION, Random.nextFloat() * (PITCH_MAX - PITCH_MIN) + PITCH_MIN, 1f, location, Vector2f()
         )

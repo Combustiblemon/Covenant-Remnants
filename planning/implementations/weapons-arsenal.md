@@ -15,7 +15,7 @@ arsenal is usable in-game now.
 | Plasma Torpedo (Light) | S | missile | HIGH_EXPLOSIVE | Atropos+ (was sabot) | strike torpedo + armor melt (launcher polish 2026-10-09), see [plasma-torpedo-launchers.md](plasma-torpedo-launchers.md) |
 | Suppressor Beam | M | energy | ENERGY | gravitonbeam | **frigate1 built-in** + normal weapon; shield-suppress (also vs Covenant shields); hot Plasma Beam Emitter sister 2026-10-08 (250 dps, width 24, ×1.3, pitch 0.9), see [suppressor-beam.md](suppressor-beam.md) |
 | Plasma Beam Emitter | M | energy | ENERGY | gravitonbeam | shield-suppress beam (also vs Covenant shields); Reach focus rifle look + sounds 2026-10-08, see [plasma-beam-emitter.md](plasma-beam-emitter.md) |
-| Plasma Cannon | M | energy | ENERGY | heavyblaster (+100 range, 13 OP) | Reach ball-turret round + splash (2026-10-09), see [plasma-cannon.md](plasma-cannon.md) |
+| Plasma Cannon | M | energy | ENERGY | heavyblaster (+100 range, 13 OP) | Reach ball-turret round + splash (2026-10-09), see [plasma-cannon.md](plasma-cannon.md); hit = the Bombardment's artillery impact at unit 8 + quiet boom (2026-10-10), see [plasma-cannon-artillery-impact.md](plasma-cannon-artillery-impact.md) |
 | Plasma Mortar | M | energy | HIGH_EXPLOSIVE | mortar-shaped (miningblaster base) | Reach Wraith mortar blob + HE splash (2026-10-09), see [plasma-mortar.md](plasma-mortar.md) |
 | Plasma Torpedo | M | missile | HIGH_EXPLOSIVE | Harpoon Pod+ | tracking + armor melt (2026-10-09), see [plasma-torpedo-launchers.md](plasma-torpedo-launchers.md) |
 | Energy Projector | L | energy | ENERGY | custom | see [energy-projector.md](energy-projector.md) |
@@ -65,7 +65,10 @@ arsenal is usable in-game now.
 
 - `data/weapons/covenant_remnants_*.wpn` (13) + rows in `data/weapons/weapon_data.csv` (48 cols).
 - **Ship re-fit:** all 20 `data/variants/*.variant` swapped to Covenant weapons (by slot size/type/arc)
-  + Covenant wings. Verified: no vanilla ids, every weapon size-fits its slot.
+  and Covenant wings. Verified: no vanilla ids, every weapon size-fits its slot. **Refit again
+  2026-10-10** after the ship-editor pass: the 16 standard variants now follow the new slot layouts
+  (role-first fits with Projector / Lance / Autocannon / Bombardment / Plasma Cannon / Beam Emitter /
+  torpedoes / Pulse Laser, plus vents / caps and hullmods) — see [variant-refit.md](variant-refit.md).
 - **Suppressor Beam** = the migrated `covenant_remnants_frigate1_turret`; set as frigate1's `BUILT_IN`
   weapon (`builtInWeapons` in the hull) and registered as a normal medium-energy weapon. Its sprite
   `graphics/covenant_remnants/weapons/covenant_remnants_frigate1_turret.png`.

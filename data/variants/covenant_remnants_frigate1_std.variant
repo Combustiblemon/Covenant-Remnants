@@ -3,12 +3,33 @@
   "hullId": "covenant_remnants_frigate1",
   "displayName": "Standard",
   "goalVariant": true,
-  "fluxCapacitors": 8,
-  "fluxVents": 8,
+  "fluxCapacitors": 10,
+  "fluxVents": 10,
   "quality": 1,
   "permaMods": [],
-  "hullMods": [],
-  "weaponGroups": [],
+  "hullMods": [
+    "covenant_remnants_slipspace_tuning",
+    "covenant_remnants_huragok_crew",
+    "advancedoptics",
+    "covenant_remnants_plasma_capacitors",
+    "hardened_subsystems"
+  ],
+  "weaponGroups": [
+    {
+      "autofire": false,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0001": "covenant_remnants_frigate1_turret"
+      }
+    },
+    {
+      "autofire": true,
+      "mode": "LINKED",
+      "weapons": {
+        "WS0002": "covenant_remnants_pulselaserturret"
+      }
+    }
+  ],
   "modules": [],
   "wings": []
 }

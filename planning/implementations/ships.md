@@ -37,6 +37,11 @@ re-fitted — see [weapons-arsenal.md](weapons-arsenal.md)), and a codex descrip
   `shield_data.csv` rows.
 - **Grey hulls** (cruiser1, supercap1) are just a paintjob per the developer — same Covenant
   lineage, not a separate faction.
+- **After the editor pass (2026-10-10):** bounds and slots are the developer's editor work
+  (`13af425`). Two follow-up hull edits by ruling: destroyer2 (CPV Escort Carrier) gained `LB 1` /
+  `LB 2` launch bays (placeholder positions beside the spine), capital1 `WS0014` became MEDIUM to
+  mirror `WS0013`. Variants refit to match — see [variant-refit.md](variant-refit.md) and
+  [editor-pass-builtins.md](editor-pass-builtins.md).
 
 ## Systems in use
 

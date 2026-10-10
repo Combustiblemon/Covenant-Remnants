@@ -3,11 +3,13 @@
   "hullId": "covenant_remnants_cruiser2",
   "displayName": "Standard",
   "goalVariant": true,
-  "fluxCapacitors": 12,
-  "fluxVents": 12,
+  "fluxCapacitors": 14,
+  "fluxVents": 13,
   "quality": 1,
   "permaMods": [],
-  "hullMods": [],
+  "hullMods": [
+    "expanded_deck_crew"
+  ],
   "weaponGroups": [
     {
       "autofire": false,
@@ -22,7 +24,9 @@
       "weapons": {
         "WS0002": "covenant_remnants_pulselaserturret",
         "WS0003": "covenant_remnants_pulselaserturret",
-        "WS0004": "covenant_remnants_pulselaserturret"
+        "WS0004": "covenant_remnants_pulselaserturret",
+        "WS0005": "covenant_remnants_pulselaserturret",
+        "WS0006": "covenant_remnants_pulselaserturret"
       }
     }
   ],
