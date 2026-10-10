@@ -112,3 +112,9 @@ task type, regardless of any model already set in the target agent's own frontma
 
 A single agent invocation that mixes phases (e.g. explore then write) takes the model of its
 primary/heavier phase.
+
+### Changelog style
+
+1. it should be structured by impact (aka 'the triage of categories'): group changes under clear, standardized subheadings so readers can skim straight to what matters for them, order them from highest to lowest impact; "breaking changes" are crucial for behavioral shifts, if an existing API or workflow is disputed it must go here; "new features" (functional) are for new capabilities added; "behavioral changes" (improvements) are for existing features which now behave differently; "bug fixes" are for functional corrections where the app wasn't working as originally intended.
+2. the golden rule: "action + context + benefit". every single bullet point should answer three questions in a single short sentence: What changed? Where did it change? Why does the user care?
+3. direct style comparison: we should use a user-facing voice whenever possible, the tone should be active and clear, focusing on the user experience instead of internal dev voice. The sentences should start with strong, active verbs (Added, Fixed, Changed, Removed). Technical depth can mention how something was fixed where it brings value but should otherwise explain what the result was (e.g. "Fixed ordering issues in dropdown menus" vs "Adjusted array index mapping")

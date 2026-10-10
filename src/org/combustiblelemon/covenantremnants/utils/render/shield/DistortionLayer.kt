@@ -61,7 +61,7 @@ class DistortionLayer(private val ship: ShipAPI?) : ShaderLayer {
 
     private val waves = ArrayList<Wave>(MAX_WAVES)
 
-    // Set by the owner every frame (screen px).
+    // Set by the owner every frame (screen units: virtual px under UI scaling).
     private var bodyRadiusPx = 1f
     private var copyX = 0f
     private var copyY = 0f
@@ -112,7 +112,10 @@ class DistortionLayer(private val ship: ShipAPI?) : ShaderLayer {
 
         // Framebuffer under the shield, copied now so it includes everything drawn so far
         glActiveTexture(GL_TEXTURE0 + TEXTURE_UNIT)
-        ShieldScreenCopy.copyRegion(copyX, copyY, copyW, copyH)
+        ShieldScreenCopy.copyRegion(
+            copyX, copyY, copyW, copyH,
+            viewport.visibleWidth / viewport.viewMult, viewport.visibleHeight / viewport.viewMult
+        )
         glActiveTexture(GL_TEXTURE0)
         glUniform1i(glGetUniformLocation(program, "distortionScreen"), TEXTURE_UNIT)
         val vp = ShieldScreenCopy.viewport

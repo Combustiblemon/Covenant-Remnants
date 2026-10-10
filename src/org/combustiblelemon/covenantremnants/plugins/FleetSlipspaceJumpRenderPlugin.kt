@@ -84,7 +84,8 @@ class FleetSlipspaceJumpRenderPlugin : BaseCombatLayeredRenderingPlugin(CombatEn
             GL11.glDisable(GL11.GL_TEXTURE_2D)
             GL11.glEnable(GL11.GL_BLEND)
             GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-            GL11.glLineWidth(2f)
+            // glLineWidth is physical px; scale it so the rings keep their look at any UI scale
+            GL11.glLineWidth(2f * Global.getSettings().screenScaleMult)
             Misc.setColor(color)
             DrawUtils.drawCircle(target.x, target.y, FleetSlipspaceJump.grabRadius.value, PREVIEW_SEGMENTS, false)
             // Carrier footprint at the center

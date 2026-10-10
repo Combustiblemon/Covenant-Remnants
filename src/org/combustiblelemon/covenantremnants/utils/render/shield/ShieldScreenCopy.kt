@@ -19,6 +19,8 @@ import org.lwjgl.opengl.GL11.glGetInteger
 import org.lwjgl.opengl.GL11.glTexImage2D
 import org.lwjgl.opengl.GL11.glTexParameteri
 import java.nio.ByteBuffer
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -38,13 +40,16 @@ internal object ShieldScreenCopy {
 
     /**
      * Binds the copy texture to the active unit and copies the framebuffer region [x], [y], [w], [h]
-     * (screen px, origin bottom-left, viewport-relative) into the matching place of the texture.
+     * (screen units, origin bottom-left, viewport-relative) into the matching place of the texture.
+     * [screenW] x [screenH] is the screen size in those units: with UI scaling they are virtual px,
+     * while the GL viewport and the copy are physical px, so the region is scaled by their ratio.
      */
-    fun copyRegion(x: Float, y: Float, w: Float, h: Float) {
+    fun copyRegion(x: Float, y: Float, w: Float, h: Float, screenW: Float, screenH: Float) {
         glGetInteger(GL_VIEWPORT, viewportBuffer)
         for (i in 0 until 4) viewport[i] = viewportBuffer.get(i).toFloat()
         val vpWidth = viewportBuffer.get(2)
         val vpHeight = viewportBuffer.get(3)
+        if (vpWidth <= 0 || vpHeight <= 0 || screenW <= 0f || screenH <= 0f) return
 
         if (texture == 0) texture = glGenTextures()
         glBindTexture(GL_TEXTURE_2D, texture)
@@ -58,10 +63,12 @@ internal object ShieldScreenCopy {
             height = vpHeight
         }
 
-        val x0 = max(0, x.toInt())
-        val y0 = max(0, y.toInt())
-        val x1 = min(vpWidth, (x + w).toInt() + 1)
-        val y1 = min(vpHeight, (y + h).toInt() + 1)
+        val sx = vpWidth / screenW
+        val sy = vpHeight / screenH
+        val x0 = max(0, floor(x * sx).toInt())
+        val y0 = max(0, floor(y * sy).toInt())
+        val x1 = min(vpWidth, ceil((x + w) * sx).toInt() + 1)
+        val y1 = min(vpHeight, ceil((y + h) * sy).toInt() + 1)
         if (x1 <= x0 || y1 <= y0) return
         glCopyTexSubImage2D(
             GL_TEXTURE_2D, 0, x0, y0,

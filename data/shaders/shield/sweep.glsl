@@ -3,7 +3,7 @@
 // concatenated before this one.
 // The mask-modifying early return lives in base.frag's shieldFrag().
 uniform float sweepPosition;  // Current sweep position in ship-relative coordinates
-uniform float sweepEdgeWidth; // Width of the sweep edge in pixels
+uniform float sweepEdgeWidth; // Width of the sweep edge in screen units (virtual px: scales with the UI scale)
 
 // True when the pixel is beyond the sweep position (not yet covered by the
 // activation wipe) — base.frag culls those pixels to the sweep edge color.
@@ -21,10 +21,9 @@ float sweep_shipRelX(vec2 pixelPos) {
 }
 
 vec4 sweep_edgeColor(float pixelShipRelX) {
-    // Calculate sweep edge color based on distance from sweep position
-    // Scale edge width with screen resolution for consistent visual size
-    float scaledEdgeWidth = sweepEdgeWidth * (resolution.x / 1920.0);
-    float halfEdgeWidth = scaledEdgeWidth * 0.5;
+    // Calculate sweep edge color based on distance from sweep position. The width is not scaled by
+    // the resolution: in screen units it already grows with the UI scale like the rest of the shield.
+    float halfEdgeWidth = sweepEdgeWidth * 0.5;
     float distanceFromSweep = abs(pixelShipRelX - sweepPosition);
 
     vec4 sweepEdgeColor = vec4(0.0, 0.0, 0.0, 0.0); // Default transparent

@@ -138,6 +138,26 @@ Keep this file current — tick items off and add new ones as work lands.
       muzzle and impact take the size colour, melt patch unchanged. Developer 2026-10-10: "they look
       ok for now". See "Size looks" in
       [implementations/plasma-torpedo-launchers.md](implementations/plasma-torpedo-launchers.md).
+- [x] **Shield at UI scale — in-game check** — developer 2026-10-10: "looks good in combat,
+      scaling and ultrawide". Fixed 2026-10-10. The shield broke at any UI scale other than 100 %
+      because of a hardcoded 1920 × 1080 versus virtual-px viewport coordinates, and the hit-ring
+      screen copy mixed virtual and physical px. The audit of the rest of the mod also fixed the
+      Fleet Jump aiming-ring line width. See
+      [implementations/shield-ui-scaling-fix.md](implementations/shield-ui-scaling-fix.md).
+- [x] **One-off `OpenGL error after setting uniforms: 1282` at the first shield draw** — closed
+      2026-10-10: **not ours.**
+      - **Symptom:** logged once per session as combat starts, with no visible effect. In the logs:
+        every combat session at UI scale 1.4 / 1.5, but only 2 of about 20 at 1.0. `1282` is
+        `GL_INVALID_OPERATION`.
+      - **Why the shield reports it:** GL errors stay flagged until read, and the shield's check is
+        the first `glGetError` in the session.
+      - **How it was traced:** two diagnostic runs at UI scale 1.5 with labelled checkpoints.
+        Clean: the mod's start-up GL work (shader warm-up, pocket texture), the menus before save
+        load, and every shield GL step. The error first appeared between save load and the first
+        shield's creation, where the mod draws nothing. So it comes from vanilla or another mod
+        (LunaLib, MagicLib, Console Commands, ShipBrowser, PracticeTargets, TAR).
+      - **Outcome:** checkpoints removed. The original single check stays, with a comment pointing
+        here.
 - [x] **Crash on first shield raise near damaged ships — in-game check** — developer 2026-10-10: "all ok". Fixed 2026-10-10
       (`ShieldShader.initQuad` left its VBO bound; vanilla's damage decals use client arrays and
       LWJGL threw "Cannot use Buffers when Array Buffer Object is enabled"). Damage some armor, then

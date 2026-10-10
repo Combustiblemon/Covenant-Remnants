@@ -57,6 +57,9 @@ class ShieldShader(
 
     private var scaleX: Float = 1.0f
     private var scaleY: Float = 1.0f
+
+    // Combat viewport size in screen units (virtual px = physical px / UI scale), set every frame
+    // from the viewport ([updateScreenSize]). The points, NDC quad and `resolution` uniform all use it.
     private var screenWidth: Float = 1920f
     private var screenHeight: Float = 1080f
     private var splineSubdivisions: Int = 8
@@ -217,7 +220,8 @@ class ShieldShader(
         }
         glUniform1i(glGetUniformLocation(program.programId, "pointCount"), safePointCount)
 
-        // Check for OpenGL errors
+        // Check for OpenGL errors. A one-off 1282 at the first shield draw is inherited, not ours: it is
+        // raised outside the mod and still flagged when we read it (traced 2026-10-10, planning/TODO.md).
         val error = glGetError()
         if (error != GL_NO_ERROR) {
             Global.getLogger(this.javaClass).error("OpenGL error after setting uniforms: $error")
@@ -269,6 +273,8 @@ class ShieldShader(
     }
 
     fun updatePolygon(newPoints: List<Vector2f>, viewport: ViewportAPI, scale: Vector2f = Vector2f(1.0f, 1.0f)) {
+        updateScreenSize(viewport)
+
         // Collapse pushes the shell outward (Reach extrusion); the bounding box follows the scaled points.
         val shellScale = plasmaLayer.effect.shellScale
         scaleX = scale.x * shellScale
@@ -359,13 +365,13 @@ class ShieldShader(
         fillLayer.setColor(r, g, b, a)
     }
 
-    fun updateScreenResolution(width: Float, height: Float) {
-        screenWidth = width
-        screenHeight = height
-        // Recalculate quad vertices when screen resolution changes
-        if (boundingBoxWidth > 0f && boundingBoxHeight > 0f) {
-            updateQuadVertices()
-        }
+    /**
+     * Screen size in the viewport's own units (same as `RuptureView`). With UI scaling these are
+     * virtual px, not the physical GL viewport; a fixed 1920x1080 broke the shield at any scale but 100 %.
+     */
+    private fun updateScreenSize(viewport: ViewportAPI) {
+        screenWidth = viewport.visibleWidth / viewport.viewMult
+        screenHeight = viewport.visibleHeight / viewport.viewMult
     }
 
     fun updateShipPosition() {
@@ -466,6 +472,8 @@ class ShieldShader(
         // Pick up debug layer-set changes (ShaderLayers console command) and
         // rebuild the program lazily — render() is on the GL thread
         program.ensureUpToDate()
+
+        updateScreenSize(viewport)
 
         // Update viewport scale for the layers
         viewportScaleX = viewport.viewMult

@@ -190,5 +190,8 @@ Deleted: `src/.../utils/abilities/Slipspace.kt` (the broken prototype transition
 - Pocket background and light streaks: placeholders.
 - Picker opened from the dialog's `init` (vanilla opens it from a rule command later); fallback
   retries from `advance` if that is too early — check.
-- Heat-haze `copyScreen()` vs UI scaling in the campaign — fallback is distortion off.
+- ~~Heat-haze `copyScreen()` vs UI scaling in the campaign~~ — closed 2026-10-10. A code audit
+  found it consistent: it copies the whole physical viewport and its offsets are in UV space (see
+  [shield-ui-scaling-fix.md](shield-ui-scaling-fix.md)). The developer confirmed it in game: "it's
+  fine".
 - The granting quest.
