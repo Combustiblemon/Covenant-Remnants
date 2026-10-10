@@ -80,6 +80,9 @@ Changes:
 - **`gradlew.bat`** — copied from Covenant. LemonLib had only the Unix `gradlew`. Both use the same
   Gradle 8.4 wrapper.
 - **`.gitignore`** — `/LemonLib.zip` added. The file also lacked a final newline.
+- **`jars/LemonLib.jar`** — untracked. It is build output, but it had been committed despite the
+  existing `/jars` ignore rule, so every rebuild showed it as modified. `git rm --cached` keeps the
+  file on disk. Nothing else under `jars/` or `build/` is tracked in either repo.
 - **`README.md`** — the Building section now covers `packageMod`. It also fixes the stale claim that
   dependent mods compile against `jars/LemonLib.jar`; they compile against the classes through the
   composite build.
