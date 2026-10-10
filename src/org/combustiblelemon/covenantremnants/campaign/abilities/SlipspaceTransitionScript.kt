@@ -142,7 +142,16 @@ class SlipspaceTransitionScript private constructor(
             }
 
             State.SWITCH -> {
+                val musicToken = if (isPlayer && leg == Leg.BACK) musicStateToken() else null
                 switchLocations()
+                // The engine restarts the music only when the music state token changes. This jump
+                // goes system to system with no hyperspace in between, so two systems with different
+                // music (a core one and a non-core one) can share CAMPAIGN_SYSTEM; the previous
+                // system's track then kept playing on arrival (2026-10-11). Same token: restart, which
+                // makes the engine pick the track for the new system, as arriving from hyperspace does.
+                if (musicToken != null && musicStateToken() === musicToken) {
+                    Global.getSoundPlayer().restartCurrentMusic()
+                }
                 if (isPlayer) {
                     state = State.FADE_IN
                     fader.fadeOut()
@@ -226,6 +235,13 @@ class SlipspaceTransitionScript private constructor(
         }
         setViewsAlpha(fleet, alpha)
         if (u >= 1f) state = State.FINISH
+    }
+
+    /** The music plugin's state for the player's current location (identity-comparable). */
+    private fun musicStateToken(): Any? = try {
+        Misc.getMusicPlayerPlugin()?.stateTokenForCampaignLocation
+    } catch (_: Throwable) {
+        null
     }
 
     private fun switchLocations() {

@@ -2,6 +2,13 @@
 
 All notable changes to Covenant Remnants, newest version first.
 
+## v0.1.2 — 2026-10-11
+
+### Bug fixes
+
+- Fixed the star system background turning black after a slipspace exit, so your destination's backdrop now shows without reloading.
+- Fixed the music after a slipspace exit staying on the previous system's track, so you now hear the music of the system you arrive in.
+
 ## v0.1.1 — 2026-10-10
 
 ### Behavioral changes

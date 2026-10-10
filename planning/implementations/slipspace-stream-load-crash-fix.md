@@ -3,13 +3,13 @@
 The developer made a campaign slipspace jump, exited the pocket, saved, and loaded that save. The
 game crashed on the first campaign frame:
 
-```
+```text
 java.lang.NullPointerException: Cannot invoke "java.util.List.iterator()" because "this.bounds" is null
-	at com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2.getSegmentsNear(SlipstreamTerrainPlugin2.java:2724)
-	at com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2.addParticles(SlipstreamTerrainPlugin2.java:791)
-	at com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2.advance(SlipstreamTerrainPlugin2.java:409)
-	at com.fs.starfarer.campaign.CampaignTerrain.advance(Unknown Source)
-	at com.fs.starfarer.campaign.StarSystem.advance(Unknown Source)
+    at com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2.getSegmentsNear(SlipstreamTerrainPlugin2.java:2724)
+    at com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2.addParticles(SlipstreamTerrainPlugin2.java:791)
+    at com.fs.starfarer.api.impl.campaign.velfield.SlipstreamTerrainPlugin2.advance(SlipstreamTerrainPlugin2.java:409)
+    at com.fs.starfarer.campaign.CampaignTerrain.advance(Unknown Source)
+    at com.fs.starfarer.campaign.StarSystem.advance(Unknown Source)
 ```
 
 ## Root cause
@@ -57,7 +57,11 @@ Checked:
   load gives them the same values as their initializers.
 - `gradlew buildMod` is green.
 
-## In-game check (open)
+## In-game check
+
+**Passed.** Developer 2026-10-11: "i loaded a save after jump", with no crash. Save / load while
+inside the pocket (point 3) was not reported separately, but it goes through the same
+`readResolve`. The checklist:
 
 1. Load the save that crashed: it loads and keeps running, and the pocket path is still there.
 2. Jump, exit, save, load: no crash.

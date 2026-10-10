@@ -458,14 +458,29 @@ Keep this file current — tick items off and add new ones as work lands.
       `.version` file and `build.gradle.kts`. `CHANGELOG.md` starts at v0.1.1 (UI-scaling fixes, plus
       the save-load crash fix added 2026-10-11 before release), and the whole file ships in the zip. See "v0.1.1" in
       [implementations/release-packaging.md](implementations/release-packaging.md).
-- [ ] **Crash on loading a save made after a slipspace jump — in-game check** — fixed 2026-10-11.
+- [x] **Crash on loading a save made after a slipspace jump — in-game check** — developer
+      2026-10-11: "i loaded a save after jump" (no crash). Fixed 2026-10-11.
       `SlipspaceStreamTerrainPlugin` never got vanilla's package-private `readResolve` (XStream
       skips it across packages), so `bounds` / `particles` were null after any load. It now has its
-      own. Load the crashing save, then jump → exit → save → load, then save / load inside the
-      pocket. See
+      own. See
       [implementations/slipspace-stream-load-crash-fix.md](implementations/slipspace-stream-load-crash-fix.md).
-- [ ] **Publish v0.1.1 to Version Checker** — the online master `.version` on GitHub `master` must
-      read patch 1 once the release is merged, or players on 0.1.0 get no update notice.
+- [x] **System background and music wrong after leaving slipspace (until reload)** — 2026-10-11.
+      Fixed and verified in game. Not the pocket EFS. See
+      [implementations/slipspace-exit-music-background-fix.md](implementations/slipspace-exit-music-background-fix.md).
+      - [x] **Background:** fixed. The pocket's 1024² `slipspace_bg.jpg` shrank the shared system
+        background texture, and the 2048² vanilla backgrounds then failed to upload on exit. It is
+        now a 2048² pure-black image (overwrite approved by the developer 2026-10-11). Rule: pocket
+        art must be 2048×2048.
+      - [x] **Music:** fixed. The pocket and the destination share the `CAMPAIGN_SYSTEM` music
+        token, so the previous system's track kept playing. The exit now calls
+        `restartCurrentMusic()` when the token is unchanged. The diagnostic logging is removed.
+      - [x] **In-game check** — developer 2026-10-11: "tested the change and it works".
+- [x] **v0.1.2 bump** — 2026-10-11: v0.1.1 was released (commit `ddac966`). The version is now
+      0.1.2 in all three files, and `CHANGELOG.md` has a v0.1.2 entry with the slipspace-exit
+      background and music fixes. See "v0.1.2" in
+      [implementations/release-packaging.md](implementations/release-packaging.md).
+- [ ] **Version Checker master file** — the online `.version` on GitHub `master` must match each
+      released version (v0.1.1 now, v0.1.2 at its release), or players get no update notice.
 - [x] **Graphics under `graphics/covenant_remnants/`** — 2026-10-10 (developer ruling: that folder
       holds all mod graphics): `graphics/fx/` → `graphics/covenant_remnants/fx/`, `graphics/missiles/`
       → `graphics/covenant_remnants/missiles/` (81 files, `git mv`); `settings.json`, 8 `.proj`, docs

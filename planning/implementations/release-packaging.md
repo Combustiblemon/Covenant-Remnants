@@ -126,6 +126,14 @@ Verification:
 - `mod_info.json`, the `.version` file and the jar manifest all read 0.1.1.
 - None of the excluded files are in the zip.
 
+## v0.1.2: version bump (2026-10-11)
+
+The developer released v0.1.1 at commit `ddac966`, with the UI-scaling fixes and the save-load
+crash fix. The two slipspace-exit fixes that came after it (background, music; see
+[slipspace-exit-music-background-fix.md](slipspace-exit-music-background-fix.md)) move to a new
+v0.1.2 entry at the top of `CHANGELOG.md`. The v0.1.1 entry is unchanged from the release. The
+version is 0.1.2 in `mod_info.json`, `covenant-remnants.version` (`patch` 2) and `build.gradle.kts`.
+
 ## Open items
 
 - **Version Checker:** after merging to `master`, the online master file
