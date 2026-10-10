@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "org.combustiblelemon"
-version = "0.1.0"
+version = "0.1.1"
 
 repositories {
     mavenCentral()
@@ -132,6 +132,8 @@ val modFolderName = "Covenant Remnants"
 val runtimeFiles: CopySpec = copySpec {
     from(".") {
         include("mod_info.json")
+        // The whole changelog, every version (developer request 2026-10-10)
+        include("CHANGELOG.md")
         // Version Checker: data/config/version/version_files.csv points at this root file;
         // shipping the CSV without it makes LunaLib's loadJSON throw at startup.
         include("*.version")

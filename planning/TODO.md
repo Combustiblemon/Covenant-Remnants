@@ -454,6 +454,12 @@ Keep this file current — tick items off and add new ones as work lands.
       `packageMod` → `Covenant Remnants.zip`, one `Covenant Remnants/` folder, runtime files
       only (271 files, 6.4 MB). `package_mod.bat` / `.sh` call it. See
       [implementations/release-packaging.md](implementations/release-packaging.md).
+- [x] **v0.1.1 + `CHANGELOG.md`** — 2026-10-10: the version is bumped in `mod_info.json`, the
+      `.version` file and `build.gradle.kts`. `CHANGELOG.md` starts at v0.1.1 (UI-scaling fixes)
+      and the whole file ships in the zip. See "v0.1.1" in
+      [implementations/release-packaging.md](implementations/release-packaging.md).
+- [ ] **Publish v0.1.1 to Version Checker** — the online master `.version` on GitHub `master` must
+      read patch 1 once the release is merged, or players on 0.1.0 get no update notice.
 - [x] **Graphics under `graphics/covenant_remnants/`** — 2026-10-10 (developer ruling: that folder
       holds all mod graphics): `graphics/fx/` → `graphics/covenant_remnants/fx/`, `graphics/missiles/`
       → `graphics/covenant_remnants/missiles/` (81 files, `git mv`); `settings.json`, 8 `.proj`, docs

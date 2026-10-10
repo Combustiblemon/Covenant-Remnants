@@ -100,7 +100,11 @@ Put a new class in the package that matches its role. The `modPlugin` entry clas
 
 ## Shipped vs scratch
 
-- **Shipped** (goes into the built mod): `data/`, `graphics/`, `src/`, `jars/`, `mod_info.json`.
+- **Shipped** (goes into the built mod): `data/`, `graphics/`, `src/`, `jars/`, `mod_info.json`,
+  `CHANGELOG.md`.
+- **`CHANGELOG.md`** (repo root, shipped in the release zip): player-facing changes per version,
+  newest first. Style rules are in [../CLAUDE.md](../CLAUDE.md) ("Changelog style"). Bump the
+  version in `mod_info.json`, `covenant-remnants.version` and `build.gradle.kts` together.
 - **Scratch / reference / working art** (NOT shipped, do not depend on these at runtime):
   `assets/`, `fx stuff/`, `readme_files/`, `temp/`, `temp_data/` (vanilla-reference copies of
   `config/`, `hullmods/`, `shipsystems/`, `weapons/`).

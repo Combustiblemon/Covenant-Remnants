@@ -20,6 +20,7 @@ both lists were wrong:
 ## What ships
 
 - `mod_info.json` and `covenant-remnants.version`.
+- `CHANGELOG.md`, the whole file (added in v0.1.1, see below).
 - `jars/CovenantRemnants.jar`, and only that jar.
 - `data/**`, `graphics/**` and `sounds/**`, minus the two exclusions above. Empty folders are
   dropped.
@@ -30,7 +31,7 @@ those mods are absent.
 
 Nothing else from the repo ships. That leaves out `src/`, `planning/`, `assets/`, `docs/`,
 `fx stuff/`, `reports/`, `readme_files/`, `out/`, `build/`, `.claude/`, the Gradle and IDE files,
-the `.md` files and LICENSE.
+the other `.md` files and LICENSE.
 
 ## How it is wired (`build.gradle.kts`)
 
@@ -95,8 +96,39 @@ Verification:
 - The jar now holds only classes plus `META-INF`.
 - Covenant's `buildMod`, which builds LemonLib through the composite build, still succeeds.
 
+## v0.1.1: version bump and changelog (2026-10-10)
+
+Developer rulings:
+
+- v0.1.0 is the 19:58 zip of 2026-10-10, which already held the tester cache, the Huragok Slipspace
+  Engram and the max-burn change. v0.1.1 covers only the UI-scaling work: see
+  [shield-ui-scaling-fix.md](shield-ui-scaling-fix.md).
+- `CHANGELOG.md` starts at v0.1.1, with no back-filled v0.1.0 entry. New versions go on top. The
+  whole file ships in the zip.
+- The entries follow the changelog style in [../../CLAUDE.md](../../CLAUDE.md): categories by
+  impact (breaking changes, new features, behavioral changes, bug fixes), and every bullet in
+  "action + context + benefit" form, in a user-facing voice.
+
+Changes:
+
+- **Version 0.1.1** set in three places: `mod_info.json` (`version`), `covenant-remnants.version`
+  (`patch` 1) and `build.gradle.kts` (`version`, which goes into the jar manifest's
+  `Implementation-Version`).
+- **`CHANGELOG.md`** added at the repo root.
+- **`runtimeFiles`** now includes `CHANGELOG.md`.
+
+Verification:
+
+- `gradlew packageMod` succeeds.
+- `Covenant Remnants.zip` holds 321 files (the 320 from before plus `CHANGELOG.md`).
+- `mod_info.json`, the `.version` file and the jar manifest all read 0.1.1.
+- None of the excluded files are in the zip.
+
 ## Open items
 
+- **Version Checker:** after merging to `master`, the online master file
+  (`raw.githubusercontent.com/Combustiblemon/Covenant-Remnants/master/covenant-remnants.version`)
+  must carry patch 1, or players on 0.1.0 are not told about 0.1.1.
 - When a file is added to the repo but not used at runtime, either add an `exclude` to
   `runtimeFiles` or keep it outside `data/`, `graphics/` and `sounds/`.
 - Release check: unzip into a clean `mods/` folder and start the game once.
