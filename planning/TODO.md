@@ -328,6 +328,19 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **Weapon-buff hullmod** (from PLAN) — scrapped for now (developer 2026-10-02). Was: buff
       plasma/energy weapons, nerf the weapons themselves to compensate.
 
+## Loot / acquisition
+
+- [x] **Covenant content out of the random loot pool** — 2026-10-12 ruling: hulls, wings, weapons,
+      hullmods drop only from combat (or future quests). `rare_bp` removed everywhere,
+      `no_drop_salvage` on wings + weapons, hullmods lose `no_drop` so they can drop from defeated
+      Covenant ships. See [implementations/loot-pool-exclusion.md](implementations/loot-pool-exclusion.md).
+- [ ] **LPC loot crash — root cause unknown** — player report: crash when a salvage roll produced one
+      of our LPCs. No trace available; local logs clean; wing / variant / hull data valid. Need the
+      reporter's `starsector.log` stack trace. The random-pool path is closed (above), so the
+      reported trigger is gone, but the LPC itself is unproven.
+- [ ] **Loot-pool exclusion — in-game check** — repeated salvage shows no Covenant LPC / weapon /
+      blueprint; a defeated Covenant carrier yields LPCs, weapons, hullmods; codex still lists them.
+
 ## Balance
 
 - [ ] **Tune all numbers** — every ship, weapon, shield, and system value is a vanilla-anchored
@@ -356,6 +369,16 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] Decide Suppressor Beam damage type — **ENERGY** (developer ruling 2026-10-01; no change).
 
 ## Rendering / shaders
+
+- [x] **Shield outline sits inside the sprite** — 2026-10-12: Laplacian smoothing shrank the polygon.
+      Now Taubin smoothing (no shrink) + outward normal offset `MARGIN` (default 14 su), scale
+      workaround (1.05, 1.1) dropped to (1, 1). All live-tunable via the `ShieldTune` console
+      command. See [implementations/shield-outline-margin.md](implementations/shield-outline-margin.md).
+- [ ] **Shield outline — in-game check** — `ShieldTune` in combat: rim clears the sprite on every
+      hull (frigates to supercaps), corners rounded (adaptive Catmull-Rom, `CURVE_DEG` /
+      `CURVE_MAX`), no spikes at sharp bow/wing corners, collapse extrusion and sweep still line
+      up, honeycomb unaffected, no frame cost on the 56-point hulls. Dial `MARGIN` /
+      `ITERATIONS` / `CURVE_DEG`, then bake the winners into `ShieldOutline` defaults.
 
 - [x] **Engines below hull — in-game check** — developer 2026-10-10: "all ok". All 16 Covenant hulls now carry the
       `RENDER_ENGINES_BELOW_HULL` hint (2026-10-07): in combat, engine flames should sit under the

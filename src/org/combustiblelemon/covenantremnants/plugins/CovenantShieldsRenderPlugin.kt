@@ -9,6 +9,7 @@ import org.combustiblelemon.lemonlib.geometry.getRandomPointsInPolygon
 import org.combustiblelemon.lemonlib.ship.getShipPolygonInWorld
 import org.combustiblelemon.covenantremnants.utils.render.ShieldShader
 import org.combustiblelemon.lemonlib.geometry.SmoothingMethod
+import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldOutline
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import java.util.*
@@ -46,7 +47,7 @@ class CovenantShieldsRenderPlugin(
     }
 
     private val shader =
-        ShieldShader(attachedTo, attachedTo.exactBounds.segments.size, SmoothingMethod.SPLINE)
+        ShieldShader(attachedTo, attachedTo.exactBounds.segments.size, SmoothingMethod.TAUBIN)
 
     private var layer = CombatEngineLayers.ABOVE_SHIPS_LAYER
 
@@ -230,7 +231,9 @@ class CovenantShieldsRenderPlugin(
 
         shader.setDebugMode(false)
         shader.setHoneycombEnabled(true)
-        shader.updatePolygon(vertexData, viewport, Vector2f(1.05f, 1.1f))
+        // Outline size comes from ShieldOutline (Taubin smoothing + normal-offset margin); the
+        // scale tunables default to 1 and replace the old (1.05, 1.1) shrink workaround.
+        shader.updatePolygon(vertexData, viewport, Vector2f(ShieldOutline.scaleX.value, ShieldOutline.scaleY.value))
         // Fortress Shield: tint toward the vanilla Fortress look and drive the fortress overlay layer.
         val fortressLevel = FortressShield.effectLevel(attachedTo)
         val fill = lerpColor(BASE_FILL, FortressShield.TINT_FILL, fortressLevel)

@@ -2,7 +2,12 @@
 
 All notable changes to Covenant Remnants, newest version first.
 
-## v0.1.2 — 2026-10-11
+## Unreleased
+
+### Behavioral changes
+
+- Changed the Covenant shield outline to sit just outside the hull instead of cutting into the sprite, so the shield now visibly covers the whole ship.
+- Changed Covenant ships, fighter wings, weapons and hullmods to drop only from defeated Covenant fleets, so they no longer show up in random salvage, derelicts, stations or as random blueprints.
 
 ### Bug fixes
 

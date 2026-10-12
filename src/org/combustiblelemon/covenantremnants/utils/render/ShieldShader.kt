@@ -17,6 +17,7 @@ import org.combustiblelemon.lemonlib.geometry.PolygonSmoothing
 import org.combustiblelemon.covenantremnants.utils.render.shield.PlasmaLayer
 import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldProgram
 import org.combustiblelemon.lemonlib.geometry.SmoothingMethod
+import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldOutline
 import org.combustiblelemon.covenantremnants.utils.render.shield.SweepLayer
 import org.combustiblelemon.lemonlib.geometry.rotatePointByDegrees
 import org.lwjgl.BufferUtils
@@ -191,11 +192,11 @@ class ShieldShader(
     }
 
     /**
-     * Points the shader receives: all smoothing methods only reposition points, so this is the
-     * original count capped at the shared program's array capacity.
+     * Upper bound on the points the shader receives: the spline step adds points up to the shared
+     * program's array capacity, so that capacity is the bound (the upload uses the live count).
      */
     private fun calculateMaxPointsAfterSmoothing(originalPointCount: Int): Int {
-        return minOf(originalPointCount, ShieldProgram.POINT_CAPACITY)
+        return ShieldProgram.POINT_CAPACITY
     }
 
     private fun setPolygonPointUniforms(pointCount: Int) {
@@ -298,8 +299,25 @@ class ShieldShader(
             worldPoints.add(segment.y)
         }
 
-        // Apply smoothing to world coordinates first
-        val smoothedWorldPoints = PolygonSmoothing.smooth(worldPoints, smoothingMethod, splineSubdivisions)
+        // Smooth in ship-local space, then push the outline outward along its vertex normals so the
+        // rim clears the sprite (ShieldOutline.margin, world units). Taubin reads its own tunables;
+        // the other methods keep the subdivision count.
+        val smoothedWorldPoints = when (smoothingMethod) {
+            SmoothingMethod.TAUBIN -> PolygonSmoothing.taubin(
+                worldPoints,
+                ShieldOutline.iterations.value.toInt().coerceAtLeast(0),
+                ShieldOutline.lambda.value,
+                ShieldOutline.mu.value
+            )
+            else -> PolygonSmoothing.smooth(worldPoints, smoothingMethod, splineSubdivisions)
+        }.let {
+            PolygonSmoothing.catmullRomAdaptive(
+                it,
+                ShieldProgram.POINT_CAPACITY,
+                ShieldOutline.curveDegrees.value,
+                ShieldOutline.curveMaxPerEdge.value.toInt()
+            )
+        }.let { PolygonSmoothing.offsetAlongNormals(it, ShieldOutline.margin.value) }
 
         // Convert world points to screen coordinates for the fragment shader
         val screenPoints = mutableListOf<Float>()
