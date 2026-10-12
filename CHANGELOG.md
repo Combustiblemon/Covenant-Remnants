@@ -2,7 +2,7 @@
 
 All notable changes to Covenant Remnants, newest version first.
 
-## Unreleased
+## v0.1.2 — 2026-10-12
 
 ### Behavioral changes
 
