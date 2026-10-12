@@ -41,7 +41,8 @@ Build steps:
    `Covenant Remnants.zip` with only the files the game needs at runtime.
 
 Release (maintainers): on a clean `master`, run `release.bat vX.Y.Z` (add `-DryRun` to rehearse).
-It bumps every version file, rolls the "Unreleased" changelog section into the new version, builds
+It bumps every version file, pins the LemonLib dependency to the version in `../LemonLib`, rolls the
+"Unreleased" changelog section into the new version, builds
 the zip, commits, tags, pushes `master` and creates the GitHub release with the zip attached. Needs
 the GitHub CLI (`winget install --id GitHub.cli`, then `gh auth login`) once.
 

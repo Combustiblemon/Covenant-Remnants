@@ -11,7 +11,8 @@
   "dependencies": [
     {
       "id": "combustiblelemon_lemonlib",
-      "name": "LemonLib"
+      "name": "LemonLib",
+      "version": "0.1.1"
     },
     {
       "id": "MagicLib",

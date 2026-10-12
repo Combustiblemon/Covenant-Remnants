@@ -111,5 +111,7 @@ Put a new class in the package that matches its role. The `modPlugin` entry clas
 - **Dev scripts** (NOT shipped): `scripts/` (`release.ps1`) and the root wrappers `release.bat`,
   `package_mod.bat` / `.sh`. Releasing: `release.bat vX.Y.Z` on `master` bumps the three version
   files above plus `gradle.properties` and rolls `CHANGELOG.md` — do not bump by hand. See
-  [implementations/release-script.md](implementations/release-script.md).
+  [implementations/release-script.md](implementations/release-script.md). `mod_info.json` pins
+  the LemonLib dependency version (ruling 2026-10-12); the release script sets the pin from
+  `../LemonLib/mod_info.json` on every release, so release LemonLib first.
 - **Build output** (regenerated, not authored): `build/`, `bin/`, `out/`.

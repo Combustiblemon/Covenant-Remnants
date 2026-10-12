@@ -71,6 +71,26 @@ first packaged release, `## Unreleased` with today's `PolygonSmoothing` addition
 added to `releaseFiles` in its `build.gradle.kts`, and a README "Releasing" paragraph. When the
 script body changes, copy it to the other repo and re-apply the four config lines.
 
+## LemonLib version pin (developer 2026-10-12)
+
+`mod_info.json` now pins the dependency: `{"id": "combustiblelemon_lemonlib", "name": "LemonLib",
+"version": "0.1.1"}`. How the launcher judges it (decompiled `launcher.ModManager.VersionInfo`
+and `ModManager$Oo`, 0.98a-RC8): a version string `0.1.1` parses as major `0.1`, minor `1`
+(leading-zero versions fold the first two numbers into the major). `getCompatLevel` is an
+exact-match ladder, not a minimum: same `0.1.1` = exact; LemonLib `0.1.2` = "minor differs";
+LemonLib `0.2.0` = "major differs". The launcher keeps the worst level across all dependencies
+for its warning colour. Which levels only warn and which refuse to enable was not traced to the
+UI class.
+
+**Automated (developer 2026-10-12, "always on point"):** the script's config block has
+`$LocalDependencies`, a table of dependency id -> sibling folder (`combustiblelemon_lemonlib` ->
+`..\LemonLib`). Pre-flight reads each sibling's `mod_info.json` version (missing folder aborts);
+the bump step then sets that dependency's `"version"` inside its `{ }` block in our
+`mod_info.json`, inserting the key after `"name"` if absent. Text edit only, other entries
+untouched. Tested on the real file for both the replace and the insert case. LemonLib's copy has
+an empty table. Rule stays: release LemonLib first, so its `mod_info.json` already holds the
+version the Covenant release should pin.
+
 ## Open items
 
 - First real use: install `gh`, `gh auth login`, then `release.bat v0.1.2 -DryRun` on master
