@@ -6,7 +6,7 @@ All notable changes to Covenant Remnants, newest version first.
 
 ### Behavioral changes
 
-- Changed the Covenant shield outline to sit just outside the hull instead of cutting into the sprite, so the shield now visibly covers the whole ship.
+- Changed the Covenant shield outline to follow the hull with smoothly rounded corners and a clear gap outside the sprite, so the shield now covers the whole ship instead of cutting into it and no longer shows polygon edges.
 - Changed Covenant ships, fighter wings, weapons and hullmods to drop only from defeated Covenant fleets, so they no longer show up in random salvage, derelicts, stations or as random blueprints.
 
 ### Bug fixes

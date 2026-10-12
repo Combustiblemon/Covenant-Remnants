@@ -1,0 +1,233 @@
+<#
+.SYNOPSIS
+    Releases Covenant Remnants: bumps every version file, rolls CHANGELOG.md "Unreleased" into
+    the new version, builds the zip, commits, tags, pushes master and creates a GitHub release.
+
+.USAGE
+    release.bat v0.1.2            full release
+    release.bat v0.1.2 -DryRun    edit + build only; nothing committed, pushed or released
+
+.NOTES
+    Runs only on a clean, up-to-date `master` and never switches branches (branches are the
+    developer's). Needs git and the GitHub CLI (`gh`, authenticated). PowerShell 5.1 compatible.
+#>
+param(
+    [Parameter(Position = 0)]
+    [string]$Version,
+    [switch]$DryRun
+)
+
+$ErrorActionPreference = 'Stop'
+
+function Fail([string]$message) {
+    Write-Host ""
+    Write-Host "RELEASE ABORTED: $message" -ForegroundColor Red
+    exit 1
+}
+
+function Step([string]$message) {
+    Write-Host ""
+    Write-Host "== $message" -ForegroundColor Cyan
+}
+
+function Run-Git([string[]]$arguments) {
+    $output = & git @arguments 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Fail ("git " + ($arguments -join ' ') + " failed:`n" + ($output -join "`n"))
+    }
+    return $output
+}
+
+function Read-Text([string]$path) {
+    return [IO.File]::ReadAllText($path)
+}
+
+function Write-Text([string]$path, [string]$text) {
+    # UTF-8 without BOM; the text keeps whatever line endings it already had.
+    [IO.File]::WriteAllText($path, $text, (New-Object System.Text.UTF8Encoding($false)))
+}
+
+# ---------------------------------------------------------------------------------------------
+# Arguments
+# ---------------------------------------------------------------------------------------------
+
+if (-not $Version -or $Version -notmatch '^v?(\d+)\.(\d+)\.(\d+)$') {
+    Write-Host "Usage: release.bat vX.Y.Z [-DryRun]"
+    Write-Host "       e.g. release.bat v0.1.2"
+    exit 1
+}
+$major = [int]$Matches[1]; $minor = [int]$Matches[2]; $patch = [int]$Matches[3]
+$plain = "$major.$minor.$patch"
+$tag = "v$plain"
+
+$root = Resolve-Path (Join-Path $PSScriptRoot '..')
+Set-Location $root
+
+$modInfo = Join-Path $root 'mod_info.json'
+$versionFile = Join-Path $root 'covenant-remnants.version'
+$gradleKts = Join-Path $root 'build.gradle.kts'
+$gradleProps = Join-Path $root 'gradle.properties'
+$changelog = Join-Path $root 'CHANGELOG.md'
+$zip = Join-Path $root 'Covenant Remnants.zip'
+$notesDir = Join-Path $root 'build'
+$notesFile = Join-Path $notesDir "release-notes-$tag.md"
+$versionFiles = @('mod_info.json', 'covenant-remnants.version', 'build.gradle.kts', 'gradle.properties', 'CHANGELOG.md')
+
+# ---------------------------------------------------------------------------------------------
+# Pre-flight (nothing is modified before this block passes)
+# ---------------------------------------------------------------------------------------------
+
+Step "Pre-flight for $tag"
+
+$branch = (Run-Git @('rev-parse', '--abbrev-ref', 'HEAD') | Select-Object -First 1).Trim()
+if ($branch -ne 'master') {
+    Fail "current branch is '$branch'. Releases are made from 'master' only. Switch branches yourself and rerun."
+}
+
+$dirty = Run-Git @('status', '--porcelain')
+if ($dirty) {
+    Fail ("working tree is not clean. Commit or stash first:`n" + ($dirty -join "`n"))
+}
+
+Run-Git @('fetch', 'origin', 'master') | Out-Null
+$behind = [int]((Run-Git @('rev-list', '--count', 'HEAD..origin/master') | Select-Object -First 1).Trim())
+if ($behind -gt 0) {
+    Fail "local master is $behind commit(s) behind origin/master. Pull first."
+}
+
+if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+    Fail "GitHub CLI 'gh' not found. Install once with:  winget install --id GitHub.cli  then run:  gh auth login"
+}
+& gh auth status 2>&1 | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Fail "GitHub CLI is not authenticated. Run:  gh auth login"
+}
+
+$localTag = & git tag --list $tag
+if ($localTag) { Fail "tag $tag already exists locally." }
+$remoteTag = & git ls-remote --tags origin "refs/tags/$tag"
+if ($remoteTag) { Fail "tag $tag already exists on origin." }
+
+$modInfoText = Read-Text $modInfo
+if ($modInfoText -notmatch '"version":\s*"(\d+)\.(\d+)\.(\d+)"') {
+    Fail "could not read the current version from mod_info.json"
+}
+$current = @([int]$Matches[1], [int]$Matches[2], [int]$Matches[3])
+$new = @($major, $minor, $patch)
+$isNewer = $false
+for ($i = 0; $i -lt 3; $i++) {
+    if ($new[$i] -gt $current[$i]) { $isNewer = $true; break }
+    if ($new[$i] -lt $current[$i]) { break }
+}
+if (-not $isNewer) {
+    Fail ("$tag is not newer than the current version v" + ($current -join '.'))
+}
+
+$changelogText = Read-Text $changelog
+$newline = if ($changelogText.Contains("`r`n")) { "`r`n" } else { "`n" }
+$unreleasedPattern = '(?s)(## Unreleased[ \t]*' + [regex]::Escape($newline) + ')(.*?)(?=' + [regex]::Escape($newline) + '## |\z)'
+$match = [regex]::Match($changelogText, $unreleasedPattern)
+if (-not $match.Success) {
+    Fail "CHANGELOG.md has no '## Unreleased' section."
+}
+$notes = $match.Groups[2].Value.Trim("`r", "`n")
+if ($notes -notmatch '(?m)^- ') {
+    Fail "the '## Unreleased' section of CHANGELOG.md has no bullets. Write the changelog first."
+}
+
+Write-Host "branch master, clean, up to date; gh authenticated; tag $tag free; v$($current -join '.') -> $tag" -ForegroundColor Green
+
+# ---------------------------------------------------------------------------------------------
+# Edits
+# ---------------------------------------------------------------------------------------------
+
+Step "Bumping version files"
+
+$modInfoText = [regex]::Replace($modInfoText, '"version":\s*"[^"]*"', ('"version": "' + $plain + '"'), 1)
+Write-Text $modInfo $modInfoText
+
+$versionText = Read-Text $versionFile
+$versionText = [regex]::Replace($versionText, '"major":\s*\d+', ('"major":' + $major), 1)
+$versionText = [regex]::Replace($versionText, '"minor":\s*\d+', ('"minor":' + $minor), 1)
+$versionText = [regex]::Replace($versionText, '"patch":\s*\d+', ('"patch":' + $patch), 1)
+Write-Text $versionFile $versionText
+
+$ktsText = Read-Text $gradleKts
+$ktsText = [regex]::Replace($ktsText, '(?m)^version = "[^"]*"', ('version = "' + $plain + '"'), 1)
+Write-Text $gradleKts $ktsText
+
+if (Test-Path $gradleProps) {
+    $propsText = Read-Text $gradleProps
+    $propsText = [regex]::Replace($propsText, '(?m)^project\.version=.*$', ('project.version=' + $plain), 1)
+    Write-Text $gradleProps $propsText
+}
+
+Step "Rolling CHANGELOG.md: Unreleased -> $tag"
+
+$today = Get-Date -Format 'yyyy-MM-dd'
+$emDash = [string][char]0x2014
+$heading = "## $tag $emDash $today"
+$replacement = '## Unreleased' + $newline + $newline + $heading + $newline + $newline + $notes + $newline
+$changelogText = $changelogText.Substring(0, $match.Index) + $replacement + $changelogText.Substring($match.Index + $match.Length)
+Write-Text $changelog $changelogText
+
+if (-not (Test-Path $notesDir)) { New-Item -ItemType Directory -Path $notesDir | Out-Null }
+Write-Text $notesFile ($notes + "`n")
+Write-Host "release notes saved to $notesFile"
+
+# ---------------------------------------------------------------------------------------------
+# Build
+# ---------------------------------------------------------------------------------------------
+
+Step "Building the release zip (gradlew packageMod)"
+
+& (Join-Path $root 'gradlew.bat') packageMod
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path $zip)) {
+    Write-Host "build failed; reverting the version bump" -ForegroundColor Yellow
+    & git checkout -- $versionFiles
+    Fail "gradlew packageMod failed. Nothing was committed."
+}
+Write-Host ("built " + $zip + " (" + [math]::Round((Get-Item $zip).Length / 1MB, 1) + " MB)") -ForegroundColor Green
+
+if ($DryRun) {
+    Step "Dry run: stopping before commit"
+    & git --no-pager diff --stat
+    Write-Host ""
+    Write-Host "Would commit the files above, tag $tag, push master + tag, and create the GitHub release with:"
+    Write-Host "---- $notesFile ----"
+    Write-Host $notes
+    Write-Host "--------------------"
+    Write-Host "Undo the local edits with:  git checkout -- $($versionFiles -join ' ')" -ForegroundColor Yellow
+    exit 0
+}
+
+# ---------------------------------------------------------------------------------------------
+# Publish (no rollback past this point; failures print the resume command)
+# ---------------------------------------------------------------------------------------------
+
+Step "Committing and tagging"
+Run-Git (@('add', '--') + $versionFiles) | Out-Null
+Run-Git @('commit', '-m', "Release $tag") | Out-Null
+Run-Git @('tag', '-a', $tag, '-m', $tag) | Out-Null
+
+Step "Pushing master and $tag"
+$pushOut = & git push origin master 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Fail ("push of master failed:`n" + ($pushOut -join "`n") + "`nCommit and tag exist locally. Resume with:`n  git push origin master`n  git push origin $tag`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
+}
+$pushOut = & git push origin $tag 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Fail ("push of tag failed:`n" + ($pushOut -join "`n") + "`nResume with:`n  git push origin $tag`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
+}
+
+Step "Creating the GitHub release"
+$ghOut = & gh release create $tag "$zip#Covenant Remnants $tag" --title $tag --notes-file $notesFile 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Fail ("gh release create failed:`n" + ($ghOut -join "`n") + "`nCommit, tag and push are done. Resume with:`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
+}
+
+$url = (& gh release view $tag --json url -q .url 2>&1 | Select-Object -First 1)
+Write-Host ""
+Write-Host "Released $tag" -ForegroundColor Green
+Write-Host $url
+exit 0

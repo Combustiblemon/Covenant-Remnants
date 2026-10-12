@@ -502,8 +502,18 @@ Keep this file current — tick items off and add new ones as work lands.
       0.1.2 in all three files, and `CHANGELOG.md` has a v0.1.2 entry with the slipspace-exit
       background and music fixes. See "v0.1.2" in
       [implementations/release-packaging.md](implementations/release-packaging.md).
-- [ ] **Version Checker master file** — the online `.version` on GitHub `master` must match each
-      released version (v0.1.1 now, v0.1.2 at its release), or players get no update notice.
+- [x] **Version Checker master file** — the online `.version` on GitHub `master` must match each
+      released version, or players get no update notice. Covered 2026-10-12: `release.bat` only
+      runs on `master` and pushes it with the bumped `.version`.
+- [x] **Release script** — 2026-10-12: `release.bat vX.Y.Z [-DryRun]` (wrapper over
+      `scripts/release.ps1`) bumps `mod_info.json`, `covenant-remnants.version`, `build.gradle.kts`,
+      `gradle.properties`, rolls `CHANGELOG.md` Unreleased into the new version, runs `packageMod`,
+      commits, tags, pushes `master`, creates the GitHub release with the zip (rulings: gh CLI,
+      master only, attach zip). See [implementations/release-script.md](implementations/release-script.md).
+- [ ] **Release script — first real run** — install `gh` (`winget install --id GitHub.cli`,
+      `gh auth login`), then on a clean `master`: `release.bat v0.1.2 -DryRun`, inspect, undo with
+      the printed `git checkout --` line, then the real `release.bat v0.1.2`. Note: the v0.1.2 bump
+      from 2026-10-11 was reverted to 0.1.1 (never released); the script does the bump now.
 - [x] **Graphics under `graphics/covenant_remnants/`** — 2026-10-10 (developer ruling: that folder
       holds all mod graphics): `graphics/fx/` → `graphics/covenant_remnants/fx/`, `graphics/missiles/`
       → `graphics/covenant_remnants/missiles/` (81 files, `git mv`); `settings.json`, 8 `.proj`, docs
