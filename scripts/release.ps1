@@ -30,8 +30,23 @@ function Step([string]$message) {
     Write-Host "== $message" -ForegroundColor Cyan
 }
 
+function Invoke-Native([string]$exe, [string[]]$arguments) {
+    # PowerShell 5.1 wraps every stderr line of a native command in an ErrorRecord when stderr is
+    # redirected, and with $ErrorActionPreference = 'Stop' that throws even on exit code 0 (git
+    # fetch / push report progress on stderr). Run with 'Continue' and flatten to plain strings;
+    # callers decide on $LASTEXITCODE.
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $output = & $exe @arguments 2>&1 | ForEach-Object { "$_" }
+    } finally {
+        $ErrorActionPreference = $previous
+    }
+    return @($output)
+}
+
 function Run-Git([string[]]$arguments) {
-    $output = & git @arguments 2>&1
+    $output = Invoke-Native 'git' $arguments
     if ($LASTEXITCODE -ne 0) {
         Fail ("git " + ($arguments -join ' ') + " failed:`n" + ($output -join "`n"))
     }
@@ -98,14 +113,14 @@ if ($behind -gt 0) {
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
     Fail "GitHub CLI 'gh' not found. Install once with:  winget install --id GitHub.cli  then run:  gh auth login"
 }
-& gh auth status 2>&1 | Out-Null
+$null = Invoke-Native 'gh' @('auth', 'status')
 if ($LASTEXITCODE -ne 0) {
     Fail "GitHub CLI is not authenticated. Run:  gh auth login"
 }
 
-$localTag = & git tag --list $tag
+$localTag = Invoke-Native 'git' @('tag', '--list', $tag)
 if ($localTag) { Fail "tag $tag already exists locally." }
-$remoteTag = & git ls-remote --tags origin "refs/tags/$tag"
+$remoteTag = Invoke-Native 'git' @('ls-remote', '--tags', 'origin', "refs/tags/$tag")
 if ($remoteTag) { Fail "tag $tag already exists on origin." }
 
 $modInfoText = Read-Text $modInfo
@@ -184,14 +199,14 @@ Step "Building the release zip (gradlew packageMod)"
 & (Join-Path $root 'gradlew.bat') packageMod
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path $zip)) {
     Write-Host "build failed; reverting the version bump" -ForegroundColor Yellow
-    & git checkout -- $versionFiles
+    $null = Invoke-Native 'git' (@('checkout', '--') + $versionFiles)
     Fail "gradlew packageMod failed. Nothing was committed."
 }
 Write-Host ("built " + $zip + " (" + [math]::Round((Get-Item $zip).Length / 1MB, 1) + " MB)") -ForegroundColor Green
 
 if ($DryRun) {
     Step "Dry run: stopping before commit"
-    & git --no-pager diff --stat
+    Invoke-Native 'git' @('--no-pager', 'diff', '--stat') | Write-Host
     Write-Host ""
     Write-Host "Would commit the files above, tag $tag, push master + tag, and create the GitHub release with:"
     Write-Host "---- $notesFile ----"
@@ -211,22 +226,22 @@ Run-Git @('commit', '-m', "Release $tag") | Out-Null
 Run-Git @('tag', '-a', $tag, '-m', $tag) | Out-Null
 
 Step "Pushing master and $tag"
-$pushOut = & git push origin master 2>&1
+$pushOut = Invoke-Native 'git' @('push', 'origin', 'master')
 if ($LASTEXITCODE -ne 0) {
     Fail ("push of master failed:`n" + ($pushOut -join "`n") + "`nCommit and tag exist locally. Resume with:`n  git push origin master`n  git push origin $tag`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
 }
-$pushOut = & git push origin $tag 2>&1
+$pushOut = Invoke-Native 'git' @('push', 'origin', $tag)
 if ($LASTEXITCODE -ne 0) {
     Fail ("push of tag failed:`n" + ($pushOut -join "`n") + "`nResume with:`n  git push origin $tag`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
 }
 
 Step "Creating the GitHub release"
-$ghOut = & gh release create $tag "$zip#Covenant Remnants $tag" --title $tag --notes-file $notesFile 2>&1
+$ghOut = Invoke-Native 'gh' @('release', 'create', $tag, "$zip#Covenant Remnants $tag", '--title', $tag, '--notes-file', $notesFile)
 if ($LASTEXITCODE -ne 0) {
     Fail ("gh release create failed:`n" + ($ghOut -join "`n") + "`nCommit, tag and push are done. Resume with:`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
 }
 
-$url = (& gh release view $tag --json url -q .url 2>&1 | Select-Object -First 1)
+$url = (Invoke-Native 'gh' @('release', 'view', $tag, '--json', 'url', '-q', '.url') | Select-Object -First 1)
 Write-Host ""
 Write-Host "Released $tag" -ForegroundColor Green
 Write-Host $url
