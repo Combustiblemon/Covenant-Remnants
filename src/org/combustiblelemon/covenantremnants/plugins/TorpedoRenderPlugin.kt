@@ -26,7 +26,7 @@ import org.combustiblelemon.covenantremnants.utils.render.torpedo.WraithFlight
 import org.combustiblelemon.covenantremnants.weapons.MeltBurn
 import org.combustiblelemon.covenantremnants.weapons.PlasmaBombardmentOnHit
 import org.combustiblelemon.covenantremnants.weapons.PlasmaMortarOnHit
-import org.lazywizard.lazylib.CollisionUtils
+import org.combustiblelemon.lemonlib.geometry.isPointWithinBounds
 import org.lwjgl.util.vector.Vector2f
 import java.util.EnumSet
 import kotlin.random.Random
@@ -154,7 +154,7 @@ class TorpedoRenderPlugin private constructor() : CombatLayeredRenderingPlugin {
      */
     internal fun startMelt(target: ShipAPI, source: ShipAPI?, point: Vector2f, travelAngle: Float, size: TorpedoSize, pool: Float) {
         val grid = target.armorGrid ?: return
-        val inHull = { p: Vector2f -> CollisionUtils.isPointWithinBounds(p, target) }
+        val inHull = { p: Vector2f -> isPointWithinBounds(p, target) }
         val burn = MeltBurn.pick(grid, target.facing, point, size.meltRadius, pool, inHull) ?: return
         melts.add(MeltSession(target, source, burn, MeltPatch.forHit(target, point, travelAngle, size.meltRadius, inHull)))
     }

@@ -13,6 +13,7 @@ import com.fs.starfarer.combat.entities.Missile
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.*
+import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldOutline
 import org.combustiblelemon.lemonlib.geometry.getPointAlongSegmentFromEnd
 import org.combustiblelemon.lemonlib.geometry.hasPerpendicularIntersectionPoint
 import org.combustiblelemon.lemonlib.geometry.rotatePointByDegrees
@@ -29,6 +30,26 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         // After the regen delay ends, regen runs at REGEN_SLOW_MULT for REGEN_SLOW_DURATION seconds
         const val REGEN_SLOW_MULT = 0.5f
         const val REGEN_SLOW_DURATION = 3f
+
+        // Flux falloff (developer 2026-10-12): live-tuned through ShieldTune, resets on restart.
+        val FLUX_REGEN_BONUS = ShieldOutline.Tunable(
+            "FLUX_REGEN_BONUS", 0f,
+            "Shield regen flux falloff: extra max flux as a fraction (0 = regen reaches 0 at max flux)"
+        )
+        val regenTunables: List<ShieldOutline.Tunable> = listOf(FLUX_REGEN_BONUS)
+
+        /**
+         * Flux falloff at a flux level (fraction of max flux): min((1 + bonus) / level - 1, 1).
+         * Full rate up to [fluxRegenKnee], then down to 0 at (1 + bonus). Clamped at 0 so a
+         * negative bonus cannot drain the shield.
+         */
+        fun fluxRegenMultAt(fluxLevel: Float): Float {
+            if (fluxLevel <= 0f) return 1f
+            return ((1f + FLUX_REGEN_BONUS.value) / fluxLevel - 1f).coerceIn(0f, 1f)
+        }
+
+        /** Flux level (fraction of max flux) up to which regen runs at full rate. */
+        fun fluxRegenKnee(): Float = (1f + FLUX_REGEN_BONUS.value) / 2f
     }
 
     private var statusKey = Any()
@@ -167,7 +188,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 }
             } else if (!fortressActive) {
                 if ((parent.shieldHealth < parent.maxShieldHealth)) {
-                    parent.shieldHealth += parent.shieldRegen * parent.regenMult() * amount
+                    parent.shieldHealth += parent.shieldRegen * parent.regenMult() * parent.fluxRegenMult(ship) * amount
                 }
             }
 
@@ -435,7 +456,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     private fun maintainRegenStatus(ship: ShipAPI, fortressActive: Boolean) {
         val engine = Global.getCombatEngine()
         if (ship !== engine.playerShip || breakCooldownActive || shieldHealth >= maxShieldHealth) return
-        val mult = regenMult()
+        val mult = regenMult() * fluxRegenMult(ship)
         val (state, isDebuff) = when {
             fortressActive -> "frozen by Fortress Shield" to true
             mult <= 0f -> "paused" to true
@@ -452,6 +473,12 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             sinceHit < shieldStats.shieldRegenDelay + REGEN_SLOW_DURATION -> REGEN_SLOW_MULT
             else -> 1f
         }
+    }
+
+    /** Flux falloff (developer 2026-10-12) at the ship's current flux; see [fluxRegenMultAt]. */
+    fun fluxRegenMult(ship: ShipAPI): Float {
+        val maxFlux = ship.fluxTracker.maxFlux
+        return if (maxFlux > 0f) fluxRegenMultAt(ship.fluxTracker.currFlux / maxFlux) else 1f
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {

@@ -15,8 +15,9 @@ Bungie.
 ## Requirements
 
 - Starsector `0.98a`
+- [LemonLib](https://github.com/Combustiblemon/LemonLib/releases) (also provides the Kotlin runtime)
 - [MagicLib](https://fractalsoftworks.com/forum/index.php?topic=13718.0)
-- [LazyLib](https://fractalsoftworks.com/forum/index.php?topic=5444.0)
+- [LazyLib](https://fractalsoftworks.com/forum/index.php?topic=5444.0) (required by MagicLib)
 
 ## Documentation
 

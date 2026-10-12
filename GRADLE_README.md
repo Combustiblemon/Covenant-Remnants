@@ -97,16 +97,24 @@ The Gradle build system is configured to:
 
 ## Dependencies
 
-The project currently has these dependencies configured:
+Every dependency is `compileOnly`; nothing is bundled into `jars/CovenantRemnants.jar`.
 
-- Kotlin standard library
-- Kotlin reflect
-- JUnit for testing
+- **Kotlin runtime:** LemonLib's `../LemonLib/jars/lib/Kotlin-Runtime.jar`, which holds stdlib
+  2.2.20, reflect and coroutines and is what runs in game. `kotlin.stdlib.default.dependency=false`
+  in `gradle.properties` keeps the Kotlin Gradle plugin from adding Maven's stdlib.
+- **Starsector:** the core jars in `../../starsector-core/`.
+- **LemonLib:** compiled classes, through the composite build (`includeBuild("../LemonLib")`).
+- **MagicLib and LunaLib:** their jars in the sibling mod folders.
+- **Console Commands:** its jar in the sibling mod folder.
+- **log4j:** 1.2.17.
 
-**Note**: Starsector API and MagicLib dependencies are commented out in `build.gradle.kts`. You'll need to:
+The list lives in `build.gradle.kts`; see `planning/ARCHITECTURE.md` (Build & data flow).
 
-1. Add the actual JAR files to the `lib/` directory
-2. Uncomment the corresponding dependency lines in `build.gradle.kts`
+**Avast and similar HTTPS scanners** re-sign Maven Central's certificate. The JDK does not trust
+that, so the first download of the Kotlin 2.2.20 compiler fails with `PKIX path building failed`.
+Run that one build with the Windows certificate store:
+`set JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStoreType=Windows-ROOT`, then `gradlew --stop` and
+`gradlew buildMod`.
 
 ## IDE Integration
 

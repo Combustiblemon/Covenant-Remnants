@@ -1,5 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.2.20"
     java
 }
 
@@ -23,7 +26,9 @@ sourceSets {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    // Kotlin runtime: the jar LemonLib ships (stdlib + reflect + coroutines) is what runs in game, so
+    // compile against it; gradle.properties turns off KGP's default Maven stdlib.
+    compileOnly(files("../LemonLib/jars/lib/Kotlin-Runtime.jar"))
 
     // Starsector API
     compileOnly(files("../../starsector-core/starfarer.api.jar"))
@@ -41,10 +46,6 @@ dependencies {
     // Compiling against the jar would make the IDE's language server lock that
     // file and block jar replacement on rebuilds; class directories don't lock.
     compileOnly("org.combustiblelemon:LemonLib")
-
-    // LazyLib dependency
-    compileOnly(files("../LazyLib/jars/LazyLib.jar"))
-    compileOnly(files("../LazyLib/jars/LazyLib-Kotlin.jar"))
 
     // MagicLib dependency
     compileOnly(files("../MagicLib/jars/MagicLib.jar"))
@@ -65,10 +66,11 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs += listOf("-Xjvm-default=all")
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_1_8)
+        // Same as the old -Xjvm-default=all: real interface default methods, no DefaultImpls
+        jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
     }
 }
 

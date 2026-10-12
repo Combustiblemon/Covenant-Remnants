@@ -9,6 +9,8 @@ import org.combustiblelemon.covenantremnants.utils.shieldData
 import org.combustiblelemon.lemonlib.hullmods.HullmodBlocker
 import org.combustiblelemon.lemonlib.hullmods.isApplicableGiven
 import org.combustiblelemon.lemonlib.hullmods.unapplicableReasonFor
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 class CovenantShield : BaseHullMod() {
     companion object {
@@ -99,7 +101,9 @@ class CovenantShield : BaseHullMod() {
             2 -> "${data.shieldRegenDelay.formatSeconds()}"
             3 -> "${(CovenantShieldsStats.REGEN_SLOW_MULT * 100).toInt()}%"
             4 -> CovenantShieldsStats.REGEN_SLOW_DURATION.formatSeconds()
-            5 -> "${data.brokenShieldCooldown.formatSeconds()}"
+            5 -> "${(min(CovenantShieldsStats.fluxRegenKnee(), 1f) * 100).roundToInt()}%"
+            6 -> "${(CovenantShieldsStats.fluxRegenMultAt(1f) * 100).roundToInt()}%"
+            7 -> "${data.brokenShieldCooldown.formatSeconds()}"
             else -> null
         }
     }

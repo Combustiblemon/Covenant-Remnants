@@ -26,13 +26,15 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
   version `0.1.0`, gameVersion `0.98a`.
 - `modPlugin`: `org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin`.
 - jars: `jars/CovenantRemnants.jar`.
-- **Declared dependencies:** `combustiblelemon_lemonlib` (LemonLib), `MagicLib`, `lw_lazylib` (LazyLib).
+- **Declared dependencies:** `combustiblelemon_lemonlib` (LemonLib, which also ships the Kotlin
+  runtime), `MagicLib`. LazyLib is no longer declared (2026-10-12); it is still installed, because
+  MagicLib requires it.
 
 ## Entry point — `CovenantRemnantsPlugin`
 
 `src/.../CovenantRemnantsPlugin.kt` (extends `BaseModPlugin`):
 
-- On application load: verifies MagicLib and LazyLib are enabled; loads `shield_data.csv` (custom
+- On application load: verifies MagicLib is enabled; loads `shield_data.csv` (custom
   per-ship shield parameters); compiles the shared shader programs; preloads the slipspace pocket
   background; installs the LunaLib settings bridge when LunaLib is enabled.
 - On game load:
@@ -213,15 +215,25 @@ campaign portal shader was replaced by the Ark rupture effect on 2026-10-08. Ref
 
 ## Build & data flow
 
-Gradle Kotlin DSL, Kotlin JVM 2.1.0, Java 8 target (`build.gradle.kts`):
+Gradle Kotlin DSL, Kotlin JVM 2.2.20, Java 8 target (`build.gradle.kts`; `compilerOptions` with
+`jvmDefault = NO_COMPATIBILITY`, the old `-Xjvm-default=all`):
 
 - **sourceSets:** `src` → Kotlin/Java classes. The jar holds **code only** (2026-10-02): Starsector
   reads `data/`, `graphics/`, `sounds/` and `mod_info.json` from the mod folder, so they are not
   packed into it.
-- **compileOnly:** Starsector core jars (`../../starsector-core/*`, incl. `starfarer.api.jar`, obf
-  jars, `json.jar`, `lwjgl`), LemonLib (composite build — `settings.gradle.kts`
-  `includeBuild("../LemonLib")`, resolved to LemonLib's classes), LazyLib, MagicLib, LunaLib,
-  Console Commands, log4j 1.2.17.
+- **compileOnly:** every dependency is compile-only:
+  - The Kotlin runtime is LemonLib's `jars/lib/Kotlin-Runtime.jar`.
+    `kotlin.stdlib.default.dependency=false` in `gradle.properties` stops Maven stdlib being added.
+  - Starsector core jars (`../../starsector-core/*`, incl. `starfarer.api.jar`, obf jars, `json.jar`,
+    `lwjgl`).
+  - LemonLib, through the composite build (`settings.gradle.kts` `includeBuild("../LemonLib")`),
+    resolved to LemonLib's classes.
+  - MagicLib, LunaLib, Console Commands, log4j 1.2.17.
+  - No LazyLib. Its former uses map as follows:
+    - `CollisionUtils`, `DrawUtils.drawCircle`: LemonLib (`geometry/Collision.kt`,
+      `render/Primitives.kt`).
+    - `MathUtils.getDistance`: `Misc.getDistance`.
+    - JSON iterator: an index loop.
 - **Tasks:**
   - `buildMod`: compiled classes → `jars/CovenantRemnants.jar`.
   - `cleanMod`.
@@ -230,7 +242,8 @@ Gradle Kotlin DSL, Kotlin JVM 2.1.0, Java 8 target (`build.gradle.kts`):
   - The release file list lives only in `packageMod`'s `runtimeFiles`. `package_mod.bat` / `.sh`
     wrap it. See [implementations/release-packaging.md](implementations/release-packaging.md).
 
-> **Runtime dependencies:** `mod_info.json` declares LemonLib, MagicLib, LazyLib (required).
+> **Runtime dependencies:** `mod_info.json` declares LemonLib and MagicLib (required). LemonLib
+> provides the Kotlin 2.2.20 runtime. LazyLib only comes along because MagicLib requires it.
 > MagicLib is used only for `MagicUI`: the Covenant shield HUD bars (`CovenantShieldsUIRenderPlugin`)
 > and the `BLUCOLOR` of the shield damage numbers. It stays required (developer ruling 2026-10-10:
 > nearly every player has it, and rewriting the HUD bars is not worth it).

@@ -9,7 +9,7 @@ import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.systems.FleetSlipspaceJump
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureEffect
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RuptureRenderer
-import org.lazywizard.lazylib.opengl.DrawUtils
+import org.combustiblelemon.lemonlib.render.drawCircle
 import org.lwjgl.opengl.GL11
 import java.awt.Color
 import java.util.EnumSet
@@ -87,12 +87,12 @@ class FleetSlipspaceJumpRenderPlugin : BaseCombatLayeredRenderingPlugin(CombatEn
             // glLineWidth is physical px; scale it so the rings keep their look at any UI scale
             GL11.glLineWidth(2f * Global.getSettings().screenScaleMult)
             Misc.setColor(color)
-            DrawUtils.drawCircle(target.x, target.y, FleetSlipspaceJump.grabRadius.value, PREVIEW_SEGMENTS, false)
+            drawCircle(target.x, target.y, FleetSlipspaceJump.grabRadius.value, PREVIEW_SEGMENTS, false)
             // Carrier footprint at the center
-            DrawUtils.drawCircle(target.x, target.y, ship.collisionRadius, 48, false)
+            drawCircle(target.x, target.y, ship.collisionRadius, 48, false)
             // Entry: the grab ring around the portal off the bow
             val portal = FleetSlipspaceJump.portalCenter(ship)
-            DrawUtils.drawCircle(portal.x, portal.y, FleetSlipspaceJump.grabRadius.value, PREVIEW_SEGMENTS, false)
+            drawCircle(portal.x, portal.y, FleetSlipspaceJump.grabRadius.value, PREVIEW_SEGMENTS, false)
         } finally {
             GL11.glPopAttrib()
         }

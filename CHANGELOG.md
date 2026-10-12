@@ -2,6 +2,19 @@
 
 All notable changes to Covenant Remnants, newest version first.
 
+## Unreleased
+
+### Breaking changes
+
+- Changed Covenant Remnants to require the new LemonLib release, which now provides the Kotlin runtime, so update LemonLib along with this mod or the game will not start.
+- Removed LazyLib from Covenant Remnants' declared dependencies, so the mod no longer lists it in the launcher. You still need LazyLib installed because MagicLib requires it.
+
+### Behavioral changes
+
+- Changed Covenant shield regeneration to slow down once flux passes half capacity and stop at full flux, so pushing a Covenant ship's flux up now delays its shield recovery.
+- Changed the Covenant Shield hullmod description to list the flux level where regeneration starts slowing, so you can see the falloff before taking a ship into battle.
+- Changed the Fleet Slipspace Jump AI to count less shield regeneration when its ship is at high flux, so Covenant ships are less likely to strand themselves next to enemy heavies while running hot.
+
 ## v0.1.2 — 2026-10-12
 
 ### Behavioral changes

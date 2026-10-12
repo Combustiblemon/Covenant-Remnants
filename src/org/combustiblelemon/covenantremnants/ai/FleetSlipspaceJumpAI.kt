@@ -275,7 +275,9 @@ class FleetSlipspaceJumpAI : ShipSystemAIScript {
     private fun effectiveHp(exposure: Float): Float {
         val shieldStats = ship.phaseCloak?.script as? CovenantShieldsStats
         val shield = shieldStats?.shieldHealth ?: 0f
-        val regen = (shieldStats?.shieldStats?.shieldRegenRate ?: 0f) * exposure * FleetSlipspaceJump.regenShare.value
+        // Flux falloff taken at the current flux (developer 2026-10-12).
+        val regenRate = shieldStats?.let { it.shieldStats.shieldRegenRate * it.fluxRegenMult(ship) } ?: 0f
+        val regen = regenRate * exposure * FleetSlipspaceJump.regenShare.value
         val armor = ship.hullSpec.armorRating * FleetSlipspaceJump.armorFactor.value
         val hull = max(0f, ship.hitpoints - ship.maxHitpoints * FleetSlipspaceJump.minHullAfter.value)
         return shield + regen + armor + hull

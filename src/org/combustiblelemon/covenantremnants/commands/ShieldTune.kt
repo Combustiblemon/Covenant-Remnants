@@ -1,5 +1,6 @@
 package org.combustiblelemon.covenantremnants.commands
 
+import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
 import org.combustiblelemon.covenantremnants.utils.render.shield.ShieldOutline
 import org.lazywizard.console.BaseCommand
 import org.lazywizard.console.BaseCommand.CommandContext
@@ -7,8 +8,9 @@ import org.lazywizard.console.BaseCommand.CommandResult
 import org.lazywizard.console.Console
 
 /**
- * Dev tuning for the Covenant shield outline. Changes apply on the next frame and reset when the
- * game restarts.
+ * Dev tuning for the Covenant shield: the outline ([ShieldOutline]) and the regen flux falloff
+ * ([CovenantShieldsStats.regenTunables]). Changes apply on the next frame and reset when the game
+ * restarts.
  *
  *  - `ShieldTune`                 lists every tunable: name = value (default) — description
  *  - `ShieldTune <name> <value>`  sets one
@@ -16,11 +18,16 @@ import org.lazywizard.console.Console
  */
 class ShieldTune : BaseCommand {
 
+    private val all: List<ShieldOutline.Tunable>
+        get() = ShieldOutline.tunables + CovenantShieldsStats.regenTunables
+
+    private fun tunable(name: String): ShieldOutline.Tunable? = all.firstOrNull { it.name.equals(name, ignoreCase = true) }
+
     override fun runCommand(args: String, context: CommandContext): CommandResult {
         val parts = args.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
 
         if (parts.isEmpty()) {
-            for (tunable in ShieldOutline.tunables) {
+            for (tunable in all) {
                 val changed = if (tunable.value != tunable.default) " *" else ""
                 Console.showMessage("${tunable.name} = ${format(tunable.value)} (${format(tunable.default)})$changed - ${tunable.description}")
             }
@@ -30,11 +37,11 @@ class ShieldTune : BaseCommand {
 
         if (parts[0].equals("reset", ignoreCase = true)) {
             if (parts.size == 1) {
-                ShieldOutline.resetAll()
-                Console.showMessage("Shield outline: all tunables reset.")
+                all.forEach { it.reset() }
+                Console.showMessage("Shield: all tunables reset.")
                 return CommandResult.SUCCESS
             }
-            val tunable = ShieldOutline.tunable(parts[1]) ?: return unknown(parts[1])
+            val tunable = tunable(parts[1]) ?: return unknown(parts[1])
             tunable.reset()
             Console.showMessage("${tunable.name} = ${format(tunable.value)} (reset)")
             return CommandResult.SUCCESS
@@ -44,7 +51,7 @@ class ShieldTune : BaseCommand {
             return CommandResult.BAD_SYNTAX
         }
 
-        val tunable = ShieldOutline.tunable(parts[0]) ?: return unknown(parts[0])
+        val tunable = tunable(parts[0]) ?: return unknown(parts[0])
         val value = parts[1].toFloatOrNull()
         if (value == null) {
             Console.showMessage("Not a number: ${parts[1]}")

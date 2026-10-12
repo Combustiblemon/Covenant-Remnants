@@ -31,11 +31,6 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
             throw RuntimeException("This mod requires MagicLib to work.")
         }
 
-        val isLazyLibEnabled = Global.getSettings().modManager.isModEnabled("lw_lazylib")
-        if (!isLazyLibEnabled) {
-            throw RuntimeException("This mod requires LazyLib to work.")
-        }
-
         logger.info("Loading shield_data.csv")
         val shieldData = Global.getSettings().loadCSV("data/hulls/shield_data.csv")
         initShieldData(shieldData)

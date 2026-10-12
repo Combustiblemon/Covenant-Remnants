@@ -5,10 +5,10 @@ import com.fs.starfarer.api.combat.BeamEffectPlugin
 import com.fs.starfarer.api.combat.CombatEngineAPI
 import com.fs.starfarer.api.combat.DamageType
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.plugins.EnergyProjectorPierceRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.EnergyProjectorRenderPlugin
-import org.lazywizard.lazylib.MathUtils
-import org.lazywizard.lazylib.CollisionUtils
+import org.combustiblelemon.lemonlib.geometry.getCollisionPoint
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -142,7 +142,7 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
     private fun farSideExit(target: ShipAPI, entry: Vector2f, dx: Float, dy: Float): Vector2f {
         val reach = target.collisionRadius * 3f
         val beyond = Vector2f(entry.x + dx * reach, entry.y + dy * reach)
-        return CollisionUtils.getCollisionPoint(beyond, entry, target) ?: entry
+        return getCollisionPoint(beyond, entry, target) ?: entry
     }
 
     /** Keep one live render plugin per burst; (re)create it when the previous one has expired. */
@@ -188,10 +188,10 @@ class EnergyProjectorBeamEffect : BeamEffectPlugin {
                 if (sp != null && shield.isWithinArc(sp)) hitPoint = sp
             }
             // Otherwise (no shield there / out of arc) the hull bounds.
-            if (hitPoint == null) hitPoint = CollisionUtils.getCollisionPoint(exit, end, other)
+            if (hitPoint == null) hitPoint = getCollisionPoint(exit, end, other)
             if (hitPoint == null) continue
 
-            val d = MathUtils.getDistance(exit, hitPoint)
+            val d = Misc.getDistance(exit, hitPoint)
             if (best == null || d < best.dist) best = PierceHit(other, hitPoint, d)
         }
         return best

@@ -50,7 +50,7 @@ Choices made inside those rulings (stated in the approved plan; say if any is wr
   all. Several hits = independent burns that stack.
 - **Melt cells** are picked once at the hit: the cell's centre (`ArmorGridAPI.getLocation` returns
   its corner; the centre is half a cell further along both sprite axes) within R of the hit point and
-  inside the hull (LazyLib `CollisionUtils.isPointWithinBounds`). Cell indices are ship-relative, so
+  inside the hull (LemonLib `isPointWithinBounds`, ported from LazyLib `CollisionUtils` 2026-10-12). Cell indices are ship-relative, so
   the melt follows the ship.
 - **Floating numbers** every 0.5 s with the armor melted since the last one, yellow
   `Misc.FLOATY_ARMOR_DAMAGE_COLOR`, gated like vanilla by `Misc.shouldShowDamageFloaty` (so none on

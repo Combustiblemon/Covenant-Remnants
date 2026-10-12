@@ -1,7 +1,6 @@
 package org.combustiblelemon.covenantremnants.utils
 
 import org.json.JSONArray
-import org.lazywizard.lazylib.ext.json.iterator
 
 data class ShieldData(
     val shieldHealth: Float,
@@ -23,7 +22,8 @@ fun generateDefaultShieldData(): ShieldData {
 
 fun initShieldData(data: JSONArray) {
     try {
-        for (row in data) {
+        for (i in 0 until data.length()) {
+            val row = data.getJSONObject(i)
             shieldData[row.getString("hullId")] = ShieldData(
                 shieldHealth = row.getString("shield hp").toFloat(),
                 shieldRegenRate = row.getString("shield regen").toFloat(),

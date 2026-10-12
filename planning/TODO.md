@@ -363,6 +363,12 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **UI indicator for paused/slowed shield regen** — built 2026-10-02: player status line
       "Shield regen — paused / 50% rate / full rate" while the shield is below full. See
       [implementations/shield-regen-status.md](implementations/shield-regen-status.md).
+- [ ] **Shield regen flux falloff — tune + follow-ups** — built 2026-10-12: regen ×
+      `min(maxFlux·(1+bonus)/flux − 1, 1)`, live bonus via `ShieldTune FLUX_REGEN_BONUS` (starts 0).
+      Hullmod text (calculated knee / max-flux line) and fleet-jump AI strand estimate (current-flux
+      snapshot) updated 2026-10-12. Left to do: in-game check (incl. hullmod tooltip), pick the
+      bonus and hard-code it. See
+      [implementations/shield-flux-regen.md](implementations/shield-flux-regen.md).
 - [x] **Shield regen status line (in-game check)** — developer 2026-10-10: "all ok". Player Covenant ship: take shield hits, watch
       the top-left status list go paused → 50% rate → full rate, gone at full shield and while
       broken; capital1 with Fortress on shows "frozen by Fortress Shield".
@@ -542,6 +548,34 @@ Keep this file current — tick items off and add new ones as work lands.
 - [x] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
       (`65a5b80`), `CubicCurve2D.kt` + `README.md` row committed (`0ed9f18`). Only the rebuilt
       `jars/LemonLib.jar` showed as modified on 2026-10-10; closed by the developer the same day.
+- [x] **Kotlin runtime in LemonLib, LazyLib dropped** (2026-10-12). Rulings: drop `lw_lazylib`,
+      Kotlin 2.2.20, commit both jars.
+      - LemonLib ships `jars/lib/Kotlin-Runtime.jar` (stdlib 2.2.20 + reflect + coroutines 1.11).
+      - Both builds are on Kotlin 2.2.20 and compile against that jar.
+      - Covenant's 5 LazyLib calls moved to LemonLib `geometry/Collision.kt` and
+        `render/Primitives.kt`, plus `Misc.getDistance` and an index loop.
+      - `lw_lazylib` was removed from `mod_info.json` and from the plugin check.
+      - See [implementations/kotlin-runtime-lemonlib.md](implementations/kotlin-runtime-lemonlib.md).
+- [x] **Kotlin runtime — in-game check.** Passed 2026-10-12.
+      - The developer reports that everything works, including the plasma burn and slipspace.
+      - `starsector.log` confirms the order: LemonLib (`~LemonLib`) is listed last "in order of
+        priority", and `LemonLib.jar` and `lib/Kotlin-Runtime.jar` load before LazyLib's jars.
+      - The log has no `NoClassDefFoundError`, `NoSuchMethodError` or other linkage errors.
+      - The only errors are unrelated: two vanilla hull-spec warnings, and Ship Browser probing
+        mods that have no `ship_data.csv`.
+- [ ] **Kotlin runtime — commit and release order.**
+      - LemonLib has an uncommitted runtime change: `.gitignore`, the two `jars/lib/*.jar`, the build,
+        `mod_info.json`, the README and the CHANGELOG.
+      - Release LemonLib **before** Covenant, so Covenant's `release.ps1` pins a LemonLib version
+        that ships the runtime.
+- [x] **Kotlin runtime shadowing guard** (2026-10-12, developer: "LemonLib needs to be available when
+      loading the rest of our mods").
+      - LemonLib's `mod_info.json` has `"sortString": "~LemonLib"`, so it sorts after every mod
+        and its jars and runtime come first on the classpath.
+      - A simulated launcher sort over all 36 installed mods put it last, after "zz GraphicsLib".
+      - None of our mods has a `sortString`, so they all stay behind it.
+      - Rule: none of our mods may set a `sortString` that sorts after `~LemonLib`.
+      - See [implementations/lemonlib-sortstring.md](implementations/lemonlib-sortstring.md).
 
 ## Campaign Slipspace Jump (built 2026-10-07)
 
