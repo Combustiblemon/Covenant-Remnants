@@ -1,21 +1,31 @@
 <#
 .SYNOPSIS
-    Releases Covenant Remnants: bumps every version file, rolls CHANGELOG.md "Unreleased" into
-    the new version, builds the zip, commits, tags, pushes master and creates a GitHub release.
+    Releases the mod: bumps every version file, rolls CHANGELOG.md "Unreleased" into the new
+    version, builds the zip, commits, tags, pushes the release branch and creates a GitHub release.
 
 .USAGE
     release.bat v0.1.2            full release
     release.bat v0.1.2 -DryRun    edit + build only; nothing committed, pushed or released
 
 .NOTES
-    Runs only on a clean, up-to-date `master` and never switches branches (branches are the
+    Runs only on a clean, up-to-date release branch and never switches branches (branches are the
     developer's). Needs git and the GitHub CLI (`gh`, authenticated). PowerShell 5.1 compatible.
+    The same script serves Covenant Remnants and LemonLib; only the config block differs.
 #>
 param(
     [Parameter(Position = 0)]
     [string]$Version,
     [switch]$DryRun
 )
+
+# ---------------------------------------------------------------------------------------------
+# Config (the only per-repo part)
+# ---------------------------------------------------------------------------------------------
+
+$ModName = 'Covenant Remnants'              # release asset label
+$VersionFileName = 'covenant-remnants.version'  # Version Checker file (major/minor/patch block)
+$ZipName = 'Covenant Remnants.zip'          # output of `gradlew packageMod`
+$ReleaseBranch = 'master'                   # the only branch releases are made from
 
 $ErrorActionPreference = 'Stop'
 
@@ -79,24 +89,26 @@ $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 Set-Location $root
 
 $modInfo = Join-Path $root 'mod_info.json'
-$versionFile = Join-Path $root 'covenant-remnants.version'
+$versionFile = Join-Path $root $VersionFileName
 $gradleKts = Join-Path $root 'build.gradle.kts'
 $gradleProps = Join-Path $root 'gradle.properties'
 $changelog = Join-Path $root 'CHANGELOG.md'
-$zip = Join-Path $root 'Covenant Remnants.zip'
+$zip = Join-Path $root $ZipName
 $notesDir = Join-Path $root 'build'
 $notesFile = Join-Path $notesDir "release-notes-$tag.md"
-$versionFiles = @('mod_info.json', 'covenant-remnants.version', 'build.gradle.kts', 'gradle.properties', 'CHANGELOG.md')
+$versionFiles = @('mod_info.json', $VersionFileName, 'build.gradle.kts', 'gradle.properties', 'CHANGELOG.md')
+$assetArg = "$zip#$ModName $tag"
+$resumeRelease = "  gh release create $tag `"$assetArg`" --title $tag --notes-file `"$notesFile`""
 
 # ---------------------------------------------------------------------------------------------
 # Pre-flight (nothing is modified before this block passes)
 # ---------------------------------------------------------------------------------------------
 
-Step "Pre-flight for $tag"
+Step "Pre-flight for $ModName $tag"
 
 $branch = (Run-Git @('rev-parse', '--abbrev-ref', 'HEAD') | Select-Object -First 1).Trim()
-if ($branch -ne 'master') {
-    Fail "current branch is '$branch'. Releases are made from 'master' only. Switch branches yourself and rerun."
+if ($branch -ne $ReleaseBranch) {
+    Fail "current branch is '$branch'. Releases are made from '$ReleaseBranch' only. Switch branches yourself and rerun."
 }
 
 $dirty = Run-Git @('status', '--porcelain')
@@ -104,10 +116,10 @@ if ($dirty) {
     Fail ("working tree is not clean. Commit or stash first:`n" + ($dirty -join "`n"))
 }
 
-Run-Git @('fetch', 'origin', 'master') | Out-Null
-$behind = [int]((Run-Git @('rev-list', '--count', 'HEAD..origin/master') | Select-Object -First 1).Trim())
+Run-Git @('fetch', 'origin', $ReleaseBranch) | Out-Null
+$behind = [int]((Run-Git @('rev-list', '--count', "HEAD..origin/$ReleaseBranch") | Select-Object -First 1).Trim())
 if ($behind -gt 0) {
-    Fail "local master is $behind commit(s) behind origin/master. Pull first."
+    Fail "local $ReleaseBranch is $behind commit(s) behind origin/$ReleaseBranch. Pull first."
 }
 
 # Resolve gh: PATH first, then the standard install folders. A terminal opened before the
@@ -126,13 +138,17 @@ if (-not $gh) {
 Write-Host "gh: $gh"
 $null = Invoke-Native $gh @('auth', 'status')
 if ($LASTEXITCODE -ne 0) {
-    Fail "GitHub CLI is not authenticated. Run:  `"$gh`" auth login"
+    Fail "GitHub CLI is not authenticated. Run:  & `"$gh`" auth login"
 }
 
 $localTag = Invoke-Native 'git' @('tag', '--list', $tag)
 if ($localTag) { Fail "tag $tag already exists locally." }
 $remoteTag = Invoke-Native 'git' @('ls-remote', '--tags', 'origin', "refs/tags/$tag")
 if ($remoteTag) { Fail "tag $tag already exists on origin." }
+
+foreach ($required in @($modInfo, $versionFile, $gradleKts, $changelog)) {
+    if (-not (Test-Path $required)) { Fail "missing file: $required" }
+}
 
 $modInfoText = Read-Text $modInfo
 if ($modInfoText -notmatch '"version":\s*"(\d+)\.(\d+)\.(\d+)"') {
@@ -161,7 +177,7 @@ if ($notes -notmatch '(?m)^- ') {
     Fail "the '## Unreleased' section of CHANGELOG.md has no bullets. Write the changelog first."
 }
 
-Write-Host "branch master, clean, up to date; gh authenticated; tag $tag free; v$($current -join '.') -> $tag" -ForegroundColor Green
+Write-Host "branch $ReleaseBranch, clean, up to date; gh authenticated; tag $tag free; v$($current -join '.') -> $tag" -ForegroundColor Green
 
 # ---------------------------------------------------------------------------------------------
 # Edits
@@ -220,7 +236,7 @@ if ($DryRun) {
     Step "Dry run: stopping before commit"
     Invoke-Native 'git' @('--no-pager', 'diff', '--stat') | Write-Host
     Write-Host ""
-    Write-Host "Would commit the files above, tag $tag, push master + tag, and create the GitHub release with:"
+    Write-Host "Would commit the files above, tag $tag, push $ReleaseBranch + tag, and create the GitHub release with:"
     Write-Host "---- $notesFile ----"
     Write-Host $notes
     Write-Host "--------------------"
@@ -237,24 +253,24 @@ Run-Git (@('add', '--') + $versionFiles) | Out-Null
 Run-Git @('commit', '-m', "Release $tag") | Out-Null
 Run-Git @('tag', '-a', $tag, '-m', $tag) | Out-Null
 
-Step "Pushing master and $tag"
-$pushOut = Invoke-Native 'git' @('push', 'origin', 'master')
+Step "Pushing $ReleaseBranch and $tag"
+$pushOut = Invoke-Native 'git' @('push', 'origin', $ReleaseBranch)
 if ($LASTEXITCODE -ne 0) {
-    Fail ("push of master failed:`n" + ($pushOut -join "`n") + "`nCommit and tag exist locally. Resume with:`n  git push origin master`n  git push origin $tag`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
+    Fail ("push of $ReleaseBranch failed:`n" + ($pushOut -join "`n") + "`nCommit and tag exist locally. Resume with:`n  git push origin $ReleaseBranch`n  git push origin $tag`n$resumeRelease")
 }
 $pushOut = Invoke-Native 'git' @('push', 'origin', $tag)
 if ($LASTEXITCODE -ne 0) {
-    Fail ("push of tag failed:`n" + ($pushOut -join "`n") + "`nResume with:`n  git push origin $tag`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
+    Fail ("push of tag failed:`n" + ($pushOut -join "`n") + "`nResume with:`n  git push origin $tag`n$resumeRelease")
 }
 
 Step "Creating the GitHub release"
-$ghOut = Invoke-Native $gh @('release', 'create', $tag, "$zip#Covenant Remnants $tag", '--title', $tag, '--notes-file', $notesFile)
+$ghOut = Invoke-Native $gh @('release', 'create', $tag, $assetArg, '--title', $tag, '--notes-file', $notesFile)
 if ($LASTEXITCODE -ne 0) {
-    Fail ("gh release create failed:`n" + ($ghOut -join "`n") + "`nCommit, tag and push are done. Resume with:`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
+    Fail ("gh release create failed:`n" + ($ghOut -join "`n") + "`nCommit, tag and push are done. Resume with:`n$resumeRelease")
 }
 
 $url = (Invoke-Native $gh @('release', 'view', $tag, '--json', 'url', '-q', '.url') | Select-Object -First 1)
 Write-Host ""
-Write-Host "Released $tag" -ForegroundColor Green
+Write-Host "Released $ModName $tag" -ForegroundColor Green
 Write-Host $url
 exit 0

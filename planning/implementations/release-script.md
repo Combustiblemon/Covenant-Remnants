@@ -61,6 +61,16 @@ the exact commands to resume (push / release create). Rerunning hits the "tag ex
   section".
 - Not run: a real release, `-DryRun` on master (needs the tree committed and master checked out).
 
+## LemonLib (developer 2026-10-12: "we need the same for LemonLib")
+
+Same script, parameterised: `scripts/release.ps1` now starts with a config block (`$ModName`,
+`$VersionFileName`, `$ZipName`, `$ReleaseBranch`) and the body is identical in both repos.
+LemonLib (`../LemonLib`, branch `main`, `lemonlib.version`, `LemonLib.zip`) got `release.bat`,
+`scripts/release.ps1`, a new `CHANGELOG.md` (ruling: create one; `v0.1.0 — 2026-10-10` for the
+first packaged release, `## Unreleased` with today's `PolygonSmoothing` additions), `CHANGELOG.md`
+added to `releaseFiles` in its `build.gradle.kts`, and a README "Releasing" paragraph. When the
+script body changes, copy it to the other repo and re-apply the four config lines.
+
 ## Open items
 
 - First real use: install `gh`, `gh auth login`, then `release.bat v0.1.2 -DryRun` on master
