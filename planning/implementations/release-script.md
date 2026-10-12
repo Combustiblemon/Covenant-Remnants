@@ -34,7 +34,7 @@ Edits (text replace, never a JSON round-trip, so comments and line endings survi
 | `covenant-remnants.version` | `"major":N`, `"minor":N`, `"patch":N` (inline comment kept) |
 | `build.gradle.kts` | `version = "..."` (jar manifest) |
 | `gradle.properties` | `project.version=` (stale before; now follows) |
-| `CHANGELOG.md` | `## Unreleased` body moves under `## vX.Y.Z — YYYY-MM-DD` (real em dash, today); a fresh empty `## Unreleased` stays on top |
+| `CHANGELOG.md` | `## Unreleased` heading becomes `## vX.Y.Z — YYYY-MM-DD` (real em dash, today) over the same body; no empty `## Unreleased` is left behind (developer 2026-10-12) — the next change adds the heading back |
 
 The Unreleased body is also written to `build/release-notes-vX.Y.Z.md` (gitignored) and becomes
 the release description.
@@ -56,8 +56,9 @@ the exact commands to resume (push / release create). Rerunning hits the "tag ex
 - Script parses (PSParser, 0 errors). No-arg and bad-arg runs print usage, exit 1.
 - Run on `develop`: "current branch is 'develop'. Releases are made from 'master' only", exit 1.
 - Changelog roll tested against the real `CHANGELOG.md` (two subheadings under Unreleased): the
-  notes are captured whole, the new heading lands under an empty `## Unreleased`, the old
-  `## v0.1.1` section keeps its blank line.
+  notes are captured whole, the new heading replaces `## Unreleased`, the old `## v0.1.1`
+  section keeps its blank line. A second run on the rolled file aborts with "no '## Unreleased'
+  section".
 - Not run: a real release, `-DryRun` on master (needs the tree committed and master checked out).
 
 ## Open items

@@ -154,7 +154,7 @@ $newline = if ($changelogText.Contains("`r`n")) { "`r`n" } else { "`n" }
 $unreleasedPattern = '(?s)(## Unreleased[ \t]*' + [regex]::Escape($newline) + ')(.*?)(?=' + [regex]::Escape($newline) + '## |\z)'
 $match = [regex]::Match($changelogText, $unreleasedPattern)
 if (-not $match.Success) {
-    Fail "CHANGELOG.md has no '## Unreleased' section."
+    Fail "CHANGELOG.md has no '## Unreleased' section, so there is nothing to release. Add one above the last version with the changes since then."
 }
 $notes = $match.Groups[2].Value.Trim("`r", "`n")
 if ($notes -notmatch '(?m)^- ') {
@@ -193,7 +193,8 @@ Step "Rolling CHANGELOG.md: Unreleased -> $tag"
 $today = Get-Date -Format 'yyyy-MM-dd'
 $emDash = [string][char]0x2014
 $heading = "## $tag $emDash $today"
-$replacement = '## Unreleased' + $newline + $newline + $heading + $newline + $newline + $notes + $newline
+# The "## Unreleased" heading is consumed: the next change adds it back (developer 2026-10-12).
+$replacement = $heading + $newline + $newline + $notes + $newline
 $changelogText = $changelogText.Substring(0, $match.Index) + $replacement + $changelogText.Substring($match.Index + $match.Length)
 Write-Text $changelog $changelogText
 
