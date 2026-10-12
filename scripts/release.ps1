@@ -110,12 +110,23 @@ if ($behind -gt 0) {
     Fail "local master is $behind commit(s) behind origin/master. Pull first."
 }
 
-if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+# Resolve gh: PATH first, then the standard install folders. A terminal opened before the
+# install (an IDE terminal in particular) still carries the old PATH, so PATH alone is not enough.
+$gh = $null
+$ghCommand = Get-Command gh -ErrorAction SilentlyContinue
+if ($ghCommand) { $gh = $ghCommand.Source }
+if (-not $gh) {
+    foreach ($candidate in @("$env:ProgramFiles\GitHub CLI\gh.exe", "${env:ProgramFiles(x86)}\GitHub CLI\gh.exe", "$env:LOCALAPPDATA\Programs\GitHub CLI\gh.exe")) {
+        if (Test-Path $candidate) { $gh = $candidate; break }
+    }
+}
+if (-not $gh) {
     Fail "GitHub CLI 'gh' not found. Install once with:  winget install --id GitHub.cli  then run:  gh auth login"
 }
-$null = Invoke-Native 'gh' @('auth', 'status')
+Write-Host "gh: $gh"
+$null = Invoke-Native $gh @('auth', 'status')
 if ($LASTEXITCODE -ne 0) {
-    Fail "GitHub CLI is not authenticated. Run:  gh auth login"
+    Fail "GitHub CLI is not authenticated. Run:  `"$gh`" auth login"
 }
 
 $localTag = Invoke-Native 'git' @('tag', '--list', $tag)
@@ -236,12 +247,12 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Step "Creating the GitHub release"
-$ghOut = Invoke-Native 'gh' @('release', 'create', $tag, "$zip#Covenant Remnants $tag", '--title', $tag, '--notes-file', $notesFile)
+$ghOut = Invoke-Native $gh @('release', 'create', $tag, "$zip#Covenant Remnants $tag", '--title', $tag, '--notes-file', $notesFile)
 if ($LASTEXITCODE -ne 0) {
     Fail ("gh release create failed:`n" + ($ghOut -join "`n") + "`nCommit, tag and push are done. Resume with:`n  gh release create $tag `"$zip#Covenant Remnants $tag`" --title $tag --notes-file `"$notesFile`"")
 }
 
-$url = (Invoke-Native 'gh' @('release', 'view', $tag, '--json', 'url', '-q', '.url') | Select-Object -First 1)
+$url = (Invoke-Native $gh @('release', 'view', $tag, '--json', 'url', '-q', '.url') | Select-Object -First 1)
 Write-Host ""
 Write-Host "Released $tag" -ForegroundColor Green
 Write-Host $url
