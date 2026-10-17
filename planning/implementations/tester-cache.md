@@ -101,3 +101,8 @@ joins the cache automatically. That only affects saves that have not had the cac
   separate flag `$covenant_remnants_tester_cache_navigation_added`; the log line reads
   `Tester cache: added 1 covenant_remnants_slipspace_navigation …`. See
   [advanced-slipspace-jump.md](advanced-slipspace-jump.md).
+- 2026-10-17 — three new optional hullmods (Capacitor Discharge, Target Lattice, Overcharged
+  Emitters) join the cache as modspecs via the prefix scan, which makes **6 modspecs** for new
+  caches. Saves whose cache predates them get one modspec of each on the next load, under the flag
+  `$covenant_remnants_tester_cache_weapon_hullmods_added` (developer ruling, same pattern as the
+  Navigation System). See [weapon-hullmods.md](weapon-hullmods.md).

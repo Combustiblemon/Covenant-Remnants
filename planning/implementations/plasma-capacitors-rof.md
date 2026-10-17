@@ -40,6 +40,9 @@ How rate of fire hits each weapon kind (0.98a internals):
   "Exempt all beams".
 - **Old effects replaced entirely** (developer ruling).
 - OP cost unchanged (5 / 10 / 15 / 25).
+- **Later the same day:** the dock requirement was removed, and the hullmod moved to the "Weapons" refit
+  filter (`offensive` tag), alongside the new weapon hullmods. See
+  [weapon-hullmods.md](weapon-hullmods.md).
 
 ## Verify
 

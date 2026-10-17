@@ -15,6 +15,9 @@ All notable changes to Covenant Remnants, newest version first.
 - Added the Covenant Slipspace Navigation System, a right-click item that upgrades Slipspace Jump so you can plot the exact exit point on a system map in any star system you have visited.
 - Added in-system jumps to the upgraded Slipspace Jump, so you can reappear at any plotted point of your current system for one light-year's worth of fuel.
 - Added in-combat hull repair to the Huragok Crew hullmod, using elite Combat Endurance's numbers and stacking with the skill, so Huragok-crewed ships patch themselves up mid-fight.
+- Added the Capacitor Discharge hullmod, which boosts energy weapon damage by up to 15% for 5 seconds after an active vent, so a well-timed vent sets up your next strike.
+- Added the Target Lattice hullmod, which raises your weapons' damage by up to 20% while you keep hitting the same enemy ship, so focused fire pays off.
+- Added the Overcharged Emitters hullmod, which speeds up energy weapon fire by up to 20% above half flux, so running hot hits harder at the risk of longer overloads.
 
 ### Behavioral changes
 
@@ -28,6 +31,8 @@ All notable changes to Covenant Remnants, newest version first.
 - Changed the Covenant Shield hullmod to reduce maximum flux capacity by 20%, so the shield now costs Covenant ships some flux headroom; the hullmod description lists the penalty.
 - Changed every hull that uses the Covenant shield to always carry the Covenant Shield hullmod as built-in, so no shielded ship can end up without it.
 - Changed Plasma Capacitors to make energy weapons fire and regenerate ammo 20% faster at 20% more flux per shot (beams pay no extra flux), so it is now a damage hullmod instead of a copy of vanilla's flux hullmods.
+- Removed the dock requirement from Plasma Capacitors and listed it under the Weapons refit filter, so you can fit it anywhere and find it next to the other weapon hullmods.
+- Added the three new weapon hullmods to the Corvus tester cache, existing tester saves included, so testers can try them right away.
 
 ## v0.1.2 — 2026-10-12
 

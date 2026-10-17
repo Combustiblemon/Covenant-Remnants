@@ -204,7 +204,10 @@ portal — ships of any side, fighters, shots, hulks, asteroids — to the desti
 `hullmods/CovenantSystems.kt`, `hullmods/NanolaminateArmor.kt`, `hullmods/CovenantShield.kt`,
 `hullmods/HullmodManager.kt` (hidden helper: swaps hull spec for the Covenant shield),
 `hullmods/HuragokCrew.kt`, `hullmods/PlasmaCapacitors.kt`, `hullmods/SlipspaceTuning.kt`,
-`hullmods/SlipspaceDriveHullmod.kt` (flavor marker).
+`hullmods/SlipspaceDriveHullmod.kt` (flavor marker), and the weapon hullmods
+`hullmods/CapacitorDischarge.kt`, `hullmods/TargetLattice.kt`, `hullmods/OverchargedEmitters.kt`
+(per-ship combat listeners / `advanceInCombat`; see
+[implementations/weapon-hullmods.md](implementations/weapon-hullmods.md)).
 
 `CovenantShield.ensureBuiltInOnShieldHulls()` runs from `onApplicationLoad`: every hull spec whose
 defense id is `covenant_remnants_covenantshield` gets the Covenant Shield hullmod as built-in, even

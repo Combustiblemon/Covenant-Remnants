@@ -34,7 +34,16 @@ Slipspace Tuning,covenant_remnants_slipspace_tuning,,,Covenant,"req_spaceport, n
 Each ship in the fleet carrying this hullmod speeds the fleet's transit through a slipspace corridor by %s, up to %s.
 
 Only installable on ships with a slipspace drive.",,"Each ship carrying this as a built-in (s-mod) hullmod also shortens the fleet's slipspace jump charge-up and cooldown by %s, up to %s.",
-Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"req_spaceport, no_drop_salvage","Requires Dock",,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.PlasmaCapacitors,"Increases energy weapon rate of fire and ammo regeneration by %s.
+Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.PlasmaCapacitors,"Increases energy weapon rate of fire and ammo regeneration by %s.
 
 Downside: increases energy weapon flux cost by %s. Beam weapons are exempt.",,,
+Capacitor Discharge,covenant_remnants_capacitor_discharge,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.CapacitorDischarge,"After an active vent, energy weapons deal up to %s more damage for %s seconds. The bonus scales with the flux level when the vent began.
+
+Downside: reduces active venting rate by %s.",,,
+Target Lattice,covenant_remnants_target_lattice,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.TargetLattice,"Sustained fire on one enemy ship locks the targeting lattice onto it. While hits keep landing, the ship's weapons deal %s more damage to it per second of fire, up to %s.
+
+Hitting a different ship moves the lock and resets the bonus. Fighters and missiles are ignored. After %s seconds without a hit, the bonus drains by %s per second.",,,
+Overcharged Emitters,covenant_remnants_overcharged_emitters,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.OverchargedEmitters,"Above %s flux, energy weapon rate of fire rises with flux level, up to %s at maximum flux.
+
+Downside: increases overload duration by %s.",,,
 Slipspace Drive,covenant_remnants_slipspace_drive,,,Covenant,"no_drop_salvage",,,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.SlipspaceDriveHullmod,"A Covenant slipspace translation drive, integral to the hull. Folds space to carry the ship through slipspace faster than light.",,,

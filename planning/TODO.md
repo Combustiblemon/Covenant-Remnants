@@ -346,6 +346,12 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Plasma Capacitors — variant re-check** — six stock variants carry it from when it was a
       flux-sustain mod (frigate1, frigate2, destroyer4, cruiser5, capital1, capital2); decide whether
       they keep it.
+- [x] **Weapon hullmods** — built 2026-10-17: Capacitor Discharge, Target Lattice, Overcharged
+      Emitters (any ship, OP 5/10/15/25, no dock, "Weapons" filter); Plasma Capacitors lost its dock
+      requirement. See [implementations/weapon-hullmods.md](implementations/weapon-hullmods.md).
+- [ ] **Weapon hullmods — in-game check** — 5-point list in
+      [implementations/weapon-hullmods.md](implementations/weapon-hullmods.md).
+- [ ] **Weapon hullmods — status icons** — vanilla ship-system icons are placeholders.
 - [ ] **Tune hullmod numbers** — after all gameplay systems are done (developer 2026-10-02). OP costs and all new-mod values are vanilla-anchored placeholders.
 - [x] **Weapon-buff hullmod** (from PLAN) — scrapped for now (developer 2026-10-02). Was: buff
       plasma/energy weapons, nerf the weapons themselves to compensate.
