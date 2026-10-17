@@ -15,7 +15,10 @@
 param(
     [Parameter(Position = 0)]
     [string]$Version,
-    [switch]$DryRun
+    [switch]$DryRun,
+    # Save folder name under ..\..\saves to snapshot as a test-harness fixture for this version
+    # (optional; see $HarnessFixtureRoot). Example: -Fixture save_gdsfgdfgdfs_2352390989278051030
+    [string]$Fixture
 )
 
 # ---------------------------------------------------------------------------------------------
@@ -32,6 +35,12 @@ $ReleaseBranch = 'master'                   # the only branch releases are made 
 $LocalDependencies = @{
     'combustiblelemon_lemonlib' = '..\LemonLib'
 }
+# Test harness (sibling mod StarsectorHarness): with -Fixture, the named save is copied to
+# <HarnessRoot>\fixtures\saves\<version>\ after the release build so the compat suite can load
+# saves made with this version under later builds. Empty string = this mod has no harness target.
+$HarnessRoot = '..\StarsectorHarness'
+$HarnessTarget = 'covenant'
+$HarnessModId = 'combustiblelemon_covenant_remnants'
 
 $ErrorActionPreference = 'Stop'
 
@@ -186,6 +195,21 @@ if (-not $isNewer) {
     Fail ("$tag is not newer than the current version v" + ($current -join '.'))
 }
 
+# Harness fixture: everything checked up front so a typo in -Fixture aborts before any edit.
+$snapshotScript = $null
+if ($Fixture) {
+    if (-not $HarnessRoot) { Fail "-Fixture given but this mod has no harness target (HarnessRoot is empty)" }
+    $snapshotScript = Join-Path (Join-Path $root $HarnessRoot) 'scripts\snapshot-save.ps1'
+    if (-not (Test-Path $snapshotScript)) { Fail "harness snapshot script not found at $snapshotScript" }
+    $fixtureSource = Join-Path (Join-Path $root '..\..\saves') $Fixture
+    if (-not (Test-Path (Join-Path $fixtureSource 'descriptor.xml'))) { Fail "-Fixture '$Fixture': no descriptor.xml under $fixtureSource" }
+    $fixtureDest = Join-Path (Join-Path (Join-Path $root $HarnessRoot) 'fixtures\saves') (Join-Path $plain $Fixture)
+    if (Test-Path $fixtureDest) { Fail "harness fixture already exists: $fixtureDest" }
+    Write-Host "fixture: $Fixture -> $fixtureDest"
+} elseif ($HarnessRoot) {
+    Write-Host "no -Fixture given: no save will be snapshotted for the test harness" -ForegroundColor Yellow
+}
+
 $changelogText = Read-Text $changelog
 $newline = if ($changelogText.Contains("`r`n")) { "`r`n" } else { "`n" }
 $unreleasedPattern = '(?s)(## Unreleased[ \t]*' + [regex]::Escape($newline) + ')(.*?)(?=' + [regex]::Escape($newline) + '## |\z)'
@@ -287,6 +311,24 @@ if ($LASTEXITCODE -ne 0 -or -not (Test-Path $zip)) {
     Fail "gradlew packageMod failed. Nothing was committed."
 }
 Write-Host ("built " + $zip + " (" + [math]::Round((Get-Item $zip).Length / 1MB, 1) + " MB)") -ForegroundColor Green
+
+# ---------------------------------------------------------------------------------------------
+# Test-harness fixture (optional; the harness repo is not committed here)
+# ---------------------------------------------------------------------------------------------
+
+if ($snapshotScript) {
+    Step "Snapshotting save '$Fixture' as harness fixture $plain"
+    if ($DryRun) {
+        Write-Host "dry run: would run  $snapshotScript -SaveDir $Fixture -ModVersion $plain -Target $HarnessTarget -ModId $HarnessModId"
+    } else {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $snapshotScript -SaveDir $Fixture -ModVersion $plain -Target $HarnessTarget -ModId $HarnessModId
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "fixture snapshot failed (exit $LASTEXITCODE); the release itself continues" -ForegroundColor Yellow
+        } else {
+            Write-Host "then, in ${HarnessRoot}:  python -m harness capture --target $HarnessTarget --fixture $plain/$Fixture" -ForegroundColor Green
+        }
+    }
+}
 
 if ($DryRun) {
     Step "Dry run: stopping before commit"

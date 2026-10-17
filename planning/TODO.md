@@ -550,6 +550,16 @@ Keep this file current — tick items off and add new ones as work lands.
       `gradle.properties`, rolls `CHANGELOG.md` Unreleased into the new version, runs `packageMod`,
       commits, tags, pushes `master`, creates the GitHub release with the zip (rulings: gh CLI,
       master only, attach zip). See [implementations/release-script.md](implementations/release-script.md).
+- [x] **In-game test harness** — 2026-10-17: new sibling mod + repo `../StarsectorHarness`
+      (id `combustiblelemon_harness`) boots the real game from Python with a loopback JSON bridge,
+      runs smoke / campaign / combat / compat suites against this mod, and keeps save fixtures per
+      release. `release.bat vX.Y.Z -Fixture <save_dir>` snapshots a save into its fixture corpus.
+      See [implementations/test-harness.md](implementations/test-harness.md).
+- [ ] **Test harness — open items** — see the "Open items" list in
+      [implementations/test-harness.md](implementations/test-harness.md): more combat scenarios
+      (one per hull), a fixture with an armed fleet + the first release snapshot, LemonLib target,
+      fixture backups (git-ignored). All five suites (smoke, campaign, combat, compat, encounter)
+      passed on 2026-10-17.
 - [ ] **Release script — first real run** — install `gh` (`winget install --id GitHub.cli`,
       `gh auth login`), then on a clean `master`: `release.bat v0.1.2 -DryRun`, inspect, undo with
       the printed `git checkout --` line, then the real `release.bat v0.1.2`. Note: the v0.1.2 bump
