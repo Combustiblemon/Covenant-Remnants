@@ -3,7 +3,7 @@
   "name": "Covenant Remnants",
   "author": "Combustiblelemon",
   "utility": "false",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Adds some Covenant ships from Halo to the game.",
   "gameVersion": "0.98a",
   "jars": ["jars/CovenantRemnants.jar"],
@@ -12,7 +12,7 @@
     {
       "id": "combustiblelemon_lemonlib",
       "name": "LemonLib",
-      "version": "0.1.1"
+      "version": "0.1.2"
     },
     {
       "id": "MagicLib",
