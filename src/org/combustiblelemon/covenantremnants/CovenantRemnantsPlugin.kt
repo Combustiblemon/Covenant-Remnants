@@ -7,6 +7,7 @@ import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRul
 import org.combustiblelemon.covenantremnants.campaign.entities.SlipspaceCampaignPlugin
 import org.combustiblelemon.covenantremnants.campaign.systems.ensureSlipspaceSystem
 import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilities
+import org.combustiblelemon.covenantremnants.hullmods.CovenantShield
 import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.settings.LunaSettingsBridge
 import org.combustiblelemon.covenantremnants.utils.initShieldData
@@ -37,6 +38,7 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         logger.info(shieldData.toString())
 
         HullmodIncompatibilityInstaller.install(CovenantIncompatibilities.registry())
+        CovenantShield.ensureBuiltInOnShieldHulls()
 
         // Player options. LunaLib is optional: without it CovenantSettings keeps its defaults, and the
         // bridge class (the only one importing lunalib) is never loaded.

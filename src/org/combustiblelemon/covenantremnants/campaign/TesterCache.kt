@@ -1,18 +1,23 @@
 package org.combustiblelemon.covenantremnants.campaign
 
 import com.fs.starfarer.api.Global
+import com.fs.starfarer.api.campaign.CargoAPI
+import com.fs.starfarer.api.campaign.SectorAPI
 import com.fs.starfarer.api.campaign.SpecialItemData
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
 import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.fleet.FleetMemberType
 import com.fs.starfarer.api.impl.campaign.ids.Submarkets
+import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 
 /**
  * Tester access while the quests (the real acquisition path, CLAUDE.md) do not exist yet: the storage
  * of vanilla's Abandoned Terraforming Platform in Corvus gets every Covenant ship, weapon, wing,
- * optional hullmod and the Slipspace Jump engram, once per save (developer rulings 2026-10-10).
+ * optional hullmod, the Slipspace Drive Schematics (the Slipspace Jump) and the Slipspace Navigation
+ * System (its upgrade), once per save (developer rulings 2026-10-10, 2026-10-12).
  *
  * Runs from `onGameLoad`, so new and existing saves both get it; a sector memory flag stops repeats.
+ * Saves whose cache predates the Navigation System get that item once, under a flag of its own.
  * A random-sector game has no Corvus: the cache is skipped and logged. Content is found by the id
  * prefix, like `CovenantGiveAll`, so new content is picked up without editing this file.
  */
@@ -22,7 +27,10 @@ object TesterCache {
 
     const val STATION_ID = "corvus_abandoned_station"
     const val ENGRAM_ID = "covenant_remnants_slipspace_engram"
+    const val NAVIGATION_ID = SlipspaceJumpRules.NAVIGATION_ITEM_ID
     const val MEMORY_FLAG = "\$covenant_remnants_tester_cache_added"
+    /** Set once the Navigation System is in the cache (new caches, and old ones topped up). */
+    const val NAVIGATION_FLAG = "\$covenant_remnants_tester_cache_navigation_added"
 
     private const val PREFIX = "covenant_remnants_"
     private const val WEAPON_QTY = 30
@@ -41,14 +49,19 @@ object TesterCache {
         else -> 0
     }
 
+    private fun storageCargo(sector: SectorAPI): CargoAPI? =
+        sector.getEntityById(STATION_ID)?.market?.getSubmarket(Submarkets.SUBMARKET_STORAGE)?.cargo
+
     fun addIfNeeded() {
         if (!ENABLED) return
         val sector = Global.getSector() ?: return
         val memory = sector.memoryWithoutUpdate
-        if (memory.getBoolean(MEMORY_FLAG)) return
+        if (memory.getBoolean(MEMORY_FLAG)) {
+            addNavigationIfNeeded(sector)
+            return
+        }
 
-        val cargo = sector.getEntityById(STATION_ID)?.market
-            ?.getSubmarket(Submarkets.SUBMARKET_STORAGE)?.cargo
+        val cargo = storageCargo(sector)
         if (cargo == null) {
             logger.warn("Tester cache: no $STATION_ID storage in this sector (random sector?); skipped")
             return
@@ -95,11 +108,27 @@ object TesterCache {
         }
 
         cargo.addSpecial(SpecialItemData(ENGRAM_ID, null), 1f)
+        cargo.addSpecial(SpecialItemData(NAVIGATION_ID, null), 1f)
 
         memory.set(MEMORY_FLAG, true)
+        memory.set(NAVIGATION_FLAG, true)
         logger.info(
             "Tester cache added to $STATION_ID storage: $ships ships, $weapons weapons x$WEAPON_QTY, " +
-                "$wings wings x$WING_QTY, $hullmods modspecs, 1 $ENGRAM_ID"
+                "$wings wings x$WING_QTY, $hullmods modspecs, 1 $ENGRAM_ID, 1 $NAVIGATION_ID"
         )
+    }
+
+    /** A cache from before the Navigation System existed gets one, once (developer ruling 2026-10-12). */
+    private fun addNavigationIfNeeded(sector: SectorAPI) {
+        val memory = sector.memoryWithoutUpdate
+        if (memory.getBoolean(NAVIGATION_FLAG)) return
+        val cargo = storageCargo(sector)
+        if (cargo == null) {
+            logger.warn("Tester cache: no $STATION_ID storage for the $NAVIGATION_ID top-up; skipped")
+            return
+        }
+        cargo.addSpecial(SpecialItemData(NAVIGATION_ID, null), 1f)
+        memory.set(NAVIGATION_FLAG, true)
+        logger.info("Tester cache: added 1 $NAVIGATION_ID to $STATION_ID storage (cache predates it)")
     }
 }

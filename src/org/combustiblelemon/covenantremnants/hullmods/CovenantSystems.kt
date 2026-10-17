@@ -20,13 +20,14 @@ class CovenantSystems : BaseHullMod() {
 
     private val ENERGY_WEAPON_FLUX_MULT = 0.8f
 
-    // maxCombatReadiness is a 0-1 fraction, so 0.20f == -20 percentage points of max CR.
-    private val MAX_CR_PENALTY = 0.20f
-    private val REPAIR_PER_DAY_MULT = 0.75f
-
     companion object {
         const val ID = "covenant_remnants_covenantsystems"
         const val DISPLAY_NAME = "Covenant Systems"
+
+        // maxCombatReadiness is a 0-1 fraction, so 0.20f == -20 percentage points of max CR.
+        // Huragok Crew derives its offset from these two.
+        const val MAX_CR_PENALTY = 0.20f
+        const val REPAIR_PER_DAY_MULT = 0.75f
 
         // Hullmod id -> fallback display name, used when the spec is missing at runtime.
         val INCOMPATIBLE_HULLMODS: Map<String, String> = mapOf(

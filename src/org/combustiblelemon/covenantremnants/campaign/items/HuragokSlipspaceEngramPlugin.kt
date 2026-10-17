@@ -8,10 +8,11 @@ import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 
 /**
- * Huragok Slipspace Engram (`covenant_remnants_slipspace_engram`, special_items.csv): right-click
- * teaches the player the campaign Slipspace Jump ability. Modelled on vanilla's Janus Device, with
- * the blueprint items' "already known" handling: the engram is only used up when it teaches the
- * ability. Placeholder icon (vanilla Janus Device) until real art exists.
+ * Covenant Slipspace Drive Schematics (`covenant_remnants_slipspace_engram`, special_items.csv;
+ * named "Huragok Slipspace Engram" until 2026-10-12 — the id and this class name stay for saves):
+ * right-click teaches the player the campaign Slipspace Jump ability. Modelled on vanilla's Janus
+ * Device, with the blueprint items' "already known" handling: the item is only used up when it
+ * teaches the ability. Placeholder icon (vanilla Janus Device) until real art exists.
  */
 class HuragokSlipspaceEngramPlugin : BaseSpecialItemPlugin() {
 

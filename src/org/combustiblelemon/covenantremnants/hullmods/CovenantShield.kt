@@ -1,11 +1,13 @@
 package org.combustiblelemon.covenantremnants.hullmods
 
+import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
 import org.combustiblelemon.covenantremnants.utils.generateDefaultShieldData
 import org.combustiblelemon.covenantremnants.utils.shieldData
+import org.combustiblelemon.lemonlib.geometry.getPercentage
 import org.combustiblelemon.lemonlib.hullmods.HullmodBlocker
 import org.combustiblelemon.lemonlib.hullmods.isApplicableGiven
 import org.combustiblelemon.lemonlib.hullmods.unapplicableReasonFor
@@ -39,7 +41,24 @@ class CovenantShield : BaseHullMod() {
             variant.hasHullMod(ID) || variant.hullSpec?.shipDefenseId == DEFENSE_ID
         }
 
+        // Price of the shield: the emitters draw on the flux grid.
+        const val MAX_FLUX_MULT = 0.8f
+
         val BLOCKER = HullmodBlocker(ID, DISPLAY_NAME, presentOn = HAS_COVENANT_SHIELD)
+
+        /**
+         * Adds this hullmod as built-in to every hull spec whose defense is the Covenant shield, so the
+         * ship-editor dropping it from `builtInMods` (happened twice) or another mod's hull using the
+         * system can't leave a shielded ship without it. Call once from onApplicationLoad.
+         */
+        fun ensureBuiltInOnShieldHulls() {
+            for (spec in Global.getSettings().allShipHullSpecs) {
+                if (spec.shipDefenseId == DEFENSE_ID && !spec.isBuiltInMod(ID)) {
+                    spec.addBuiltInMod(ID)
+                    Global.getLogger(CovenantShield::class.java).info("Added $ID as built-in to ${spec.hullId}")
+                }
+            }
+        }
 
         // A shield generator conflicting with a shield reads better as a state than as a mod clash.
         val MAKESHIFT_BLOCKER = HullmodBlocker(
@@ -78,6 +97,8 @@ class CovenantShield : BaseHullMod() {
             return
         }
 
+        stats.fluxCapacity.modifyMult(id, MAX_FLUX_MULT)
+
         val variant = stats.variant
 
         if (variant.hullSpec.shipDefenseId == DEFENSE_ID) {
@@ -104,6 +125,7 @@ class CovenantShield : BaseHullMod() {
             5 -> "${(min(CovenantShieldsStats.fluxRegenKnee(), 1f) * 100).roundToInt()}%"
             6 -> "${(CovenantShieldsStats.fluxRegenMultAt(1f) * 100).roundToInt()}%"
             7 -> "${data.brokenShieldCooldown.formatSeconds()}"
+            8 -> "${getPercentage(MAX_FLUX_MULT)}%"
             else -> null
         }
     }

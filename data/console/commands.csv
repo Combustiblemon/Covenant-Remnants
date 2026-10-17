@@ -1,7 +1,7 @@
 command,class,tags,syntax,help
 RegenerateSlipspace,org.combustiblelemon.covenantremnants.commands.RegenerateSlipspace,core,RegenerateSlipspace,Removes and recreates the slipspace pocket system (not while inside it)
 DebugHook,org.combustiblelemon.covenantremnants.commands.DebugHook,core,DebugHook,Hook for the debugger
-CovenantGiveAll,org.combustiblelemon.covenantremnants.commands.CovenantGiveAll,"core,cheat,campaign",CovenantGiveAll,Grants all Covenant ships/weapons/fighters/hullmods (dev cheat)
+CovenantGiveAll,org.combustiblelemon.covenantremnants.commands.CovenantGiveAll,"core,cheat,campaign",CovenantGiveAll,Grants all Covenant ships/weapons/fighters/hullmods plus the Slipspace Jump and its navigation upgrade (dev cheat)
 FleetJumpTune,org.combustiblelemon.covenantremnants.commands.FleetJumpTune,core,FleetJumpTune [<name> <value> | reset [<name>]],Lists or live-tunes the Fleet Slipspace Jump constants (dev tuning; resets on restart)
 SlipspaceJumpTune,org.combustiblelemon.covenantremnants.commands.SlipspaceJumpTune,"core,cheat,campaign",SlipspaceJumpTune [<name> <value> | reset [<name>]],Lists or live-tunes the campaign Slipspace Jump constants and dev overrides (NO_SHIP_RESTRICTION / FREE); resets on restart
 ShieldTune,org.combustiblelemon.covenantremnants.commands.ShieldTune,core,ShieldTune [<name> <value> | reset [<name>]],Lists or live-tunes the Covenant shield outline (margin / Taubin smoothing / scale) and regen flux falloff (FLUX_REGEN_BONUS); dev tuning; resets on restart

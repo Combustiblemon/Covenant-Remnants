@@ -6,35 +6,37 @@ import com.fs.starfarer.api.combat.ShipAPI
 import org.combustiblelemon.lemonlib.geometry.getPercentage
 
 /**
- * Plasma Capacitors — energy-weapon flux sustain with a volatility downside.
+ * Plasma Capacitors — energy weapons fire faster but cost more flux per shot.
  *
- *  - Larger flux capacity and faster venting: sustain plasma fire longer, recover quicker.
- *  - Downside: a bigger, hotter flux bank takes longer to clear an overload, so getting
- *    flux-swamped punishes harder (reinforces the "weak when overwhelmed" identity).
+ *  - Rate of fire and ammo regen up by the same factor, so ammo-fed energy weapons keep the gain.
+ *  - Flux per shot up, so flux per second rises by both factors: trades Covenant Systems'
+ *    flux efficiency back for damage per second.
+ *  - Beams are exempt from the flux cost: continuous beams gain nothing from rate of fire.
+ *    Burst beams still get the shorter cooldown.
  */
 class PlasmaCapacitors : BaseHullMod() {
     companion object {
         const val ID = "covenant_remnants_plasma_capacitors"
 
-        const val FLUX_CAPACITY_MULT = 1.15f
-        const val VENT_RATE_MULT = 1.25f
-        const val OVERLOAD_TIME_PERCENT = 30f
+        const val ENERGY_ROF_MULT = 1.2f
+        const val ENERGY_FLUX_COST_MULT = 1.2f
     }
 
     override fun applyEffectsBeforeShipCreation(hullSize: ShipAPI.HullSize?, stats: MutableShipStatsAPI?, id: String?) {
         if (stats == null) {
             return
         }
-        stats.fluxCapacity.modifyMult(id, FLUX_CAPACITY_MULT)
-        stats.ventRateMult.modifyMult(id, VENT_RATE_MULT)
-        stats.overloadTimeMod.modifyPercent(id, OVERLOAD_TIME_PERCENT)
+        stats.energyRoFMult.modifyMult(id, ENERGY_ROF_MULT)
+        stats.energyAmmoRegenMult.modifyMult(id, ENERGY_ROF_MULT)
+        stats.energyWeaponFluxCostMod.modifyMult(id, ENERGY_FLUX_COST_MULT)
+        // Beam flux = energy flux mod x beam flux mult, so the inverse here cancels the cost for beams.
+        stats.beamWeaponFluxCostMult.modifyMult(id, 1f / ENERGY_FLUX_COST_MULT)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {
         return when (index) {
-            0 -> "${getPercentage(FLUX_CAPACITY_MULT)}%"
-            1 -> "${getPercentage(VENT_RATE_MULT)}%"
-            2 -> "${OVERLOAD_TIME_PERCENT.toInt()}%"
+            0 -> "${getPercentage(ENERGY_ROF_MULT)}%"
+            1 -> "${getPercentage(ENERGY_FLUX_COST_MULT)}%"
             else -> null
         }
     }

@@ -46,6 +46,8 @@ const val SLIPSPACE_STREAM_TERRAIN = "covenant_remnants_slipspace_stream"
 /** Pocket memory keys: the route currently laid out in it. */
 const val SLIPSPACE_ROUTE_ORIGIN_KEY = "\$covenant_remnants_slipspace_route_origin"
 const val SLIPSPACE_ROUTE_DEST_KEY = "\$covenant_remnants_slipspace_route_dest"
+/** The plotted exit point in the destination (navigation upgrade); unset for an edge jump. */
+const val SLIPSPACE_ROUTE_POINT_KEY = "\$covenant_remnants_slipspace_route_point"
 
 // ---------------------------------------------------------------------------------------------
 // Lookup / bootstrap
@@ -148,8 +150,10 @@ fun slipspaceExit(system: StarSystemAPI): SectorEntityToken? = system.getEntityB
  * The route is remembered in the pocket's memory so the exit knows where it leads.
  *
  * @param burnMult transit-speed multiplier (Slipspace Tuning), applied to the stream's burn level.
+ * @param exitPoint the plotted arrival point in the destination (navigation upgrade); null = the
+ *   system's edge. Always written, so a plotted point never carries over into a later edge jump.
  */
-fun prepareSlipspaceRoute(system: StarSystemAPI, originId: String, destId: String, burnMult: Float) {
+fun prepareSlipspaceRoute(system: StarSystemAPI, originId: String, destId: String, burnMult: Float, exitPoint: Vector2f? = null) {
     for (terrain in system.terrainCopy) {
         if (terrain.type == SLIPSPACE_STREAM_TERRAIN) system.removeEntity(terrain)
     }
@@ -201,6 +205,7 @@ fun prepareSlipspaceRoute(system: StarSystemAPI, originId: String, destId: Strin
     val memory = system.memoryWithoutUpdate
     memory.set(SLIPSPACE_ROUTE_ORIGIN_KEY, originId)
     memory.set(SLIPSPACE_ROUTE_DEST_KEY, destId)
+    if (exitPoint != null) memory.set(SLIPSPACE_ROUTE_POINT_KEY, Vector2f(exitPoint)) else memory.unset(SLIPSPACE_ROUTE_POINT_KEY)
 }
 
 /**
@@ -232,4 +237,13 @@ fun slipspaceRouteDestination(system: StarSystemAPI): StarSystemAPI? {
 fun slipspaceRouteOrigin(system: StarSystemAPI): StarSystemAPI? {
     val id = system.memoryWithoutUpdate.getString(SLIPSPACE_ROUTE_ORIGIN_KEY) ?: return null
     return Global.getSector().getStarSystem(id)
+}
+
+/** The plotted exit point of the route laid out in the pocket (a copy), or null for an edge jump. */
+fun slipspaceRoutePoint(system: StarSystemAPI): Vector2f? =
+    (system.memoryWithoutUpdate.get(SLIPSPACE_ROUTE_POINT_KEY) as? Vector2f)?.let { Vector2f(it) }
+
+/** Forgets the plotted exit point once the jump has landed. */
+fun clearSlipspaceRoutePoint(system: StarSystemAPI) {
+    system.memoryWithoutUpdate.unset(SLIPSPACE_ROUTE_POINT_KEY)
 }

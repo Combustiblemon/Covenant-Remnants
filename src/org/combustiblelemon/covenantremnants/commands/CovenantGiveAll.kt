@@ -19,7 +19,7 @@ import org.lazywizard.console.Console
  *  - Weapons:  [QTY] of each to cargo.
  *  - Fighters: [QTY] of each LPC to cargo.
  *  - Hullmods: learned (installable in refit); hidden internal hullmods skipped.
- *  - Ability:  the campaign Slipspace Jump (quest-granted once the quest exists).
+ *  - Ability:  the campaign Slipspace Jump and its navigation upgrade (quest-granted once the quest exists).
  */
 class CovenantGiveAll : BaseCommand {
 
@@ -78,13 +78,15 @@ class CovenantGiveAll : BaseCommand {
             hullmods++
         }
 
-        // Campaign Slipspace Jump ability — quest-granted later; the cheat grants it meanwhile.
+        // Campaign Slipspace Jump ability and its navigation upgrade — quest-granted later; the cheat grants them meanwhile.
         val abilityGranted = SlipspaceJumpRules.grantToPlayer()
+        val upgradeGranted = SlipspaceJumpRules.grantUpgradeToPlayer()
 
         Console.showMessage(
             "Covenant: $ships ships (fleet), $weapons weapons + $fighters fighters (x$QTY, cargo), " +
                 "$hullmods hullmods learned, Slipspace Jump ability " +
-                (if (abilityGranted) "granted." else "already known.")
+                (if (abilityGranted) "granted" else "already known") + ", navigation upgrade " +
+                (if (upgradeGranted) "installed." else "already installed.")
         )
         return CommandResult.SUCCESS
     }

@@ -21,19 +21,20 @@ Replaces the ship's defenses with a regenerating Covenant energy shield:
  Regeneration slows once flux passes %s, down to %s at maximum flux
  Collapses when depleted and comes back online after %s seconds
 
+Reduces maximum flux capacity by %s.
+
 Can not work in conjunction with hullmods that modify shields or phase systems.",,,
 covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,"hide_in_codex, no_drop, no_drop_salvage",,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,"Hullmod manager facilitating functionality for the rest of the hullmods, you should not be seeing this",,,
-Huragok Crew,covenant_remnants_huragok_crew,,,Covenant,"no_drop_salvage, defensive",,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.HuragokCrew,"Increase max CR by %s
-Increase repair rate by %s 
+Huragok Crew,covenant_remnants_huragok_crew,,,Covenant,"no_drop_salvage, defensive",,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.HuragokCrew,"Increase repair rate by %s.
+Increase max CR by %s if %s hullmod is present, counteracting its penalties.
 
-Counteracts negative effects of %s hullmod if present.",,,
+In combat, repairs %s of maximum hull per second while damaged; total repair per battle is the higher of %s points or %s of maximum hull.",,,
 Slipspace Tuning,covenant_remnants_slipspace_tuning,,,Covenant,"req_spaceport, no_drop_salvage","Requires Dock",,FALSE,FALSE,,4,8,12,20,org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning,"Increases slipspace drive charge regeneration by %s.
 
 Each ship in the fleet carrying this hullmod speeds the fleet's transit through a slipspace corridor by %s, up to %s.
 
 Only installable on ships with a slipspace drive.",,"Each ship carrying this as a built-in (s-mod) hullmod also shortens the fleet's slipspace jump charge-up and cooldown by %s, up to %s.",
-Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"req_spaceport, no_drop_salvage","Requires Dock",,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.PlasmaCapacitors,"Increases maximum flux capacity by %s.
-Increases venting rate by %s.
+Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"req_spaceport, no_drop_salvage","Requires Dock",,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.PlasmaCapacitors,"Increases energy weapon rate of fire and ammo regeneration by %s.
 
-Downside: increases overload duration by %s.",,,
+Downside: increases energy weapon flux cost by %s. Beam weapons are exempt.",,,
 Slipspace Drive,covenant_remnants_slipspace_drive,,,Covenant,"no_drop_salvage",,,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.SlipspaceDriveHullmod,"A Covenant slipspace translation drive, integral to the hull. Folds space to carry the ship through slipspace faster than light.",,,

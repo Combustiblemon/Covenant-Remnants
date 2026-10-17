@@ -11,6 +11,7 @@ import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJump
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceRouteDestination
+import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceRoutePoint
 
 /**
  * Dialog of the pocket's exit portal: shows where the corridor leads and lets the fleet leave
@@ -37,10 +38,12 @@ class SlipspaceExitDialogPlugin : InteractionDialogPlugin {
         val fleet = Global.getSector().playerFleet
         val pocket = fleet.containingLocation as? StarSystemAPI
         val destination = pocket?.let { slipspaceRouteDestination(it) }
+        val plotted = pocket?.let { slipspaceRoutePoint(it) } != null
         val text = dialog.textPanel
         text.addPara("The corridor ends here, at the far aperture of the slipspace rupture.")
         if (destination != null) {
-            text.addPara("It opens onto the %s.", Misc.getHighlightColor(), destination.nameWithLowercaseType)
+            val where = if (plotted) "It opens onto the %s, at the plotted coordinates." else "It opens onto the %s."
+            text.addPara(where, Misc.getHighlightColor(), destination.nameWithLowercaseType)
         }
 
         ability = fleet.getAbility(SlipspaceJumpRules.ABILITY_ID) as? SlipspaceJump

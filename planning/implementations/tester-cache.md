@@ -91,3 +91,13 @@ joins the cache automatically. That only affects saves that have not had the cac
 - Turn `TesterCache.ENABLED` off, or remove the class and CSV row, once the quests hand out
   Covenant content. The engram itself can become the granting quest's reward.
 - Engram art (bespoke icon) and final description text.
+
+## Later changes
+
+- 2026-10-12 — the engram is renamed **Covenant Slipspace Drive Schematics** (developer ruling;
+  same id `covenant_remnants_slipspace_engram`, same plugin class). The cache also holds one
+  **Covenant Slipspace Navigation System** (`covenant_remnants_slipspace_navigation`, the Slipspace
+  Jump navigation upgrade). Saves whose cache predates it get one copy on the next load, under the
+  separate flag `$covenant_remnants_tester_cache_navigation_added`; the log line reads
+  `Tester cache: added 1 covenant_remnants_slipspace_navigation …`. See
+  [advanced-slipspace-jump.md](advanced-slipspace-jump.md).

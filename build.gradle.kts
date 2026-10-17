@@ -51,6 +51,10 @@ dependencies {
     compileOnly(files("../MagicLib/jars/MagicLib.jar"))
     compileOnly(files("../MagicLib/jars/MagicLib-Kotlin.jar"))
 
+    // Ashlib dependency (system map of the Slipspace Jump navigation upgrade). Note the folder
+    // name: "Ashlib_", with the underscore.
+    compileOnly(files("../Ashlib_/jars/ashlib.jar"))
+
     // Log4j for logging (Starsector standard)
     compileOnly("log4j:log4j:1.2.17")
 

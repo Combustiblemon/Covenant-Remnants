@@ -43,6 +43,8 @@ the hulls, and added two new hullmods. All choices confirmed with the developer 
      [in-game-test-pass-2026-10-01.md](in-game-test-pass-2026-10-01.md).
 
 6. **Plasma Capacitors** (`covenant_remnants_plasma_capacitors`) — `hullmods/PlasmaCapacitors.kt`.
+   **Superseded 2026-10-17:** reworked into energy rate of fire for flux cost, see
+   [plasma-capacitors-rof.md](plasma-capacitors-rof.md).
    Optional, any ship, OP 5/10/15/25.
    - `fluxCapacity ×1.15` (+15%), `ventRateMult ×1.25` (+25% venting).
    - **Downside:** `overloadTimeMod +30%` — overloads last longer, so getting flux-swamped punishes

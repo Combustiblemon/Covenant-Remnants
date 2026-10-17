@@ -195,3 +195,10 @@ Deleted: `src/.../utils/abilities/Slipspace.kt` (the broken prototype transition
   [shield-ui-scaling-fix.md](shield-ui-scaling-fix.md)). The developer confirmed it in game: "it's
   fine".
 - The granting quest.
+
+## Later changes
+
+- 2026-10-12 — **navigation upgrade**: with the Covenant Slipspace Navigation System installed, the
+  exit point can be plotted on a system map (Ashlib, now a required dependency), and the jump can
+  stay inside the current system without the pocket (`Leg.BLINK`). The edge jump described above is
+  unchanged. See [advanced-slipspace-jump.md](advanced-slipspace-jump.md).

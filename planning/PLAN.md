@@ -41,6 +41,11 @@ in-progress work and unresolved questions, not settled decisions (those live in 
   Tuning bonus, `CovenantGiveAll` grant). Awaiting the in-game checklist in
   [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
   All numbers are placeholders. The granting quest is not built (quests below).
+- **Advanced Slipspace (navigation upgrade)** — built 2026-10-12: the Covenant Slipspace
+  Navigation System item lets the jump land at a point plotted on Ashlib's system map, in any
+  visited system or (without the pocket) inside the current one. Ashlib is now a required
+  dependency. In-game checklist pending in
+  [implementations/advanced-slipspace-jump.md](implementations/advanced-slipspace-jump.md).
 - **Ark slipspace portals** — built 2026-10-08 (Halo 3 The Ark exit look for the pocket portals
   and the destination arrival), then the visual pass the same day (lathed tube, procedural
   streaks, wall lightning, analytic rings, particles, pre-roll / afterglow / idle life; all

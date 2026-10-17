@@ -105,6 +105,8 @@ Every dependency is `compileOnly`; nothing is bundled into `jars/CovenantRemnant
 - **Starsector:** the core jars in `../../starsector-core/`.
 - **LemonLib:** compiled classes, through the composite build (`includeBuild("../LemonLib")`).
 - **MagicLib and LunaLib:** their jars in the sibling mod folders.
+- **Ashlib:** `../Ashlib_/jars/ashlib.jar` (the folder name has an underscore, as Ashlib's release
+  zip unpacks it).
 - **Console Commands:** its jar in the sibling mod folder.
 - **log4j:** 1.2.17.
 

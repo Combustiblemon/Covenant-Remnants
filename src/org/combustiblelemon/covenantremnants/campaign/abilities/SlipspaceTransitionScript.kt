@@ -29,6 +29,10 @@ import kotlin.math.pow
  * one the member views fade back in in place with jitter.
  * Mirrors the engine's own transition where it matters (`setInJumpTransition`, `setNoEngaging`,
  * `reportFleetJumped`); the obf `CampaignFleet` / `CampaignFleetMemberView` are `DoNotObfuscate`.
+ *
+ * [Leg.BLINK] is the in-system jump of the navigation upgrade (rulings 2026-10-12): the same
+ * collapse hold, fades and Ark arrival, but the fleet stays in its location (the switch only
+ * places it) and no jump is reported, since no location changed.
  */
 class SlipspaceTransitionScript private constructor(
     private val fleet: CampaignFleetAPI,
@@ -39,7 +43,8 @@ class SlipspaceTransitionScript private constructor(
     startState: State
 ) : EveryFrameScript {
 
-    enum class Leg { OUT, BACK }
+    /** OUT: into the pocket. BACK: out of the pocket to the destination. BLINK: within one system. */
+    enum class Leg { OUT, BACK, BLINK }
 
     /**
      * How the fleet arrives: placed at [from] (inside the tube) facing [facing], sliding to [to]
@@ -123,7 +128,8 @@ class SlipspaceTransitionScript private constructor(
         when (state) {
             State.HOLD -> {
                 hold += amount
-                val holdFor = if (leg == Leg.OUT) SlipspaceJumpRules.warpOutHoldSeconds.value else SlipspaceJumpRules.arkExitHold.value
+                // Entering a rupture (OUT, BLINK): the collapse shows; leaving the pocket: the Ark exit hold.
+                val holdFor = if (leg != Leg.BACK) SlipspaceJumpRules.warpOutHoldSeconds.value else SlipspaceJumpRules.arkExitHold.value
                 if (hold >= holdFor) {
                     if (isPlayer) {
                         state = State.FADE_OUT
@@ -179,7 +185,8 @@ class SlipspaceTransitionScript private constructor(
                 clearTransitionFlags(fleet)
                 fleet.fadeInIndicator()
                 done = true
-                Global.getSector().reportFleetJumped(fleet, fleet, JumpDestination(target, null))
+                // An in-system jump changes no location: listeners would treat a report as a jump.
+                if (leg != Leg.BLINK) Global.getSector().reportFleetJumped(fleet, fleet, JumpDestination(target, null))
                 ability.onTransitionFinished(leg)
             }
         }

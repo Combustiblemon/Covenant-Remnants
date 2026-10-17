@@ -19,11 +19,14 @@ import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceTransitionScript.Leg
 import org.combustiblelemon.covenantremnants.campaign.entities.SlipspacePortalEntity
 import org.combustiblelemon.covenantremnants.campaign.systems.SLIPSPACE_POCKET_TAG
+import org.combustiblelemon.covenantremnants.campaign.systems.clearSlipspaceRoutePoint
 import org.combustiblelemon.covenantremnants.campaign.systems.ensureSlipspaceSystem
+import org.combustiblelemon.covenantremnants.campaign.systems.findSlipspaceSystem
 import org.combustiblelemon.covenantremnants.campaign.systems.prepareSlipspaceRoute
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceEntrance
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceRouteDestination
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceRouteOrigin
+import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceRoutePoint
 import org.combustiblelemon.covenantremnants.campaign.systems.slipspaceExit
 import org.combustiblelemon.covenantremnants.utils.extensions.isInSlipspace
 import org.combustiblelemon.covenantremnants.utils.render.rupture.ArkVariant
@@ -47,13 +50,18 @@ import kotlin.math.min
  * TRANSITION_BACK (arrive at the destination's edge facing the origin under the exit flash) →
  * IDLE with the cooldown started at landing.
  *
+ * Navigation upgrade (Covenant Slipspace Navigation System, rulings 2026-10-12, see
+ * planning/implementations/advanced-slipspace-jump.md): the exit point can be plotted on a system
+ * map ([precisePoint]). Another system: the pocket as above, landing at the point. The current
+ * system: no pocket — after the lurch, TRANSITION_BLINK (collapse, fade, Ark arrival at the point).
+ *
  * Save model: XStream bypasses constructors and old saves predate these fields, so every saved
  * field is nullable or zero-safe, transients are lazily rebuilt, and the prototype's fields are
  * kept (removing them would break saves written with the ability unlocked at start).
  */
 class SlipspaceJump : BaseDurationAbility() {
 
-    enum class Phase { IDLE, PICKING, CHARGING, LURCH, TRANSITION_OUT, IN_POCKET, EXITING, TRANSITION_BACK }
+    enum class Phase { IDLE, PICKING, CHARGING, LURCH, TRANSITION_OUT, IN_POCKET, EXITING, TRANSITION_BACK, TRANSITION_BLINK }
 
     companion object {
         /** Ark effects split around the fleets: TERRAIN_7A below, ABOVE above (the Reach rupture draws whole in ABOVE). */
@@ -88,6 +96,8 @@ class SlipspaceJump : BaseDurationAbility() {
     var lurchFromY = 0f
     var lurchElapsed = 0f
     var wasPausedBeforeDialog = false
+    /** The plotted exit point in the destination (navigation upgrade); null = the system's edge. */
+    var precisePoint: Vector2f? = null
 
     // --- Transient --------------------------------------------------------------------------------
     @Transient
@@ -142,7 +152,7 @@ class SlipspaceJump : BaseDurationAbility() {
     }
 
     override fun showActiveIndicator(): Boolean = when (currentPhase) {
-        Phase.LURCH, Phase.TRANSITION_OUT, Phase.EXITING, Phase.TRANSITION_BACK -> true
+        Phase.LURCH, Phase.TRANSITION_OUT, Phase.EXITING, Phase.TRANSITION_BACK, Phase.TRANSITION_BLINK -> true
         else -> false
     }
 
@@ -212,7 +222,7 @@ class SlipspaceJump : BaseDurationAbility() {
         when (currentPhase) {
             Phase.LURCH -> advanceLurch(fleet, amount)
             Phase.EXITING -> advanceExiting(fleet, amount)
-            Phase.TRANSITION_OUT, Phase.TRANSITION_BACK -> lockControls(fleet)
+            Phase.TRANSITION_OUT, Phase.TRANSITION_BACK, Phase.TRANSITION_BLINK -> lockControls(fleet)
             else -> {}
         }
     }
@@ -241,6 +251,7 @@ class SlipspaceJump : BaseDurationAbility() {
                 phase = Phase.IDLE
                 originId = null
                 destId = null
+                precisePoint = null
             }
             Phase.IDLE -> if (fleet.isInSlipspace) phase = Phase.IN_POCKET
             Phase.PICKING -> {
@@ -269,16 +280,32 @@ class SlipspaceJump : BaseDurationAbility() {
         if (!shown) phase = Phase.IDLE
     }
 
-    /** From the destination dialog: a system was picked; the charge starts. */
-    fun onDestinationPicked(dest: StarSystemAPI) {
+    /**
+     * From the destination dialog: a system was picked, with a plotted exit [point] (navigation
+     * upgrade) or without one (the system's edge); the charge starts. [dest] equal to the current
+     * system is the in-system jump, which always has a point.
+     */
+    fun onDestinationPicked(dest: StarSystemAPI, point: Vector2f? = null) {
         val fleet = fleet
         val origin = fleet?.containingLocation as? StarSystemAPI
         if (fleet == null || origin == null || phase != Phase.PICKING) {
             phase = Phase.IDLE
             return
         }
+        // The dialogs only hand over valid picks; this guards against anything that slipped past.
+        val valid = if (point == null) {
+            dest !== origin
+        } else {
+            SlipspaceJumpRules.hasNavigationUpgrade() &&
+                SlipspaceJumpRules.pointRejectReason(dest, point, if (dest === origin) fleet.location else null) == null
+        }
+        if (!valid) {
+            phase = Phase.IDLE
+            return
+        }
         originId = origin.id
         destId = dest.id
+        precisePoint = point?.let { Vector2f(it) }
         chargeMult = SlipspaceJumpRules.chargeMult(fleet)
         phase = Phase.CHARGING
         activate()
@@ -286,6 +313,7 @@ class SlipspaceJump : BaseDurationAbility() {
             phase = Phase.IDLE
             originId = null
             destId = null
+            precisePoint = null
         }
     }
 
@@ -305,6 +333,7 @@ class SlipspaceJump : BaseDurationAbility() {
         phase = Phase.IDLE
         originId = null
         destId = null
+        precisePoint = null
         entryEffect?.abort()
         entryEffect = null
         if (turnedOn) deactivate()
@@ -355,6 +384,11 @@ class SlipspaceJump : BaseDurationAbility() {
             cancel()
             return
         }
+        val point = precisePoint
+        if (point != null && origin === dest) {
+            commitBlink(fleet, dest, point)
+            return
+        }
         val pocket = ensureSlipspaceSystem(sector)
         val entrance = slipspaceEntrance(pocket)
         if (entrance == null) {
@@ -367,10 +401,10 @@ class SlipspaceJump : BaseDurationAbility() {
             cancel()
             return
         }
-        // Point of no return: costs, then the route.
+        // Point of no return: costs, then the route (with the plotted exit point, if any).
         fleet.cargo.removeFuel(fuel.toFloat())
         SlipspaceJumpRules.applyCrHit(fleet)
-        prepareSlipspaceRoute(pocket, origin.id, dest.id, SlipspaceJumpRules.transitBurnMult(fleet))
+        prepareSlipspaceRoute(pocket, origin.id, dest.id, SlipspaceJumpRules.transitBurnMult(fleet), point)
         val target = pocket.createToken(entrance.location.x, entrance.location.y)
 
         entryEffect?.startCollapse()
@@ -379,6 +413,43 @@ class SlipspaceJump : BaseDurationAbility() {
         // Arrive sliding out of the entrance tube (the Ark look), down the corridor.
         val plan = SlipspaceJumpRules.arrivalPlan(Vector2f(entrance.location), entrance.facing, fleet)
         SlipspaceTransitionScript.start(fleet, Leg.OUT, target, this, plan)
+    }
+
+    /**
+     * The in-system jump (navigation upgrade): no pocket. Costs (flat fuel, the CR hit), the entry
+     * rupture collapses, then [SlipspaceTransitionScript] fades out, places the fleet inside an Ark
+     * tube at [point] and slides it out, facing the travel direction (developer rulings 2026-10-12).
+     */
+    private fun commitBlink(fleet: CampaignFleetAPI, system: StarSystemAPI, point: Vector2f) {
+        val fuel = SlipspaceJumpRules.blinkFuelCost(fleet)
+        if (fuel > fleet.cargo.fuel) {
+            fleet.addFloatingText("Not enough fuel for the jump", Misc.getNegativeHighlightColor(), 1f)
+            cancel()
+            return
+        }
+        // Point of no return.
+        fleet.cargo.removeFuel(fuel.toFloat())
+        SlipspaceJumpRules.applyCrHit(fleet, SlipspaceJumpRules.blinkCrMult.value)
+
+        // A binary's stars move between the pick and now: keep the exit out of their zones.
+        val exit = SlipspaceJumpRules.nudgeOutOfStarZones(system, point)
+        precisePoint = Vector2f(exit)
+        entryEffect?.startCollapse()
+        vis().playOneShot(SlipspaceJumpRules.SOUND_COLLAPSE, Vector2f(portalX, portalY))
+
+        // Ark exit armed at the point now (invisible until the burst when the slide starts).
+        val facing = blinkFacing(fleet, exit)
+        exitEffect = vis().add(RuptureEffect.ark(Vector2f(exit), facing, SlipspaceJumpRules.arkRadius(fleet), persistent = false), system)
+        phase = Phase.TRANSITION_BLINK
+        val target = system.createToken(exit.x, exit.y)
+        SlipspaceTransitionScript.start(fleet, Leg.BLINK, target, this, SlipspaceJumpRules.arrivalPlan(exit, facing, fleet))
+    }
+
+    /** Facing of an in-system arrival at [point]: the travel direction, from the rupture the fleet entered. */
+    private fun blinkFacing(fleet: CampaignFleetAPI, point: Vector2f): Float {
+        val from = Vector2f(portalX, portalY)
+        if (Misc.getDistance(from, point) < 1f) return fleet.facing
+        return Misc.getAngleInDegrees(from, point)
     }
 
     // =============================================================================================
@@ -436,16 +507,31 @@ class SlipspaceJump : BaseDurationAbility() {
             return
         }
         val origin = routeOrigin ?: originId?.let { sector.getStarSystem(it) } ?: dest
-        val point = SlipspaceJumpRules.arrivalPoint(origin, dest)
+        // The plotted point belongs to the route laid out in the pocket: only for that destination.
+        val plotted = if (pocket != null && routeDest != null && dest === routeDest) slipspaceRoutePoint(pocket) else null
+        val (point, facing) = exitArrival(origin, dest, plotted)
         val target = dest.createToken(point.x, point.y)
 
-        // Arrive through an Ark exit at the system's edge, facing the system centre (armed now,
-        // burst when the slide starts).
-        val facing = arrivalFacing(point, dest)
+        // Arrive through an Ark exit (armed now, burst when the slide starts).
         exitEffect = vis().add(RuptureEffect.ark(Vector2f(point), facing, SlipspaceJumpRules.arkRadius(fleet), persistent = false), dest)
 
         phase = Phase.TRANSITION_BACK
         SlipspaceTransitionScript.start(fleet, Leg.BACK, target, this, SlipspaceJumpRules.arrivalPlan(point, facing, fleet))
+    }
+
+    /**
+     * Where a fleet leaving the pocket arrives in [dest], and its facing: the [plotted] point
+     * (navigation upgrade), kept out of star zones and facing the travel direction; otherwise the
+     * system's edge on the origin's side, facing the system centre.
+     */
+    private fun exitArrival(origin: StarSystemAPI, dest: StarSystemAPI, plotted: Vector2f?): Pair<Vector2f, Float> {
+        if (plotted != null) {
+            val point = SlipspaceJumpRules.nudgeOutOfStarZones(dest, plotted)
+            val facing = if (origin !== dest) SlipspaceJumpRules.travelFacing(origin, dest) else arrivalFacing(point, dest)
+            return point to facing
+        }
+        val point = SlipspaceJumpRules.arrivalPoint(origin, dest)
+        return point to arrivalFacing(point, dest)
     }
 
     /** The direction a fleet arriving at [point] in [system] faces: the system centre. */
@@ -479,7 +565,7 @@ class SlipspaceJump : BaseDurationAbility() {
                     vis().playOneShot(SlipspaceJumpRules.SOUND_ARRIVAL, at)
                 }
             }
-            Leg.BACK -> {
+            Leg.BACK, Leg.BLINK -> {
                 var effect = exitEffect
                 if (effect == null || effect.isDone) {
                     // After a load the armed effect is gone: rebuild it at the tube mouth.
@@ -516,18 +602,23 @@ class SlipspaceJump : BaseDurationAbility() {
                 phase = Phase.IN_POCKET
                 entryEffect = null
             }
-            Leg.BACK -> finishJump()
+            Leg.BACK, Leg.BLINK -> finishJump()
         }
     }
 
     private fun finishJump() {
+        val wasBlink = currentPhase == Phase.TRANSITION_BLINK
         phase = Phase.IDLE
+        entryEffect = null
         exitEffect = null
         originId = null
         destId = null
+        precisePoint = null
+        findSlipspaceSystem()?.let { clearSlipspaceRoutePoint(it) }
         val fleet = fleet
         val mult = if (fleet != null) SlipspaceJumpRules.cooldownMult(fleet) else 1f
-        cooldownTotalDays = spec.deactivationCooldown * mult * SlipspaceJumpRules.cooldownMult.value
+        val blinkMult = if (wasBlink) SlipspaceJumpRules.blinkCooldownMult.value else 1f
+        cooldownTotalDays = spec.deactivationCooldown * mult * SlipspaceJumpRules.cooldownMult.value * blinkMult
         cooldownLeft = cooldownTotalDays
     }
 
@@ -569,18 +660,33 @@ class SlipspaceJump : BaseDurationAbility() {
                 val pocket = fleet.containingLocation as? StarSystemAPI
                 if (pocket != null && pocket.hasTag(SLIPSPACE_POCKET_TAG)) {
                     val sector = Global.getSector()
-                    val dest = slipspaceRouteDestination(pocket) ?: destId?.let { sector.getStarSystem(it) }
+                    val routeDest = slipspaceRouteDestination(pocket)
+                    val dest = routeDest ?: destId?.let { sector.getStarSystem(it) }
                     if (dest == null) {
                         restore(fleet)
                         phase = Phase.IN_POCKET
                     } else {
                         val origin = slipspaceRouteOrigin(pocket) ?: originId?.let { sector.getStarSystem(it) } ?: dest
-                        val point = SlipspaceJumpRules.arrivalPoint(origin, dest)
+                        val plotted = if (routeDest != null) slipspaceRoutePoint(pocket) else null
+                        val (point, facing) = exitArrival(origin, dest, plotted)
                         val target = dest.createToken(point.x, point.y)
-                        val facing = arrivalFacing(point, dest)
                         exitEffect = vis().add(RuptureEffect.ark(Vector2f(point), facing, SlipspaceJumpRules.arkRadius(fleet), persistent = false), dest)
                         SlipspaceTransitionScript.resumeAtSwitch(fleet, Leg.BACK, target, this, SlipspaceJumpRules.arrivalPlan(point, facing, fleet))
                     }
+                } else {
+                    restore(fleet)
+                    finishJump()
+                }
+            }
+            Phase.TRANSITION_BLINK -> {
+                // Same system, so the switch only places the fleet: finish it at the saved point.
+                val system = destId?.let { Global.getSector().getStarSystem(it) }
+                val point = precisePoint
+                if (system != null && point != null && fleet.containingLocation === system) {
+                    val facing = blinkFacing(fleet, point)
+                    exitEffect = vis().add(RuptureEffect.ark(Vector2f(point), facing, SlipspaceJumpRules.arkRadius(fleet), persistent = false), system)
+                    val target = system.createToken(point.x, point.y)
+                    SlipspaceTransitionScript.resumeAtSwitch(fleet, Leg.BLINK, target, this, SlipspaceJumpRules.arrivalPlan(point, facing, fleet))
                 } else {
                     restore(fleet)
                     finishJump()
@@ -712,6 +818,15 @@ class SlipspaceJump : BaseDurationAbility() {
             pad
         )
 
+        if (!Global.CODEX_TOOLTIP_MODE && SlipspaceJumpRules.hasNavigationUpgrade()) {
+            tooltip.addPara(
+                "Navigation System installed: the exit point can be plotted on the system map in " +
+                    "any star system the fleet has visited, and the fleet can jump within its current " +
+                    "system for %s fuel.",
+                pad, highlight, Misc.getWithDGS(SlipspaceJumpRules.blinkFuelCost(fleet).toFloat())
+            )
+        }
+
         val tuned = SlipspaceJumpRules.tunedCount(fleet)
         val sModded = SlipspaceJumpRules.sModTunedCount(fleet)
         if (tuned > 0 || sModded > 0) {
@@ -731,7 +846,7 @@ class SlipspaceJump : BaseDurationAbility() {
         when (currentPhase) {
             Phase.CHARGING, Phase.LURCH -> tooltip.addPara("Press again to abort the jump.", highlight, pad)
             Phase.IN_POCKET -> tooltip.addPara("In slipspace: follow the current to the exit.", highlight, pad)
-            Phase.TRANSITION_OUT, Phase.TRANSITION_BACK, Phase.EXITING -> tooltip.addPara("Jumping...", highlight, pad)
+            Phase.TRANSITION_OUT, Phase.TRANSITION_BACK, Phase.TRANSITION_BLINK, Phase.EXITING -> tooltip.addPara("Jumping...", highlight, pad)
             else -> {}
         }
 

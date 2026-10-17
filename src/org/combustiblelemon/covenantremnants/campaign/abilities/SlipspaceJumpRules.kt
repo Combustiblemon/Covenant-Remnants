@@ -3,6 +3,7 @@ package org.combustiblelemon.covenantremnants.campaign.abilities
 import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.campaign.CampaignFleetAPI
 import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotAPI
+import com.fs.starfarer.api.campaign.PlanetAPI
 import com.fs.starfarer.api.campaign.SectorEntityToken
 import com.fs.starfarer.api.campaign.StarSystemAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
@@ -23,6 +24,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * Rules and numbers of the campaign Slipspace Jump (gating, costs, destinations, Tuning bonus).
@@ -32,6 +34,12 @@ import kotlin.math.roundToInt
  */
 object SlipspaceJumpRules {
     const val ABILITY_ID = "covenant_remnants_slipspace_jump"
+
+    /** The Covenant Slipspace Navigation System item: installs the navigation upgrade. */
+    const val NAVIGATION_ITEM_ID = "covenant_remnants_slipspace_navigation"
+
+    /** Character memory flag of the navigation upgrade (exact exit points, in-system jumps); never expires. */
+    const val NAVIGATION_FLAG = "\$covenant_remnants_slipspace_navigation"
 
     const val POCKET_BACKGROUND = "graphics/covenant_remnants/backgrounds/slipspace_bg.jpg"
 
@@ -135,6 +143,14 @@ object SlipspaceJumpRules {
 
     val arrivalEdgePad = tune("ARRIVAL_PAD", 500f, "Arrival distance beyond the destination's outer radius, su")
     val arrivalFallbackRadius = tune("ARRIVAL_FALLBACK", 6000f, "Outer radius used when a system reports none, su")
+
+    // --- Navigation upgrade: exact exit points and in-system jumps (rulings 2026-10-12) ----------
+
+    val blinkFuelLy = tune("BLINK_FUEL_LY", 1f, "In-system jump fuel, in light-years of the fleet's fuel/LY")
+    val blinkCrMult = tune("BLINK_CR_MULT", 1f, "In-system jump CR hit, × the jump's")
+    val blinkCooldownMult = tune("BLINK_COOLDOWN_MULT", 1f, "In-system jump cooldown, × the jump's")
+    val blinkMinDistance = tune("BLINK_MIN_DISTANCE", 2000f, "In-system jump: closest exit point to the fleet, su")
+    val starExclusionMult = tune("STAR_EXCLUSION_MULT", 1.5f, "No exit points within this many radii of a star or black hole")
 
     // --- Slipspace Tuning campaign bonus ----------------------------------------------------------
 
@@ -401,19 +417,27 @@ object SlipspaceJumpRules {
     // Destinations and costs
     // =========================================================================================
 
+    /** A system the jump can lead to: not the pocket, not hidden, not deep space, with a hyperspace anchor. */
+    private fun isJumpTarget(system: StarSystemAPI): Boolean {
+        if (system.hasTag(SLIPSPACE_POCKET_TAG)) return false
+        if (system.hasTag(Tags.THEME_HIDDEN)) return false
+        if (system.isDeepSpace) return false
+        val anchor = system.hyperspaceAnchor ?: return false
+        return Misc.getStarSystemForAnchor(anchor) != null
+    }
+
     /** Hyperspace anchors of every system the picker offers from [origin] (all systems, fuel-gated at confirm). */
-    fun destinations(origin: StarSystemAPI): List<SectorEntityToken> {
-        val result = ArrayList<SectorEntityToken>()
-        for (system in Global.getSector().starSystems) {
-            if (system === origin) continue
-            if (system.hasTag(SLIPSPACE_POCKET_TAG)) continue
-            if (system.hasTag(Tags.THEME_HIDDEN)) continue
-            if (system.isDeepSpace) continue
-            val anchor = system.hyperspaceAnchor ?: continue
-            if (Misc.getStarSystemForAnchor(anchor) == null) continue
-            result.add(anchor)
-        }
-        return result
+    fun destinations(origin: StarSystemAPI): List<SectorEntityToken> =
+        Global.getSector().starSystems.filter { it !== origin && isJumpTarget(it) }.map { it.hyperspaceAnchor }
+
+    /**
+     * Systems where the navigation upgrade lets the player plot the exit point: [origin] itself
+     * (the in-system jump) and every jump target the player has entered (developer ruling
+     * 2026-10-12: never-entered systems offer the edge jump only). Empty without the upgrade.
+     */
+    fun pointDestinations(origin: StarSystemAPI): List<StarSystemAPI> {
+        if (!hasNavigationUpgrade()) return emptyList()
+        return Global.getSector().starSystems.filter { isJumpTarget(it) && (it === origin || it.isEnteredByPlayer) }
     }
 
     fun distanceLY(origin: StarSystemAPI, dest: StarSystemAPI): Float =
@@ -431,9 +455,12 @@ object SlipspaceJumpRules {
     fun crCostMult(fleet: CampaignFleetAPI): Float =
         if (free.isOn) 0f else fleet.stats.dynamic.getValue(Stats.DIRECT_JUMP_CR_MULT)
 
-    /** Ships whose CR is below what the jump takes — they risk damage on activation. */
-    fun nonReadyShips(fleet: CampaignFleetAPI): List<FleetMemberAPI> {
-        val mult = crCostMult(fleet)
+    /**
+     * Ships whose CR is below what the jump takes — they risk damage on activation.
+     * [jumpMult] scales the hit (the in-system jump's `BLINK_CR_MULT`).
+     */
+    fun nonReadyShips(fleet: CampaignFleetAPI, jumpMult: Float = 1f): List<FleetMemberAPI> {
+        val mult = crCostMult(fleet) * jumpMult
         if (mult <= 0f) return emptyList()
         return fleet.fleetData.membersListCopy.filter { member ->
             val crLoss = member.deployCost * crCostMult.value * mult
@@ -442,16 +469,16 @@ object SlipspaceJumpRules {
     }
 
     /** Supplies it will take to recover the CR hit. */
-    fun supplyCost(fleet: CampaignFleetAPI): Float {
-        val mult = crCostMult(fleet)
+    fun supplyCost(fleet: CampaignFleetAPI, jumpMult: Float = 1f): Float {
+        val mult = crCostMult(fleet) * jumpMult
         return fleet.fleetData.membersListCopy.sumOf { (it.deploymentCostSupplies * crCostMult.value * mult).toDouble() }.toFloat()
     }
 
-    /** Applies the CR hit and the low-CR damage roll (transverse-jump style). */
-    fun applyCrHit(fleet: CampaignFleetAPI) {
-        val mult = crCostMult(fleet)
+    /** Applies the CR hit and the low-CR damage roll (transverse-jump style); [jumpMult] as [nonReadyShips]. */
+    fun applyCrHit(fleet: CampaignFleetAPI, jumpMult: Float = 1f) {
+        val mult = crCostMult(fleet) * jumpMult
         if (mult <= 0f) return
-        for (member in nonReadyShips(fleet)) {
+        for (member in nonReadyShips(fleet, jumpMult)) {
             if (Math.random().toFloat() < EmergencyBurnAbility.ACTIVATION_DAMAGE_PROB) {
                 Misc.applyDamage(
                     member, null, FleetMemberDamageLevel.LOW, false, null, null,
@@ -463,6 +490,97 @@ object SlipspaceJumpRules {
             val crLoss = member.deployCost * crCostMult.value * mult
             member.repairTracker.applyCREvent(-crLoss, "Slipspace jump")
         }
+    }
+
+    // =========================================================================================
+    // Navigation upgrade: exact exit points and in-system jumps (rulings 2026-10-12)
+    // =========================================================================================
+
+    fun hasNavigationUpgrade(): Boolean =
+        Global.getSector()?.characterData?.memoryWithoutUpdate?.getBoolean(NAVIGATION_FLAG) == true
+
+    /**
+     * Installs the navigation upgrade. Used by the Navigation System item and `CovenantGiveAll`
+     * now, the granting quest later. Never revoked.
+     * @return false if it was already installed.
+     */
+    fun grantUpgradeToPlayer(): Boolean {
+        val memory = Global.getSector().characterData.memoryWithoutUpdate
+        if (memory.getBoolean(NAVIGATION_FLAG)) return false
+        memory.set(NAVIGATION_FLAG, true)
+        return true
+    }
+
+    /** Fuel of an in-system jump: a flat [blinkFuelLy] light-years' worth (transverse-jump style). */
+    fun blinkFuelCost(fleet: CampaignFleetAPI): Int {
+        if (free.isOn) return 0
+        return ceil(fleet.logistics.fuelCostPerLightYear * blinkFuelLy.value).toInt()
+    }
+
+    /** Where [system]'s exit-point limit is measured from: its centre entity (the world origin without one). */
+    fun systemCenter(system: StarSystemAPI): Vector2f = system.center?.location?.let { Vector2f(it) } ?: Vector2f(0f, 0f)
+
+    /** How far from [systemCenter] an exit point may be: the system's outer radius, no pad (ruling 2026-10-12). */
+    fun pointBoundsRadius(system: StarSystemAPI): Float {
+        // getOuterRadius measures terrain and jump points from the centre entity and fails without one.
+        val outer = if (system.center != null) BaseThemeGenerator.getOuterRadius(system) else 0f
+        return if (outer > 0f) outer else arrivalFallbackRadius.value
+    }
+
+    /** Stars and black holes of [system] with their no-exit radius ([starExclusionMult] × body radius). */
+    fun starZones(system: StarSystemAPI): List<Pair<PlanetAPI, Float>> =
+        system.planets.filter { it.isStar || it.isBlackHole }.map { it to it.radius * starExclusionMult.value }
+
+    /**
+     * Why [point] in [system] cannot be an exit point, or null when it can: beyond the system's
+     * outer radius, inside a star / black-hole zone, or (in-system jump, [fleetPos] given) closer to
+     * the fleet than [blinkMinDistance].
+     */
+    fun pointRejectReason(system: StarSystemAPI, point: Vector2f, fleetPos: Vector2f?): String? {
+        if (Misc.getDistance(systemCenter(system), point) > pointBoundsRadius(system)) {
+            return "Beyond the outer limit of the system."
+        }
+        for ((body, radius) in starZones(system)) {
+            if (Misc.getDistance(body.location, point) < radius) return "Too close to ${body.name}."
+        }
+        if (fleetPos != null && Misc.getDistance(fleetPos, point) < blinkMinDistance.value) {
+            return "Too close to the fleet."
+        }
+        return null
+    }
+
+    /**
+     * [point] pushed radially out of any star / black-hole zone it has ended up in (stars of binary
+     * systems move between the pick and the arrival; developer ruling 2026-10-12: nudge, not cancel).
+     */
+    fun nudgeOutOfStarZones(system: StarSystemAPI, point: Vector2f): Vector2f {
+        val result = Vector2f(point)
+        val zones = starZones(system)
+        // A few passes: in a close binary, leaving one zone can land inside the other.
+        repeat(4) {
+            var moved = false
+            for ((body, radius) in zones) {
+                val dx = result.x - body.location.x
+                val dy = result.y - body.location.y
+                val d = sqrt(dx * dx + dy * dy)
+                if (d >= radius) continue
+                val edge = radius * 1.01f
+                if (d < 1f) {
+                    result.set(body.location.x + edge, body.location.y)
+                } else {
+                    result.set(body.location.x + dx / d * edge, body.location.y + dy / d * edge)
+                }
+                moved = true
+            }
+            if (!moved) return result
+        }
+        return result
+    }
+
+    /** Facing of a precise arrival from another system: the travel direction, origin → destination in hyperspace. */
+    fun travelFacing(origin: StarSystemAPI, dest: StarSystemAPI): Float {
+        if (Misc.getDistance(origin.location, dest.location) < 1f) return 0f
+        return Misc.getAngleInDegrees(origin.location, dest.location)
     }
 
     // =========================================================================================

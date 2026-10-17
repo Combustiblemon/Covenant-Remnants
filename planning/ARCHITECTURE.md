@@ -27,8 +27,8 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
 - `modPlugin`: `org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin`.
 - jars: `jars/CovenantRemnants.jar`.
 - **Declared dependencies:** `combustiblelemon_lemonlib` (LemonLib, which also ships the Kotlin
-  runtime), `MagicLib`. LazyLib is no longer declared (2026-10-12); it is still installed, because
-  MagicLib requires it.
+  runtime), `MagicLib`, `ashlib` (Ashlib, the Slipspace Jump system map; added 2026-10-12). LazyLib
+  is no longer declared (2026-10-12); it is still installed, because MagicLib and Ashlib require it.
 
 ## Entry point — `CovenantRemnantsPlugin`
 
@@ -97,14 +97,24 @@ the fleet) → lurch in → custom transition into the pocket system "Slipspace"
 carries the fleet to the exit → exit dialog → transition to the destination's edge facing the
 origin. See [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
 
+Navigation upgrade (2026-10-12, item `covenant_remnants_slipspace_navigation`, character memory
+flag `$covenant_remnants_slipspace_navigation`): each star's picker dropdown also offers
+"plot coordinates", which opens a system map to pick the exit point. Another system: the pocket as
+above, landing at the point. The current system: an in-system jump without the pocket (`Leg.BLINK`).
+See [implementations/advanced-slipspace-jump.md](implementations/advanced-slipspace-jump.md).
+
 - Ability: `campaign/abilities/SlipspaceJump.kt` (phase machine, rendering on the `ABOVE` layer),
-  `SlipspaceJumpRules.kt` (gating, costs, destinations, Tuning bonus, every placeholder number as a
-  live tunable for the `SlipspaceJumpTune` console command),
+  `SlipspaceJumpRules.kt` (gating, costs, destinations, Tuning bonus, navigation-upgrade rules,
+  every placeholder number as a live tunable for the `SlipspaceJumpTune` console command),
   `SlipspaceDestinationDialog.kt` (host dialog + `showCampaignEntityPicker`),
-  `SlipspaceTransitionScript.kt` (sector-level location switch), `SlipspaceJumpVisuals.kt`
-  (campaign owner of `utils/render/rupture/RuptureRenderer`).
+  `SlipspacePointDialog.kt` + `SlipspacePointMap.kt` (the system map: a custom visual dialog around
+  Ashlib's `SlipSpaceJumpCoordinateUI`),
+  `SlipspaceTransitionScript.kt` (sector-level location switch; legs OUT / BACK / BLINK),
+  `SlipspaceJumpVisuals.kt` (campaign owner of `utils/render/rupture/RuptureRenderer`).
+- Items: `campaign/items/HuragokSlipspaceEngramPlugin.kt` (Covenant Slipspace Drive Schematics:
+  teaches the jump) and `SlipspaceNavigationSystemPlugin.kt` (installs the upgrade).
 - Pocket: `campaign/systems/SlipspaceSystem.kt` (`ensureSlipspaceSystem`, `prepareSlipspaceRoute`,
-  route memory) + `SlipspacePaths.kt` (per-pair saved path records, polyline builder) +
+  route memory incl. the plotted exit point) + `SlipspacePaths.kt` (per-pair saved path records, polyline builder) +
   `scripts/SlipspaceSystemEFS.kt` (vanilla movement abilities off while in the pocket);
   path terrain `campaign/terrain/SlipspaceStreamTerrainPlugin.kt` (`SlipstreamTerrainPlugin2`
   subclass with push-back + clamp; `data/campaign/terrain.json`).
@@ -196,6 +206,11 @@ portal — ships of any side, fighters, shots, hulks, asteroids — to the desti
 `hullmods/HuragokCrew.kt`, `hullmods/PlasmaCapacitors.kt`, `hullmods/SlipspaceTuning.kt`,
 `hullmods/SlipspaceDriveHullmod.kt` (flavor marker).
 
+`CovenantShield.ensureBuiltInOnShieldHulls()` runs from `onApplicationLoad`: every hull spec whose
+defense id is `covenant_remnants_covenantshield` gets the Covenant Shield hullmod as built-in, even
+if its `.ship` file lost it. See
+[implementations/covenant-shield-flux-and-builtin.md](implementations/covenant-shield-flux-and-builtin.md).
+
 Incompatibility system: generic mechanism lives in **LemonLib**
 (`org.combustiblelemon.lemonlib.hullmods` — `HullmodBlocker`, `HullmodIncompatibilityWrapper`,
 stateless `HullmodIncompatibilityInstaller`; docs at `LemonLib/docs/hullmod-incompatibility/`).
@@ -229,6 +244,7 @@ Gradle Kotlin DSL, Kotlin JVM 2.2.20, Java 8 target (`build.gradle.kts`; `compil
   - LemonLib, through the composite build (`settings.gradle.kts` `includeBuild("../LemonLib")`),
     resolved to LemonLib's classes.
   - MagicLib, LunaLib, Console Commands, log4j 1.2.17.
+  - Ashlib: `../Ashlib_/jars/ashlib.jar` (folder name with the underscore).
   - No LazyLib. Its former uses map as follows:
     - `CollisionUtils`, `DrawUtils.drawCircle`: LemonLib (`geometry/Collision.kt`,
       `render/Primitives.kt`).
@@ -242,8 +258,11 @@ Gradle Kotlin DSL, Kotlin JVM 2.2.20, Java 8 target (`build.gradle.kts`; `compil
   - The release file list lives only in `packageMod`'s `runtimeFiles`. `package_mod.bat` / `.sh`
     wrap it. See [implementations/release-packaging.md](implementations/release-packaging.md).
 
-> **Runtime dependencies:** `mod_info.json` declares LemonLib and MagicLib (required). LemonLib
-> provides the Kotlin 2.2.20 runtime. LazyLib only comes along because MagicLib requires it.
+> **Runtime dependencies:** `mod_info.json` declares LemonLib, MagicLib and Ashlib (required).
+> LemonLib provides the Kotlin 2.2.20 runtime. LazyLib only comes along because MagicLib and Ashlib
+> require it. Ashlib (by Kaysaar, GPL-3.0 upstream) is used only for the Slipspace Jump system map
+> (`SlipSpaceJumpCoordinateUI`, `RestrictedArea`, `MapOrbitRenderer`, `ResizableComponent`;
+> developer ruling 2026-10-12); Covenant links to it and ships none of its code.
 > MagicLib is used only for `MagicUI`: the Covenant shield HUD bars (`CovenantShieldsUIRenderPlugin`)
 > and the `BLUCOLOR` of the shield damage numbers. It stays required (developer ruling 2026-10-10:
 > nearly every player has it, and rewriting the HUD bars is not worth it).

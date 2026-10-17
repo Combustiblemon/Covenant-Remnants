@@ -324,6 +324,28 @@ Keep this file current — tick items off and add new ones as work lands.
       [implementations/campaign-slipspace-jump.md](implementations/campaign-slipspace-jump.md).
 - [x] **frigate3 builtInMods** — `covenant_remnants_slipspace_drive` now present on
       `covenant_remnants_frigate3.ship` (added in the ship-editor bounds pass); all 16 combat hulls match.
+- [x] **Huragok Crew update** — built 2026-10-17: max CR bonus only with Covenant Systems, repair
+      rate ×1/0.75 (exact cancel, always on), in-combat hull repair with elite Combat Endurance
+      numbers (own pool, stacks with the skill). See
+      [implementations/huragok-crew-hull-repair.md](implementations/huragok-crew-hull-repair.md).
+- [ ] **Huragok Crew — in-game check** — 4-point list in
+      [implementations/huragok-crew-hull-repair.md](implementations/huragok-crew-hull-repair.md):
+      refit CR/repair with and without Covenant Systems, tooltip, combat regen rate + cap, redeploy.
+- [x] **Covenant Shield flux penalty + enforced built-in** — built 2026-10-17: −20 % max flux on
+      every ship with the hullmod; load-time check makes it built-in on every hull whose defense is
+      the Covenant shield. See
+      [implementations/covenant-shield-flux-and-builtin.md](implementations/covenant-shield-flux-and-builtin.md).
+- [ ] **Covenant Shield flux — in-game check** — 3-point list in
+      [implementations/covenant-shield-flux-and-builtin.md](implementations/covenant-shield-flux-and-builtin.md):
+      refit flux on Covenant and non-Covenant hulls, tooltip, load-time built-in fallback.
+- [x] **Plasma Capacitors rework** — built 2026-10-17: energy weapon rate of fire and ammo regen
+      ×1.2, energy flux cost ×1.2 (beams exempt); old flux capacity / vent / overload effects
+      removed. See [implementations/plasma-capacitors-rof.md](implementations/plasma-capacitors-rof.md).
+- [ ] **Plasma Capacitors — in-game check** — 3-point list in
+      [implementations/plasma-capacitors-rof.md](implementations/plasma-capacitors-rof.md).
+- [ ] **Plasma Capacitors — variant re-check** — six stock variants carry it from when it was a
+      flux-sustain mod (frigate1, frigate2, destroyer4, cruiser5, capital1, capital2); decide whether
+      they keep it.
 - [ ] **Tune hullmod numbers** — after all gameplay systems are done (developer 2026-10-02). OP costs and all new-mod values are vanilla-anchored placeholders.
 - [x] **Weapon-buff hullmod** (from PLAN) — scrapped for now (developer 2026-10-02). Was: buff
       plasma/energy weapons, nerf the weapons themselves to compensate.
@@ -543,8 +565,11 @@ Keep this file current — tick items off and add new ones as work lands.
       `_std` fits, 1 / 3 / 4 / 6 / 10 ships by size, 30 per weapon / wing, optional-hullmod
       modspecs, Huragok Slipspace Engram with a vanilla placeholder icon): temporary exception to
       quest-gated acquisition. See [implementations/tester-cache.md](implementations/tester-cache.md).
+      2026-10-12: the engram is renamed Covenant Slipspace Drive Schematics, and the cache also
+      holds the Covenant Slipspace Navigation System (old tester saves get it once).
 - [ ] **Tester cache — remove for release** — turn `TesterCache.ENABLED` off (or delete the class +
-      CSV row) once the quests hand out Covenant content; engram art and final text.
+      CSV rows) once the quests hand out Covenant content; art and final text for both slipspace
+      items.
 - [x] **LemonLib repo is dirty** — hullmod-incompatibility + reflection source committed
       (`65a5b80`), `CubicCurve2D.kt` + `README.md` row committed (`0ed9f18`). Only the rebuilt
       `jars/LemonLib.jar` showed as modified on 2026-10-10; closed by the developer the same day.
@@ -615,12 +640,29 @@ Keep this file current — tick items off and add new ones as work lands.
       (`SlipspaceSystemEFS.hideParticles`: the particle colour shifted to transparent every frame,
       the abyss mechanism — the engine only applies the colour while a shift is active, a base
       colour alone did nothing).
-- [ ] **Granting quest** — the ability is quest-gated; until the quest exists `CovenantGiveAll`
-      grants it (`SlipspaceJumpRules.grantToPlayer()`), and testers get a Huragok Slipspace Engram
-      (right-click to learn) in the Corvus tester cache — a candidate quest reward. See
-      [implementations/tester-cache.md](implementations/tester-cache.md).
+- [ ] **Granting quest** — the ability and its navigation upgrade are quest-gated; until the quest
+      exists `CovenantGiveAll` grants both (`SlipspaceJumpRules.grantToPlayer()` /
+      `grantUpgradeToPlayer()`), and testers get the Covenant Slipspace Drive Schematics and the
+      Covenant Slipspace Navigation System (right-click each) in the Corvus tester cache — candidate
+      quest rewards. See [implementations/tester-cache.md](implementations/tester-cache.md).
 - [x] **`SlipspaceSystemEFS` bug** — fixed 2026-10-07: it disabled Transverse Jump sector-wide
       (non-current systems advance every frame); now guarded on the player being in the pocket.
+- [x] **Advanced Slipspace (navigation upgrade)** — built 2026-10-12 (rulings: upgrade of the same
+      ability via the Covenant Slipspace Navigation System item; a `<system> - plot coordinates` row
+      per star opens Ashlib's system map; other systems still go through the pocket and land at the
+      point; the current system is a direct jump, no pocket; zones radius × 1.5 around stars, outer
+      radius limit, never-entered systems hidden, 2000 su minimum in-system; in-system cost 1 LY of
+      fuel + the jump's CR hit + cooldown; facing = travel direction; Ashlib required). See
+      [implementations/advanced-slipspace-jump.md](implementations/advanced-slipspace-jump.md).
+- [ ] **Advanced Slipspace — in-game checklist** — the list in
+      [implementations/advanced-slipspace-jump.md](implementations/advanced-slipspace-jump.md),
+      with Ashlib enabled and Ashes of the Domain **disabled** (Ashlib's planet renderer references
+      it; expected safe, unproven). Confirm the assumptions listed there too.
+- [ ] **Advanced Slipspace — tuning** — `BLINK_FUEL_LY`, `BLINK_CR_MULT`, `BLINK_COOLDOWN_MULT`,
+      `BLINK_MIN_DISTANCE`, `STAR_EXCLUSION_MULT` (live via `SlipspaceJumpTune`), the overlay colours
+      in `SlipspacePointMap`, the system-map layout in `SlipspacePointDialog`.
+- [ ] **Slipspace items — art and text** — both items use vanilla placeholder icons (Janus Device,
+      hyperspace data) and draft descriptions.
 
 ## From PLAN.md (still open)
 

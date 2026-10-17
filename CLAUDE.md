@@ -49,11 +49,12 @@ These are settled. Do not re-open them without asking the developer.
 ## Stack
 
 - **Language/build:** Kotlin 2.2.20 (JVM, Java 8 target), Gradle Kotlin DSL. See [planning/ARCHITECTURE.md](planning/ARCHITECTURE.md).
-- **Declared dependencies (required):** LemonLib, MagicLib.
+- **Declared dependencies (required):** LemonLib, MagicLib, Ashlib (ruling 2026-10-12: its system
+  map backs the Slipspace Jump navigation upgrade).
 - **Kotlin runtime (ruling 2026-10-12):** LemonLib ships the runtime (`jars/lib/Kotlin-Runtime.jar`),
   and both mods compile against it. Covenant does not use LazyLib: no `lw_lazylib` dependency and
-  no LazyLib API. LazyLib is still installed, but only because MagicLib requires it. Use LemonLib
-  or vanilla helpers instead of reintroducing LazyLib calls.
+  no LazyLib API. LazyLib is still installed, but only because MagicLib and Ashlib require it. Use
+  LemonLib or vanilla helpers instead of reintroducing LazyLib calls.
   - LemonLib's `"sortString": "~LemonLib"` keeps its jars first on the shared classpath.
   - None of our mods may set a `sortString` that sorts after it.
 - **Optional dependencies (ruling 2026-10-01):** LunaLib, Console Commands — compile-only, never
