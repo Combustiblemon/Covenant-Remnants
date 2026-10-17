@@ -32,8 +32,14 @@ class SlipspacePointDialog(
 ) : CustomVisualDialogDelegate {
 
     companion object {
-        const val WIDTH = 1000f
-        const val HEIGHT = 640f
+        /** Share of the screen the dialog covers, on each side (developer 2026-10-17: about 90 %). */
+        const val SCREEN_FRACTION = 0.9f
+
+        /** Dialog width in UI (virtual) pixels, so it covers the same share at every UI scale. */
+        fun width(): Float = Global.getSettings().screenWidth * SCREEN_FRACTION
+
+        /** Dialog height in UI (virtual) pixels. */
+        fun height(): Float = Global.getSettings().screenHeight * SCREEN_FRACTION
     }
 
     /** Set once the game showed the dialog and its contents were built ([init] runs inside `showCustomVisualDialog`). */

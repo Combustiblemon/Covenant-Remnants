@@ -405,7 +405,7 @@ object SlipspaceJumpRules {
     fun blockReason(fleet: CampaignFleetAPI): String? {
         val location = fleet.containingLocation
         if (location == null || fleet.isInHyperspace) return "Cannot be used in hyperspace."
-        if (location.hasTag(SLIPSPACE_POCKET_TAG)) return "Already in slipspace — follow the current to the exit."
+        if (location.hasTag(SLIPSPACE_POCKET_TAG)) return "Already in slipspace: follow the current to the exit."
         if (location !is StarSystemAPI) return "Can only be used inside a star system."
         if (fleet.isInHyperspaceTransition) return "Cannot be used while jumping."
         if (shipsThatCount(fleet).isEmpty()) return "No ships."

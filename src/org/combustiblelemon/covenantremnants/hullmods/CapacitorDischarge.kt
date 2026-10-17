@@ -5,6 +5,8 @@ import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.listeners.AdvanceableListener
+import com.fs.starfarer.api.ui.TooltipMakerAPI
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.combustiblelemon.lemonlib.geometry.getPercentage
 import kotlin.math.ceil
 import kotlin.math.max
@@ -34,6 +36,12 @@ class CapacitorDischarge : BaseHullMod() {
 
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
         ship?.addListener(Discharge(ship))
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {

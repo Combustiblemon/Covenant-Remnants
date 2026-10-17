@@ -4,6 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.ui.TooltipMakerAPI
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import kotlin.math.roundToInt
 
 /**
@@ -47,6 +49,12 @@ class OverchargedEmitters : BaseHullMod() {
                 ID, ICON, "Overcharged Emitters", "+${(bonus * 100).roundToInt()}% energy weapon rate of fire", false
             )
         }
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {

@@ -3,8 +3,10 @@ package org.combustiblelemon.covenantremnants.hullmods
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.ui.TooltipMakerAPI
 import com.fs.starfarer.api.util.Misc
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.combustiblelemon.lemonlib.geometry.getPercentage
 
 /**
@@ -57,6 +59,12 @@ class SlipspaceTuning : BaseHullMod() {
 
     private fun hasSlipspaceDrive(ship: ShipAPI): Boolean {
         return ship.variant?.hasHullMod(SlipspaceDriveHullmod.ID) == true
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {

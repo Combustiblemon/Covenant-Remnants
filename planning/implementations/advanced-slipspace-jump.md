@@ -56,8 +56,9 @@ ability: charge → lurch → commit
 New:
 
 - `src/.../campaign/abilities/SlipspacePointDialog.kt` — `SlipspacePointDialog` (the custom visual
-  dialog delegate, 1000 × 640) and `SlipspacePointPanel` (title, map, info lines, Confirm / Back;
-  Back has Escape).
+  dialog delegate; 90 % of the screen on each side, in UI pixels, since 2026-10-17 at the
+  developer's request; was 1000 × 640) and `SlipspacePointPanel` (title, map, info lines,
+  Confirm / Back; Back has Escape). The panel layout is relative, so the map takes the extra space.
 - `src/.../campaign/abilities/SlipspacePointMap.kt` — `SlipspacePointMap` (Ashlib map subclass:
   our zones, click rules, overlays) and `MapGlyph` (fixed-size reticle / fleet marker).
 - `src/.../campaign/items/SlipspaceNavigationSystemPlugin.kt` — the upgrade item.
@@ -149,8 +150,11 @@ Not covered by the rulings; each is easy to change.
 6. Bounds are measured from `system.center`; `ARRIVAL_FALLBACK` (6000 su) when a system reports no
    outer radius.
 7. The upgrade flag is never revoked; no console toggle besides `CovenantGiveAll`.
-8. No startup guard for Ashlib (the launcher enforces declared dependencies); no version pin, and
-   Ashlib stays out of `release.ps1`'s pinned local dependencies (those are our own mods).
+8. ~~No startup guard for Ashlib (the launcher enforces declared dependencies)~~ — replaced
+   2026-10-17 (developer ruling): `CovenantRemnantsPlugin.onApplicationLoad` throws "This mod
+   requires Ashlib to work." when Ashlib is not enabled, like the MagicLib check, because the
+   launcher let the game start without it. No version pin, and Ashlib stays out of
+   `release.ps1`'s pinned local dependencies (those are our own mods).
 9. The map's Confirm has no keyboard shortcut (the template uses G).
 10. A refused click keeps the previously plotted point (and says why).
 11. Overlay colours: reticle green (positive highlight), outer ring amber, fleet marker in the
@@ -170,8 +174,13 @@ Not covered by the rulings; each is easy to change.
   as opened only once its contents are built, so a failed build is retried and reported. The
   reviewer could not tell from bytecode whether the Back button's Escape shortcut consumes the key
   (if not, the host dialog's Escape = Cancel would also fire): checklist item 5.
+- First in-game try (developer, 2026-10-17): the map showed "The system map could not be opened."
+  The log had `NoClassDefFoundError: ashlib/.../SlipSpaceJumpCoordinateUI`: Ashlib was not in
+  `enabled_mods.json` and the launcher had started the game anyway. The fallback worked (message,
+  logged error, no crash). Fix: enable Ashlib; the startup guard (decision 8) now catches it at load.
 - In-game checklist (pending; Ashlib enabled, Ashes of the Domain disabled):
-  1. Boot: the launcher asks for Ashlib; `starsector.log` has no `NoClassDefFoundError`, no
+  1. Boot: without Ashlib the game stops at load with "This mod requires Ashlib to work."; with
+     it, `starsector.log` has no `NoClassDefFoundError`, no
      `OpenGL error`.
   2. Items: the Schematics show the new name and still teach the jump. The Navigation System is
      refused and kept without the jump, installs (consumed) with it, and a second copy says
@@ -196,7 +205,8 @@ Not covered by the rulings; each is easy to change.
   8. Binary system: a point next to an orbiting star is nudged out of its zone at arrival.
   9. Save / load: mid-charge (free cancel), mid in-system jump, in the pocket after a plotted pick,
      mid-exit.
-  10. UI scale 150 %: the map dialog fits the screen.
+  10. UI scale 100 % and 150 %: the map dialog covers about 90 % of the screen (centred), the map
+      fills it above the info line and buttons.
 
 ## Open items
 

@@ -10,6 +10,7 @@ import org.combustiblelemon.covenantremnants.hullmods.CovenantIncompatibilities
 import org.combustiblelemon.covenantremnants.hullmods.CovenantShield
 import org.combustiblelemon.covenantremnants.settings.CovenantSettings
 import org.combustiblelemon.covenantremnants.settings.LunaSettingsBridge
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.combustiblelemon.covenantremnants.utils.initShieldData
 import org.combustiblelemon.covenantremnants.utils.render.blink.BlinkRenderer
 import org.combustiblelemon.covenantremnants.utils.render.rupture.RupturePrograms
@@ -30,6 +31,11 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
         val isMagicLibEnabled = Global.getSettings().modManager.isModEnabled("MagicLib")
         if (!isMagicLibEnabled) {
             throw RuntimeException("This mod requires MagicLib to work.")
+        }
+        // Ashlib backs the Slipspace Jump system map; the launcher does not always stop a start
+        // without it (seen 2026-10-17), and the map then fails only when opened.
+        if (!Global.getSettings().modManager.isModEnabled("ashlib")) {
+            throw RuntimeException("This mod requires Ashlib to work.")
         }
 
         logger.info("Loading shield_data.csv")
@@ -73,5 +79,10 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
 
     override fun onNewGame() {
         ensureSlipspaceSystem(Global.getSector())
+    }
+
+    // The Covenant Archive Codex pages (vanilla 0.98a does not load mod Codex text files itself).
+    override fun onAboutToLinkCodexEntries() {
+        CodexLore.addArchiveEntries()
     }
 }

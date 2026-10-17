@@ -6,7 +6,9 @@ import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.listeners.AdvanceableListener
 import com.fs.starfarer.api.impl.campaign.skills.CombatEndurance
+import com.fs.starfarer.api.ui.TooltipMakerAPI
 import com.fs.starfarer.api.util.Misc
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.combustiblelemon.lemonlib.geometry.getPercentage
 import kotlin.math.max
 import kotlin.math.min
@@ -37,6 +39,12 @@ class HuragokCrew : BaseHullMod() {
 
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
         ship?.addListener(HullRegen(ship))
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {

@@ -803,14 +803,28 @@ class SlipspaceJump : BaseDurationAbility() {
             pad
         )
 
-        tooltip.addPara(
-            "Costs %s fuel per light-year and reduces the combat readiness of all ships by %s " +
-                "of a combat deployment. The drive needs %s days to cool down after a jump.",
-            pad, highlight,
-            Misc.getRoundedValueMaxOneAfterDecimal(fleet.logistics.fuelCostPerLightYear * SlipspaceJumpRules.fuelPerLyMult.value),
-            "" + Math.round(SlipspaceJumpRules.crCostMult.value * 100f) + "%",
-            Misc.getRoundedValueMaxOneAfterDecimal(spec.deactivationCooldown)
-        )
+        if (Global.CODEX_TOOLTIP_MODE) {
+            // The Codex builds this tooltip with an empty fleet, whose fuel per light-year is 0:
+            // state the rate instead of a fuel figure.
+            tooltip.addPara(
+                "Costs fuel for the distance travelled, at %s of the fleet's usual rate per light-year, and " +
+                    "reduces the combat readiness of all ships by %s of a combat deployment. The drive needs " +
+                    "%s days to cool down after a jump.",
+                pad, highlight,
+                "" + Math.round(SlipspaceJumpRules.fuelPerLyMult.value * 100f) + "%",
+                "" + Math.round(SlipspaceJumpRules.crCostMult.value * 100f) + "%",
+                Misc.getRoundedValueMaxOneAfterDecimal(spec.deactivationCooldown)
+            )
+        } else {
+            tooltip.addPara(
+                "Costs %s fuel per light-year and reduces the combat readiness of all ships by %s " +
+                    "of a combat deployment. The drive needs %s days to cool down after a jump.",
+                pad, highlight,
+                Misc.getRoundedValueMaxOneAfterDecimal(fleet.logistics.fuelCostPerLightYear * SlipspaceJumpRules.fuelPerLyMult.value),
+                "" + Math.round(SlipspaceJumpRules.crCostMult.value * 100f) + "%",
+                Misc.getRoundedValueMaxOneAfterDecimal(spec.deactivationCooldown)
+            )
+        }
 
         tooltip.addPara(
             "Every cruiser and capital ship must carry a slipspace drive; smaller ships ride " +
@@ -818,7 +832,14 @@ class SlipspaceJump : BaseDurationAbility() {
             pad
         )
 
-        if (!Global.CODEX_TOOLTIP_MODE && SlipspaceJumpRules.hasNavigationUpgrade()) {
+        if (Global.CODEX_TOOLTIP_MODE) {
+            tooltip.addPara(
+                "With the Covenant Slipspace Navigation System installed, the exit point can be plotted on " +
+                    "the system map in any star system the fleet has visited, and the fleet can jump within " +
+                    "its current system for %s light-year's worth of fuel.",
+                pad, highlight, Misc.getRoundedValueMaxOneAfterDecimal(SlipspaceJumpRules.blinkFuelLy.value)
+            )
+        } else if (SlipspaceJumpRules.hasNavigationUpgrade()) {
             tooltip.addPara(
                 "Navigation System installed: the exit point can be plotted on the system map in " +
                     "any star system the fleet has visited, and the fleet can jump within its current " +

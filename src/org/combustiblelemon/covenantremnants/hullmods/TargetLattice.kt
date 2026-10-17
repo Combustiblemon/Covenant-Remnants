@@ -7,6 +7,8 @@ import com.fs.starfarer.api.combat.DamageAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.listeners.AdvanceableListener
 import com.fs.starfarer.api.combat.listeners.DamageDealtModifier
+import com.fs.starfarer.api.ui.TooltipMakerAPI
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.lwjgl.util.vector.Vector2f
 import kotlin.math.max
 import kotlin.math.min
@@ -36,6 +38,12 @@ class TargetLattice : BaseHullMod() {
 
     override fun applyEffectsAfterShipCreation(ship: ShipAPI?, id: String?) {
         ship?.addListener(Lattice(ship))
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {

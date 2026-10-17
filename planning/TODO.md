@@ -358,7 +358,22 @@ Keep this file current — tick items off and add new ones as work lands.
       shield bar overflow fixed. See [implementations/shield-hullmods.md](implementations/shield-hullmods.md).
 - [ ] **Shield hullmods — in-game check** — 7-point list (incl. Fortress AI on a hardened Reverence) in
       [implementations/shield-hullmods.md](implementations/shield-hullmods.md).
-- [ ] **Tune hullmod numbers** — after all gameplay systems are done (developer 2026-10-02). OP costs and all new-mod values are vanilla-anchored placeholders.
+- [ ] **Tune hullmod numbers** — after all gameplay systems are done (developer 2026-10-02).
+
+## Descriptions & Codex
+
+- [x] **Descriptions audit + Codex lore** — 2026-10-17: 13 weapon and 3 ship-system descriptions
+      added, 13 hull/fighter texts corrected to the stock fits, "Covenant Archive" Codex pages,
+      Codex-only hullmod lore, Codex fixes (Covenant Shield ranges, Slipspace Jump fuel text, cover
+      caps and EMP System hidden), em dashes removed. See
+      [implementations/descriptions-codex-pass.md](implementations/descriptions-codex-pass.md).
+- [ ] **Descriptions & Codex — in-game check** — 5-point list in
+      [implementations/descriptions-codex-pass.md](implementations/descriptions-codex-pass.md).
+- [ ] **Codex icons** — the archive uses vanilla Codex icons; bespoke Covenant ones later.
+- [ ] **Archive provenance** — revisit the Covenant Archive once the quests decide how Covenant
+      ships reached the Sector (it currently leaves that open on purpose).
+- [ ] **PD Overdrive AI** — `aiType NONE`, so AI-flown SDVs never use the system (found during the
+      descriptions research; ask before building an AI). OP costs and all new-mod values are vanilla-anchored placeholders.
 - [x] **Weapon-buff hullmod** (from PLAN) — scrapped for now (developer 2026-10-02). Was: buff
       plasma/energy weapons, nerf the weapons themselves to compensate.
 
@@ -679,7 +694,9 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Advanced Slipspace — in-game checklist** — the list in
       [implementations/advanced-slipspace-jump.md](implementations/advanced-slipspace-jump.md),
       with Ashlib enabled and Ashes of the Domain **disabled** (Ashlib's planet renderer references
-      it; expected safe, unproven). Confirm the assumptions listed there too.
+      it; expected safe, unproven). Confirm the assumptions listed there too. First try 2026-10-17:
+      "The system map could not be opened" only because Ashlib was not enabled (the launcher started
+      the game anyway); a startup guard now stops the game at load without Ashlib.
 - [ ] **Advanced Slipspace — tuning** — `BLINK_FUEL_LY`, `BLINK_CR_MULT`, `BLINK_COOLDOWN_MULT`,
       `BLINK_MIN_DISTANCE`, `STAR_EXCLUSION_MULT` (live via `SlipspaceJumpTune`), the overlay colours
       in `SlipspacePointMap`, the system-map layout in `SlipspacePointDialog`.

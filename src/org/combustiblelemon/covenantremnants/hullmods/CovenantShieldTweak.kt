@@ -2,6 +2,8 @@ package org.combustiblelemon.covenantremnants.hullmods
 
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.ui.TooltipMakerAPI
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.combustiblelemon.lemonlib.hullmods.isApplicableGiven
 import org.combustiblelemon.lemonlib.hullmods.unapplicableReasonFor
 
@@ -28,5 +30,11 @@ abstract class CovenantShieldTweak(
             return "Requires the ${CovenantShield.DISPLAY_NAME}"
         }
         return unapplicableReasonFor(ship, incompatible)
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ownId)
     }
 }

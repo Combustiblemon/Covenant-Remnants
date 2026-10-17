@@ -132,7 +132,7 @@ class SlipspaceDestinationDialog(private val ability: SlipspaceJump) : Interacti
         }
         val map = SlipspacePointDialog(this, system, origin)
         try {
-            dialog.showCustomVisualDialog(SlipspacePointDialog.WIDTH, SlipspacePointDialog.HEIGHT, map)
+            dialog.showCustomVisualDialog(SlipspacePointDialog.width(), SlipspacePointDialog.height(), map)
         } catch (e: Exception) {
             Global.getLogger(SlipspaceDestinationDialog::class.java).warn("Slipspace system map: open failed", e)
         }

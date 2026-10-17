@@ -1,0 +1,88 @@
+# Covenant Remnants: Codex archive, in vanilla Codex text markup (see vanilla data/codex/game_mechanics.txt).
+# Loaded by utils/CodexLore.kt from ModPlugin.onAboutToLinkCodexEntries. Vanilla 0.98a does not read
+# data/codex/text_codex_entries.csv, so this file is deliberately not listed there.
+# Developer rulings 2026-10-17: Sector analyst voice; no em dashes.
+# Links: {{rel:<codex entry id>|text}} and RELATED id|id. Entry ids: codex_hull_<hull id>,
+# codex_weapon_<id>, codex_hullmod_<id>, codex_system_<id>, codex_item_<id>, codex_ability_<id>.
+
+CATEGORY covenant_remnants_codex_archive|generic|Covenant Archive|root
+
+CURRENT_CATEGORY covenant_remnants_codex_archive
+
+BEGIN covenant_remnants_codex_covenant|The Covenant
+ICON generic
+COLOR gray
+Compiled from salvage-team debriefs and recovered data cores. Distribution restricted.
+RESET
+The hulls catalogued in this archive belong to a civilization that calls itself the {{Covenant}}: an alliance of several species bound together by a shared faith and ruled, by its own account, by a priestly caste. Its records survive only in fragments, and the translation matrices recovered with them are incomplete. They describe an empire of many worlds, a long holy war, and a schism that tore the alliance apart.
+
+None of it explains how Covenant ships came to be in the Sector. Every hull recovered so far has been battle-scarred and cut off from whatever command it once answered to. Analysts have taken to calling them {{remnants}}, and the name has stuck.
+
+What is certain is the quality of the technology. Covenant warships outrange and outlast most Sector designs of comparable size, and their {{rel:covenant_remnants_codex_shields|energy shielding}} has no Domain equivalent. They are also rare, temperamental and very hard to maintain, which may be the only reason they have not yet changed the balance of power.
+RELATED covenant_remnants_codex_designations|covenant_remnants_codex_huragok|covenant_remnants_codex_slipspace|covenant_remnants_codex_plasma
+END
+
+BEGIN covenant_remnants_codex_designations|Ship Designations
+ICON ships
+Covenant vessels are registered under designations of their own, given here as the recovered translation matrices render them. Larger combatants carry a three-letter class group; lighter hulls are listed by pattern.
+
+- {{rel:codex_hull_covenant_remnants_supercap1|CAS}}: assault carrier, a flagship a full tier above the battle line
+- {{rel:codex_hull_covenant_remnants_supercap2|CVS}}: supercarrier
+- {{rel:codex_hull_covenant_remnants_capital1|Reverence}}: battleship, known only from fragmentary records
+- {{rel:codex_hull_covenant_remnants_capital2|ORS}}: heavy cruiser; the same letters also mark a {{rel:codex_hull_covenant_remnants_cruiser3|light cruiser}}
+- {{rel:codex_hull_covenant_remnants_cruiser1|CCS}}: battlecruiser, the usual command hull
+- {{rel:codex_hull_covenant_remnants_cruiser4|RCS}}: armored cruiser
+- {{rel:codex_hull_covenant_remnants_cruiser5|CPV}}: heavy destroyer; the same letters also mark an {{rel:codex_hull_covenant_remnants_destroyer2|escort carrier}}
+- {{rel:codex_hull_covenant_remnants_cruiser2|DDS}}: escort carrier
+- {{rel:codex_hull_covenant_remnants_destroyer3|CRS}}: strike destroyer
+- {{rel:codex_hull_covenant_remnants_destroyer1|SDV}}: heavy corvette
+- {{rel:codex_hull_covenant_remnants_destroyer4|Ket}}: assault destroyer pattern
+- {{rel:codex_hull_covenant_remnants_frigate1|Rasho}}, {{rel:codex_hull_covenant_remnants_frigate2|Ceudar}} and {{rel:codex_hull_covenant_remnants_frigate3|Ardo'nikapoora}}: corvette patterns
+
+Analysts caution against reading too much into the letters. The same group is reused for hulls of very different weight, and the Covenant appears to class its ships by their role in the fleet rather than by their size.
+END
+
+BEGIN covenant_remnants_codex_huragok|Huragok
+ICON hullmods
+COLOR gray
+Field note, appended to three separate salvage reports.
+RESET
+The {{Huragok}} are not crew in any sense we would recognise. They are buoyant, many-limbed beings, and analysts remain divided on whether to call them animals or machines. They appear to exist for one purpose: to repair, maintain and improve technology. Covenant ships are designed on the assumption that Huragok are aboard, and without them systems drift out of tolerance and readiness suffers.
+
+Where Huragok have been found alive, they have simply gone on working: sealing breaches, realigning shield emitters, and in one case rebuilding a damaged drive core overnight into something the yard engineers could not fully explain. They do not appear to take sides. They do appear to take an interest.
+
+By every account, the {{rel:codex_item_covenant_remnants_slipspace_engram|schematics}} that teach a fleet to open its own slipspace ruptures were compiled by Huragok.
+RELATED codex_hullmod_covenant_remnants_huragok_crew|codex_hullmod_covenant_remnants_covenantsystems
+END
+
+BEGIN covenant_remnants_codex_slipspace|Slipspace
+ICON abilities
+Covenant ships do not use hyperspace. Their drives tear a rupture in normal space and carry the ship through a separate continuum the data cores call {{slipspace}}, emerging wherever the drive was aimed.
+
+For a fleet, a {{rel:codex_ability_covenant_remnants_slipspace_jump|slipspace jump}} is a commitment: once inside the rupture, the fleet is carried along a corridor to its destination and cannot turn back. {{rel:codex_item_covenant_remnants_slipspace_navigation|Navigation suites}} recovered with some hulls resolve the exit precisely enough to emerge anywhere in a known system, or to jump between two points of the same one.
+
+In battle the principle works at a smaller scale. Light hulls carry {{rel:codex_system_covenant_remnants_slipspacedrive|short-range drives}} that blink them across the field, and the largest carriers can open {{rel:codex_system_covenant_remnants_fleet_slipspace_jump|ruptures}} wide enough to drag a whole engagement, friend and foe alike, to another part of the battlefield.
+
+Sector navigators note, with some unease, that slipspace transits leave no trace on any hyperspace chart.
+RELATED codex_item_covenant_remnants_slipspace_engram|codex_hullmod_covenant_remnants_slipspace_drive|codex_hullmod_covenant_remnants_slipspace_tuning
+END
+
+BEGIN covenant_remnants_codex_shields|Energy Shielding
+ICON manual_shields
+Domain shields are generated at a single emitter and spread over an arc, turning incoming energy into flux the ship must bleed off. Covenant shielding works on an entirely different principle.
+
+The field is projected from emitter rings woven through the hull itself and wraps the whole ship. It draws on a dedicated reserve rather than the ship's flux grid, so hits drain the reserve instead of heating the ship. Once the barrage lets up, the reserve refills on its own, more slowly while the ship runs hot, and a field drained completely collapses and must reset before it can be raised again.
+
+The result is a warship that can absorb a staggering opening volley and then come back for more, provided it is given a moment to breathe. Captains who have fought them advise the obvious: never stop shooting, and bring enough ships that one of them is always firing.
+RELATED codex_hullmod_covenant_remnants_covenantshieldhullmod|codex_system_covenant_remnants_covenantshield|codex_hullmod_covenant_remnants_hardened_shield_matrix|codex_hullmod_covenant_remnants_deep_shield_reservoir|codex_hullmod_covenant_remnants_accelerated_emitters|codex_hullmod_covenant_remnants_stabilized_emitters|codex_hullmod_covenant_remnants_reactive_shell
+END
+
+BEGIN covenant_remnants_codex_plasma|Plasma Weaponry
+ICON weapons
+Nearly every Covenant weapon is a variation on one idea: plasma held in a magnetic envelope until it reaches its target. The envelopes range from the rapid bolts of {{rel:codex_weapon_covenant_remnants_pulselaserturret|point-defense turrets}} to self-guided {{rel:codex_weapon_covenant_remnants_plasmatorpedo|plasma torpedoes}}, which track their targets and keep burning after impact, melting the armor around the hit.
+
+At the top of the scale sits the {{rel:codex_weapon_covenant_remnants_energyprojector|energy projector}}, a capital-ship beam the data cores associate with the deliberate scouring of entire worlds, a practice the translators render, without further comment, as glassing. Recovered projectors are far weaker than the records describe. They still burn through bare hull and out the other side.
+
+Plasma weapons run on a ship's energy systems, and Covenant fire control extends their reach well beyond what Sector hulls manage with the same mounts. They are no less deadly in human hands; they are simply harder to keep fed.
+RELATED codex_weapon_covenant_remnants_plasmacannon|codex_weapon_covenant_remnants_plasmalance|codex_weapon_covenant_remnants_plasmabeam|codex_weapon_covenant_remnants_plasmaautocannon|codex_weapon_covenant_remnants_plasmabombardment|codex_weapon_covenant_remnants_plasmamortar|codex_weapon_covenant_remnants_plasmatorpedo_heavy|codex_hullmod_covenant_remnants_covenantsystems
+END

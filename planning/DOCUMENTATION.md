@@ -81,6 +81,21 @@ task list. This documentation duty is a fixed AI-assistant rule — see
   (developer decision 2026-10-01); note the source tag path where the texture is used.
 - **Reference material** for art/VFX (screenshots, extracted video frames) goes under
   `assets/reference/<topic>/` — scratch, not shipped, and gitignored (local only).
+- **Descriptions** live in `data/strings/descriptions.csv`. Every hull, fighter hull, weapon and
+  ship system gets a row; ship systems follow vanilla's layout (text1 description, text2 type,
+  text3 tooltip summary, text5 Codex "Effects" with `{{}}` highlights). Hull and fighter texts
+  describe the stock fit and system. Edit the file line by line: it quotes empty fields `""`, so a
+  full CSV rewrite reformats every row.
+- **No em dashes in player-facing text** (developer ruling 2026-10-17). No en dashes either, and no
+  spaced hyphens (" - ") standing in for a dash; use commas, colons or a new sentence. Vanilla
+  never uses them.
+- **Codex lore**:
+  - Hullmod lore paragraphs are CUSTOM rows `<hullmod id>_codex`, shown only in the Codex. No `%`
+    in them.
+  - The Covenant Archive pages are `data/codex/covenant_remnants_archive.txt`, in vanilla Codex
+    markup, written in the Sector analyst voice.
+  - Internal content that must not appear in the Codex gets the `hide_in_codex` tag. See
+    [implementations/descriptions-codex-pass.md](implementations/descriptions-codex-pass.md).
 
 ## Kotlin source layout
 

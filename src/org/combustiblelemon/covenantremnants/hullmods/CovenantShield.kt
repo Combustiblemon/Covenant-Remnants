@@ -6,7 +6,10 @@ import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipVariantAPI
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldModifiers
+import com.fs.starfarer.api.ui.TooltipMakerAPI
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
+import org.combustiblelemon.covenantremnants.utils.CodexLore
+import org.combustiblelemon.covenantremnants.utils.ShieldData
 import org.combustiblelemon.covenantremnants.utils.generateDefaultShieldData
 import org.combustiblelemon.covenantremnants.utils.shieldData
 import org.combustiblelemon.lemonlib.geometry.getPercentage
@@ -116,7 +119,24 @@ class CovenantShield : BaseHullMod() {
         }
     }
 
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
+    }
+
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?, ship: ShipAPI?): String? {
+        // No ship (Codex page, modspec tooltip): the per-hull values as a range across the Covenant
+        // hulls, instead of the placeholder default row (which read 3000 / 1 / 1 / 1).
+        if (ship == null) {
+            when (index) {
+                0 -> return hullRange { "${it.shieldHealth.roundToInt()}" to it.shieldHealth }
+                1 -> return hullRange { "${it.shieldRegenRate.roundToInt()}" to it.shieldRegenRate }
+                2 -> return hullRange { it.shieldRegenDelay.formatSeconds() to it.shieldRegenDelay }
+                7 -> return hullRange { it.brokenShieldCooldown.formatSeconds() to it.brokenShieldCooldown }
+            }
+        }
+
         // The ship's own numbers: the hull's row with its shield hullmods applied.
         val base = ship?.hullSpec?.let { shieldData[it.baseHullId] ?: shieldData[it.hullId] }
             ?: generateDefaultShieldData()
@@ -134,6 +154,14 @@ class CovenantShield : BaseHullMod() {
             8 -> "${getPercentage(MAX_FLUX_MULT)}%"
             else -> null
         }
+    }
+
+    /** "low to high" over every shield_data.csv row; [entry] gives (display text, sort value). */
+    private fun hullRange(entry: (ShieldData) -> Pair<String, Float>): String {
+        val values = shieldData.values.map(entry)
+        val low = values.minByOrNull { it.second } ?: return "?"
+        val high = values.maxByOrNull { it.second } ?: return "?"
+        return if (low.first == high.first) low.first else "${low.first} to ${high.first}"
     }
 
     // Rounded to 2 decimals first: modified regen delays carry float noise (1.5 * 2/3 = 1.0000001).

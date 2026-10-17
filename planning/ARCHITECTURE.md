@@ -34,7 +34,7 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
 
 `src/.../CovenantRemnantsPlugin.kt` (extends `BaseModPlugin`):
 
-- On application load: verifies MagicLib is enabled; loads `shield_data.csv` (custom
+- On application load: verifies MagicLib and Ashlib are enabled (throws otherwise); loads `shield_data.csv` (custom
   per-ship shield parameters); compiles the shared shader programs; preloads the slipspace pocket
   background; installs the LunaLib settings bridge when LunaLib is enabled.
 - On game load:
@@ -44,8 +44,21 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
   - `TesterCache.addIfNeeded()` fills the Corvus abandoned station's storage once per save. This is
     a temporary tester build, see [implementations/tester-cache.md](implementations/tester-cache.md).
 - On new game: `ensureSlipspaceSystem()`.
+- On Codex generation (`onAboutToLinkCodexEntries`): `CodexLore.addArchiveEntries()` (see Codex lore below).
 
 ## Subsystems
+
+### Codex lore
+
+- **Covenant Archive pages:** `data/codex/covenant_remnants_archive.txt`, in vanilla Codex text markup.
+  - 0.98a does not load mod Codex text files: `CodexDataV2.WITH_GAME_MECHANICS_CAT` is false, so
+    `text_codex_entries.csv` is never read.
+  - `utils/CodexLore.kt` runs vanilla's parser itself from the plugin's Codex hook, then rebuilds
+    the entry map and links the related entries.
+- **Hullmod lore:** each Covenant hullmod's `addPostDescriptionSection` calls
+  `CodexLore.addHullmodLore`. It adds the `<hullmod id>_codex` CUSTOM description only while
+  `Global.CODEX_TOOLTIP_MODE` is on.
+- See [implementations/descriptions-codex-pass.md](implementations/descriptions-codex-pass.md).
 
 Each subsystem spans Kotlin (`src/`), data (`data/`), and — where it renders — a shader
 (`data/shaders/` + a `utils/render/` loader).

@@ -23,6 +23,10 @@ All notable changes to Covenant Remnants, newest version first.
 - Added the Accelerated Emitters hullmod, which raises the Covenant shield twice as fast and starts its regeneration a third sooner after a hit, so you can react to threats faster.
 - Added the Stabilized Emitters hullmod, which keeps Covenant shield regeneration at full rate up to 75% flux and at half rate at full flux, so high-flux fits no longer lose their shield recovery.
 - Added the Reactive Shell hullmod, which makes the Covenant shield regenerate 50% faster and start twice as soon after a hit for 30% less capacity, so hit-and-run ships recover between passes.
+- Added a Covenant Archive section to the Codex, with pages on the Covenant, its ship designations, the Huragok, slipspace, energy shielding and plasma weaponry, so you can read up on the technology you are fielding.
+- Added an analyst's note to the Codex page of every Covenant hullmod, so the Codex carries the lore while refit tooltips stay purely mechanical.
+- Added descriptions for all thirteen Covenant weapons, so their refit and Codex entries no longer read "No description... yet".
+- Added descriptions for the Covenant Shield, PD Overdrive and Fleet Slipspace Jump ship systems, including an Effects section in the Codex, so every Covenant system explains what it does.
 
 ### Behavioral changes
 
@@ -40,11 +44,15 @@ All notable changes to Covenant Remnants, newest version first.
 - Added the three new weapon hullmods to the Corvus tester cache, existing tester saves included, so testers can try them right away.
 - Changed the Covenant Shield hullmod description to show each ship's own shield numbers with its shield hullmods applied, so you see the real capacity, regeneration and delay while refitting.
 - Added the five new shield hullmods to the Corvus tester cache, existing tester saves included, so testers can try them right away.
+- Changed the Covenant ship and fighter descriptions to match their stock weapons and ship systems, so a hull's text now describes the guns and system it actually carries.
 
 ### Bug fixes
 
 - Fixed the Covenant shield's system bar being drawn several times too wide when the shield was ready, so it now stays inside its box.
 - Fixed the Fortress Shield AI ignoring the ship's shield damage reductions (Hardened Shield Matrix, skills, CR), so AI Reverences no longer raise Fortress Shield earlier than the incoming fire calls for.
+- Fixed the Covenant Shield hullmod's Codex page listing placeholder values (3000 capacity, 1 regeneration per second), so it now shows the real per-hull ranges.
+- Fixed the Slipspace Jump Codex page claiming the jump costs 0 fuel, so it now states the fuel rate and describes the Navigation System upgrade.
+- Fixed decorative nose-cap parts and an unused EMP System showing up in the Codex, so only real Covenant weapons and systems are listed.
 
 ## v0.1.2 — 2026-10-12
 

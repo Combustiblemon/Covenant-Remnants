@@ -4,6 +4,8 @@ import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
 import com.fs.starfarer.api.combat.ShipAPI.HullSize
+import com.fs.starfarer.api.ui.TooltipMakerAPI
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.combustiblelemon.lemonlib.geometry.getPercentage
 import org.combustiblelemon.lemonlib.hullmods.HullmodBlocker
 import org.combustiblelemon.lemonlib.hullmods.isApplicableGiven
@@ -63,6 +65,12 @@ class CovenantSystems : BaseHullMod() {
         // Standalone penalty: always applied. Huragok Crew offsets it when installed.
         stats.maxCombatReadiness.modifyFlat(ID, -MAX_CR_PENALTY)
         stats.repairRatePercentPerDay.modifyMult(ID, REPAIR_PER_DAY_MULT)
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: HullSize): String {

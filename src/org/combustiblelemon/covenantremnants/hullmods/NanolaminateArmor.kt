@@ -3,6 +3,8 @@
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.ui.TooltipMakerAPI
+import org.combustiblelemon.covenantremnants.utils.CodexLore
 import org.combustiblelemon.lemonlib.geometry.getPercentage
 import org.combustiblelemon.lemonlib.hullmods.HullmodBlocker
 import org.combustiblelemon.lemonlib.hullmods.isApplicableGiven
@@ -50,6 +52,12 @@ class NanolaminateArmor : BaseHullMod() {
         stats.armorBonus.modifyMult(id, ARMOR_BONUS_MULT)
         stats.maxSpeed.modifyMult(id, MAX_SPEED_MULT)
         stats.acceleration.modifyMult(id, ACCELERATION_MULT)
+    }
+
+    override fun addPostDescriptionSection(
+        tooltip: TooltipMakerAPI?, hullSize: ShipAPI.HullSize?, ship: ShipAPI?, width: Float, isForModSpec: Boolean
+    ) {
+        CodexLore.addHullmodLore(tooltip, ID)
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?): String? {
