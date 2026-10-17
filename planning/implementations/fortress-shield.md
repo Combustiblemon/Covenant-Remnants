@@ -78,8 +78,9 @@ creates a `FortressShieldAI` when the ship's system is Fortress.
 
 Each check, on a 0.25–0.5 s interval like vanilla:
 
-- `projected = estimateIncomingRawDamage(1 s) × 0.3`. This uses the base multiplier only, so
-  Fortress's own reduction doesn't feed back into the OFF test.
+- `projected = estimateIncomingRawDamage(1 s) × 0.3 × shieldDamageTakenMult`, without Fortress's
+  own multiplier. Leaving Fortress out keeps its reduction from feeding back into the OFF test.
+  (Changed 2026-10-17; see Later changes.)
 - **ON** when Fortress is idle, the shield is up, `canBeActivated()` is true and the ship is not
   overloaded or venting.
 - **OFF** via `USE_SYSTEM` once the low-threat timer and the on-time both reach 1 s.
@@ -174,3 +175,14 @@ them:
 - Vanilla drain is free on this hull (no time limit). Revisit if Fortress proves too strong; a
   custom system row with `noHardDissipation` would mirror the Paragon's ~40 s cap.
 - Optional UI cue telling the player that shield regen is frozen while Fortress is on.
+
+## Later changes
+
+- 2026-10-17 — **AI estimate counts the ship's shield damage modifiers.** The AI multiplied incoming
+  damage by the base 0.3 only, so it ignored every `shieldDamageTakenMult` source: Hardened Shield
+  Matrix (−20 %), skills, CR. Hardened Reverences turned Fortress on early.
+  - `FortressShieldAI.shieldDamageTakenMultWithoutFortress()` rebuilds the stat the way
+    `MutableStat.recompute` does, with every multiplier except Fortress's own. Fortress's source id
+    is `"<system id> effect"` (`ShipSystem.getStatModId`, 0.98a).
+  - The ON and OFF tests both see the damage the shield would take without Fortress, so turning it
+    on still cannot trip the OFF test. See [shield-hullmods.md](shield-hullmods.md).

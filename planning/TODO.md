@@ -352,6 +352,12 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Weapon hullmods — in-game check** — 5-point list in
       [implementations/weapon-hullmods.md](implementations/weapon-hullmods.md).
 - [ ] **Weapon hullmods — status icons** — vanilla ship-system icons are placeholders.
+- [x] **Shield hullmods** — built 2026-10-17: Hardened Shield Matrix, Deep Shield Reservoir,
+      Accelerated Emitters, Stabilized Emitters, Reactive Shell (Covenant-shield ships only,
+      "Shields" filter, no dock; Reactive ⟂ Reservoir), per-ship shield modifiers via dynamic stats,
+      shield bar overflow fixed. See [implementations/shield-hullmods.md](implementations/shield-hullmods.md).
+- [ ] **Shield hullmods — in-game check** — 7-point list (incl. Fortress AI on a hardened Reverence) in
+      [implementations/shield-hullmods.md](implementations/shield-hullmods.md).
 - [ ] **Tune hullmod numbers** — after all gameplay systems are done (developer 2026-10-02). OP costs and all new-mod values are vanilla-anchored placeholders.
 - [x] **Weapon-buff hullmod** (from PLAN) — scrapped for now (developer 2026-10-02). Was: buff
       plasma/energy weapons, nerf the weapons themselves to compensate.

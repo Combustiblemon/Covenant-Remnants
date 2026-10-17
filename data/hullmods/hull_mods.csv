@@ -24,6 +24,25 @@ Replaces the ship's defenses with a regenerating Covenant energy shield:
 Reduces maximum flux capacity by %s.
 
 Can not work in conjunction with hullmods that modify shields or phase systems.",,,
+Hardened Shield Matrix,covenant_remnants_hardened_shield_matrix,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.HardenedShieldMatrix,"Reduces the damage taken by the Covenant shield by %s.
+
+Only installable on ships with the Covenant Shield.",,,
+Deep Shield Reservoir,covenant_remnants_deep_shield_reservoir,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,4,8,12,20,org.combustiblelemon.covenantremnants.hullmods.DeepShieldReservoir,"Increases Covenant shield capacity by %s.
+
+Downside: the shield waits %s longer before it starts regenerating after a hit.
+
+Only installable on ships with the Covenant Shield. Incompatible with %s.",,,
+Accelerated Emitters,covenant_remnants_accelerated_emitters,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,3,6,9,15,org.combustiblelemon.covenantremnants.hullmods.AcceleratedEmitters,"Increases the rate at which the Covenant shield is raised by %s, and shortens the wait before it starts regenerating after a hit by %s.
+
+Only installable on ships with the Covenant Shield.",,,
+Stabilized Emitters,covenant_remnants_stabilized_emitters,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,3,6,9,15,org.combustiblelemon.covenantremnants.hullmods.StabilizedEmitters,"Covenant shield regeneration keeps its full rate up to %s flux instead of %s, and still runs at %s at maximum flux instead of %s.
+
+Only installable on ships with the Covenant Shield.",,,
+Reactive Shell,covenant_remnants_reactive_shell,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,3,5,8,12,org.combustiblelemon.covenantremnants.hullmods.ReactiveShell,"Increases Covenant shield regeneration by %s and shortens the wait before it starts regenerating after a hit by %s.
+
+Downside: reduces shield capacity by %s.
+
+Only installable on ships with the Covenant Shield. Incompatible with %s.",,,
 covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,"hide_in_codex, no_drop, no_drop_salvage",,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,"Hullmod manager facilitating functionality for the rest of the hullmods, you should not be seeing this",,,
 Huragok Crew,covenant_remnants_huragok_crew,,,Covenant,"no_drop_salvage, defensive",,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.HuragokCrew,"Increase repair rate by %s.
 Increase max CR by %s if %s hullmod is present, counteracting its penalties.

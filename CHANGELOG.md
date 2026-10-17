@@ -18,6 +18,11 @@ All notable changes to Covenant Remnants, newest version first.
 - Added the Capacitor Discharge hullmod, which boosts energy weapon damage by up to 15% for 5 seconds after an active vent, so a well-timed vent sets up your next strike.
 - Added the Target Lattice hullmod, which raises your weapons' damage by up to 20% while you keep hitting the same enemy ship, so focused fire pays off.
 - Added the Overcharged Emitters hullmod, which speeds up energy weapon fire by up to 20% above half flux, so running hot hits harder at the risk of longer overloads.
+- Added the Hardened Shield Matrix hullmod, which cuts the damage the Covenant shield takes by 20%, so Covenant ships finally have a shield upgrade (vanilla shield hullmods don't fit them).
+- Added the Deep Shield Reservoir hullmod, which gives the Covenant shield 30% more capacity at the cost of a 50% longer wait before it regenerates, so tanky ships can soak a bigger opening volley.
+- Added the Accelerated Emitters hullmod, which raises the Covenant shield twice as fast and starts its regeneration a third sooner after a hit, so you can react to threats faster.
+- Added the Stabilized Emitters hullmod, which keeps Covenant shield regeneration at full rate up to 75% flux and at half rate at full flux, so high-flux fits no longer lose their shield recovery.
+- Added the Reactive Shell hullmod, which makes the Covenant shield regenerate 50% faster and start twice as soon after a hit for 30% less capacity, so hit-and-run ships recover between passes.
 
 ### Behavioral changes
 
@@ -33,6 +38,13 @@ All notable changes to Covenant Remnants, newest version first.
 - Changed Plasma Capacitors to make energy weapons fire and regenerate ammo 20% faster at 20% more flux per shot (beams pay no extra flux), so it is now a damage hullmod instead of a copy of vanilla's flux hullmods.
 - Removed the dock requirement from Plasma Capacitors and listed it under the Weapons refit filter, so you can fit it anywhere and find it next to the other weapon hullmods.
 - Added the three new weapon hullmods to the Corvus tester cache, existing tester saves included, so testers can try them right away.
+- Changed the Covenant Shield hullmod description to show each ship's own shield numbers with its shield hullmods applied, so you see the real capacity, regeneration and delay while refitting.
+- Added the five new shield hullmods to the Corvus tester cache, existing tester saves included, so testers can try them right away.
+
+### Bug fixes
+
+- Fixed the Covenant shield's system bar being drawn several times too wide when the shield was ready, so it now stays inside its box.
+- Fixed the Fortress Shield AI ignoring the ship's shield damage reductions (Hardened Shield Matrix, skills, CR), so AI Reverences no longer raise Fortress Shield earlier than the incoming fire calls for.
 
 ## v0.1.2 — 2026-10-12
 

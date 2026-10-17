@@ -10,6 +10,7 @@ import com.fs.starfarer.api.impl.combat.BaseShipSystemScript
 import com.fs.starfarer.api.plugins.ShipSystemStatsScript
 import com.fs.starfarer.combat.entities.BeamWeaponRay
 import com.fs.starfarer.combat.entities.Missile
+import org.combustiblelemon.covenantremnants.hullmods.CovenantShield
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsRenderPlugin
 import org.combustiblelemon.covenantremnants.plugins.CovenantShieldsUIRenderPlugin
 import org.combustiblelemon.covenantremnants.utils.*
@@ -41,15 +42,16 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         /**
          * Flux falloff at a flux level (fraction of max flux): min((1 + bonus) / level - 1, 1).
          * Full rate up to [fluxRegenKnee], then down to 0 at (1 + bonus). Clamped at 0 so a
-         * negative bonus cannot drain the shield.
+         * negative bonus cannot drain the shield. bonus = [FLUX_REGEN_BONUS] + [extraBonus], the
+         * ship's own bonus ([CovenantShieldModifiers.fluxFalloffBonus], Stabilized Emitters).
          */
-        fun fluxRegenMultAt(fluxLevel: Float): Float {
+        fun fluxRegenMultAt(fluxLevel: Float, extraBonus: Float = 0f): Float {
             if (fluxLevel <= 0f) return 1f
-            return ((1f + FLUX_REGEN_BONUS.value) / fluxLevel - 1f).coerceIn(0f, 1f)
+            return ((1f + FLUX_REGEN_BONUS.value + extraBonus) / fluxLevel - 1f).coerceIn(0f, 1f)
         }
 
         /** Flux level (fraction of max flux) up to which regen runs at full rate. */
-        fun fluxRegenKnee(): Float = (1f + FLUX_REGEN_BONUS.value) / 2f
+        fun fluxRegenKnee(extraBonus: Float = 0f): Float = (1f + FLUX_REGEN_BONUS.value + extraBonus) / 2f
     }
 
     private var statusKey = Any()
@@ -174,7 +176,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
                 if (remainingTime <= 0) {
                     parent.breakCooldownActive = false
-                    parent.shieldCooldown = parent.shieldStats.shieldRegenDelay
+                    parent.shieldCooldown = 1f
 
                     parent.renderPlugin.let {
                         it?.breakCooldownActive = false
@@ -207,8 +209,18 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         }
     }
 
+    // shieldCooldown is the system bar fill (0-1): it drains during the break cooldown, full otherwise.
     override fun isUsable(system: ShipSystemAPI?, ship: ShipAPI?): Boolean {
-        return shieldCooldown >= shieldStats.shieldRegenDelay
+        return !breakCooldownActive
+    }
+
+    // Accelerated Emitters: the engine asks for the charge-up (raise) time once per ship, when the
+    // ship's systems are created.
+    override fun getInOverride(ship: ShipAPI?): Float {
+        val mult = CovenantShieldModifiers.raiseTimeMult(ship?.mutableStats)
+        if (mult == 1f) return -1f
+        val spec = Global.getSettings().getShipSystemSpec(CovenantShield.DEFENSE_ID) ?: return -1f
+        return spec.`in` * mult
     }
 
     override fun apply(stats: MutableShipStatsAPI, id: String, state: ShipSystemStatsScript.State, effLevel: Float) {
@@ -238,12 +250,16 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
             if (!shieldInit) {
                 shieldInit = true
-                shieldStats = shieldData.getOrElse(ship?.hullSpec?.baseHullId ?: "", { generateDefaultShieldData() })
+                // The hull's row with the ship's shield hullmods applied (CovenantShieldModifiers).
+                shieldStats = CovenantShieldModifiers.effective(
+                    shieldData.getOrElse(ship?.hullSpec?.baseHullId ?: "", { generateDefaultShieldData() }),
+                    _ship.mutableStats
+                )
                 shieldRegen = shieldStats.shieldRegenRate
                 breakCooldownTime = shieldStats.brokenShieldCooldown
                 maxShieldHealth = shieldStats.shieldHealth
                 shieldHealth = shieldStats.shieldHealth
-                shieldCooldown = shieldStats.shieldRegenDelay
+                shieldCooldown = 1f
             }
         } else {
             return
@@ -478,7 +494,8 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     /** Flux falloff (developer 2026-10-12) at the ship's current flux; see [fluxRegenMultAt]. */
     fun fluxRegenMult(ship: ShipAPI): Float {
         val maxFlux = ship.fluxTracker.maxFlux
-        return if (maxFlux > 0f) fluxRegenMultAt(ship.fluxTracker.currFlux / maxFlux) else 1f
+        val extraBonus = CovenantShieldModifiers.fluxFalloffBonus(ship.mutableStats)
+        return if (maxFlux > 0f) fluxRegenMultAt(ship.fluxTracker.currFlux / maxFlux, extraBonus) else 1f
     }
 
     private fun getShield(ship: ShipAPI?): ShipSystemAPI {

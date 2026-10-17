@@ -45,9 +45,12 @@ class FortressShieldAI(
             return
         }
 
-        // Base shield multiplier only, so Fortress's own reduction does not feed back into the
-        // OFF test.
-        val projected = estimateIncomingRawDamage(FortressShield.AI_LOOKAHEAD) * stats.shieldDamageMult
+        // Shield HP lost per raw damage point, as CovenantShieldsStats.ShieldDamageListener deals it,
+        // minus Fortress's own reduction: counting it would cut the projection 10x as soon as
+        // Fortress came on and trip the OFF test. Every other shieldDamageTakenMult source
+        // (Hardened Shield Matrix, skills, CR) stays in.
+        val projected = estimateIncomingRawDamage(FortressShield.AI_LOOKAHEAD) * stats.shieldDamageMult *
+                shieldDamageTakenMultWithoutFortress()
         val maxShield = stats.maxShieldHealth
 
         if (!system.isOn) {
@@ -70,6 +73,22 @@ class FortressShieldAI(
                 lowThreatTime = 0f
             }
         }
+    }
+
+    /**
+     * The ship's shieldDamageTakenMult with Fortress's own multiplier left out, rebuilt the way
+     * MutableStat.recompute does. The engine applies a system's stat changes under the source
+     * "<system id> effect" (ShipSystem.getStatModId, 0.98a).
+     */
+    private fun shieldDamageTakenMultWithoutFortress(): Float {
+        val taken = ship.mutableStats.shieldDamageTakenMult
+        val fortressSource = "${system.id} effect"
+        var mult = 1f
+        for ((source, mod) in taken.multMods) {
+            if (source != fortressSource) mult *= mod.value
+        }
+        val base = taken.baseValue
+        return (base + base * taken.percentMod / 100f + taken.flatMod) * mult
     }
 
     /**

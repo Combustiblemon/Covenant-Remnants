@@ -4,6 +4,8 @@ import com.fs.starfarer.api.Global
 import com.fs.starfarer.api.combat.BaseHullMod
 import com.fs.starfarer.api.combat.MutableShipStatsAPI
 import com.fs.starfarer.api.combat.ShipAPI
+import com.fs.starfarer.api.combat.ShipVariantAPI
+import org.combustiblelemon.covenantremnants.systems.CovenantShieldModifiers
 import org.combustiblelemon.covenantremnants.systems.CovenantShieldsStats
 import org.combustiblelemon.covenantremnants.utils.generateDefaultShieldData
 import org.combustiblelemon.covenantremnants.utils.shieldData
@@ -37,9 +39,10 @@ class CovenantShield : BaseHullMod() {
 
         // Covenant hulls carry the shield via hullSpec defense id (ship_data.csv), not only via
         // the hullmod, so presence must check both.
-        private val HAS_COVENANT_SHIELD = { variant: com.fs.starfarer.api.combat.ShipVariantAPI ->
+        fun hasCovenantShield(variant: ShipVariantAPI): Boolean =
             variant.hasHullMod(ID) || variant.hullSpec?.shipDefenseId == DEFENSE_ID
-        }
+
+        private val HAS_COVENANT_SHIELD = ::hasCovenantShield
 
         // Price of the shield: the emitters draw on the flux grid.
         const val MAX_FLUX_MULT = 0.8f
@@ -114,22 +117,28 @@ class CovenantShield : BaseHullMod() {
     }
 
     override fun getDescriptionParam(index: Int, hullSize: ShipAPI.HullSize?, ship: ShipAPI?): String? {
-        val data = ship?.hullSpec?.let { shieldData[it.baseHullId] ?: shieldData[it.hullId] }
+        // The ship's own numbers: the hull's row with its shield hullmods applied.
+        val base = ship?.hullSpec?.let { shieldData[it.baseHullId] ?: shieldData[it.hullId] }
             ?: generateDefaultShieldData()
+        val data = CovenantShieldModifiers.effective(base, ship?.mutableStats)
+        val falloffBonus = CovenantShieldModifiers.fluxFalloffBonus(ship?.mutableStats)
         return when (index) {
-            0 -> "${data.shieldHealth.toInt()}"
-            1 -> "${data.shieldRegenRate.toInt()}"
+            0 -> "${data.shieldHealth.roundToInt()}"
+            1 -> "${data.shieldRegenRate.roundToInt()}"
             2 -> "${data.shieldRegenDelay.formatSeconds()}"
             3 -> "${(CovenantShieldsStats.REGEN_SLOW_MULT * 100).toInt()}%"
             4 -> CovenantShieldsStats.REGEN_SLOW_DURATION.formatSeconds()
-            5 -> "${(min(CovenantShieldsStats.fluxRegenKnee(), 1f) * 100).roundToInt()}%"
-            6 -> "${(CovenantShieldsStats.fluxRegenMultAt(1f) * 100).roundToInt()}%"
+            5 -> "${(min(CovenantShieldsStats.fluxRegenKnee(falloffBonus), 1f) * 100).roundToInt()}%"
+            6 -> "${(CovenantShieldsStats.fluxRegenMultAt(1f, falloffBonus) * 100).roundToInt()}%"
             7 -> "${data.brokenShieldCooldown.formatSeconds()}"
             8 -> "${getPercentage(MAX_FLUX_MULT)}%"
             else -> null
         }
     }
 
-    private fun Float.formatSeconds(): String =
-        if (this == this.toInt().toFloat()) "${this.toInt()}" else "$this"
+    // Rounded to 2 decimals first: modified regen delays carry float noise (1.5 * 2/3 = 1.0000001).
+    private fun Float.formatSeconds(): String {
+        val rounded = (this * 100f).roundToInt() / 100f
+        return if (rounded == rounded.toInt().toFloat()) "${rounded.toInt()}" else "$rounded"
+    }
 }

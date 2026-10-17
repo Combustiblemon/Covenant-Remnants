@@ -9,8 +9,13 @@ import com.fs.starfarer.api.combat.ShipHullSpecAPI
 import com.fs.starfarer.api.fleet.FleetMemberType
 import com.fs.starfarer.api.impl.campaign.ids.Submarkets
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
+import org.combustiblelemon.covenantremnants.hullmods.AcceleratedEmitters
 import org.combustiblelemon.covenantremnants.hullmods.CapacitorDischarge
+import org.combustiblelemon.covenantremnants.hullmods.DeepShieldReservoir
+import org.combustiblelemon.covenantremnants.hullmods.HardenedShieldMatrix
 import org.combustiblelemon.covenantremnants.hullmods.OverchargedEmitters
+import org.combustiblelemon.covenantremnants.hullmods.ReactiveShell
+import org.combustiblelemon.covenantremnants.hullmods.StabilizedEmitters
 import org.combustiblelemon.covenantremnants.hullmods.TargetLattice
 
 /**
@@ -21,7 +26,7 @@ import org.combustiblelemon.covenantremnants.hullmods.TargetLattice
  *
  * Runs from `onGameLoad`, so new and existing saves both get it; a sector memory flag stops repeats.
  * Saves whose cache predates the Navigation System get that item once, under a flag of its own; the
- * same goes for the modspecs of the 2026-10-17 weapon hullmods.
+ * same goes for the modspecs of the 2026-10-17 weapon hullmods and shield hullmods.
  * A random-sector game has no Corvus: the cache is skipped and logged. Content is found by the id
  * prefix, like `CovenantGiveAll`, so new content is picked up without editing this file.
  */
@@ -38,6 +43,11 @@ object TesterCache {
     /** Set once the 2026-10-17 weapon hullmods' modspecs are in the cache (new caches, and old ones topped up). */
     const val WEAPON_HULLMODS_FLAG = "\$covenant_remnants_tester_cache_weapon_hullmods_added"
     private val WEAPON_HULLMOD_IDS = listOf(CapacitorDischarge.ID, TargetLattice.ID, OverchargedEmitters.ID)
+    /** Same, for the 2026-10-17 Covenant shield hullmods. */
+    const val SHIELD_HULLMODS_FLAG = "\$covenant_remnants_tester_cache_shield_hullmods_added"
+    private val SHIELD_HULLMOD_IDS = listOf(
+        HardenedShieldMatrix.ID, DeepShieldReservoir.ID, AcceleratedEmitters.ID, StabilizedEmitters.ID, ReactiveShell.ID,
+    )
 
     private const val PREFIX = "covenant_remnants_"
     private const val WEAPON_QTY = 30
@@ -65,7 +75,8 @@ object TesterCache {
         val memory = sector.memoryWithoutUpdate
         if (memory.getBoolean(MEMORY_FLAG)) {
             addNavigationIfNeeded(sector)
-            addWeaponHullmodsIfNeeded(sector)
+            addModspecsIfNeeded(sector, WEAPON_HULLMODS_FLAG, WEAPON_HULLMOD_IDS)
+            addModspecsIfNeeded(sector, SHIELD_HULLMODS_FLAG, SHIELD_HULLMOD_IDS)
             return
         }
 
@@ -121,6 +132,7 @@ object TesterCache {
         memory.set(MEMORY_FLAG, true)
         memory.set(NAVIGATION_FLAG, true)
         memory.set(WEAPON_HULLMODS_FLAG, true)
+        memory.set(SHIELD_HULLMODS_FLAG, true)
         logger.info(
             "Tester cache added to $STATION_ID storage: $ships ships, $weapons weapons x$WEAPON_QTY, " +
                 "$wings wings x$WING_QTY, $hullmods modspecs, 1 $ENGRAM_ID, 1 $NAVIGATION_ID"
@@ -141,19 +153,22 @@ object TesterCache {
         logger.info("Tester cache: added 1 $NAVIGATION_ID to $STATION_ID storage (cache predates it)")
     }
 
-    /** A cache from before the weapon hullmods existed gets their modspecs, once (developer ruling 2026-10-17). */
-    private fun addWeaponHullmodsIfNeeded(sector: SectorAPI) {
+    /**
+     * A cache from before a batch of hullmods existed gets their modspecs, once, under that batch's
+     * [flag] (developer rulings 2026-10-17: weapon hullmods, shield hullmods).
+     */
+    private fun addModspecsIfNeeded(sector: SectorAPI, flag: String, ids: List<String>) {
         val memory = sector.memoryWithoutUpdate
-        if (memory.getBoolean(WEAPON_HULLMODS_FLAG)) return
+        if (memory.getBoolean(flag)) return
         val cargo = storageCargo(sector)
         if (cargo == null) {
-            logger.warn("Tester cache: no $STATION_ID storage for the weapon hullmod top-up; skipped")
+            logger.warn("Tester cache: no $STATION_ID storage for the modspec top-up $ids; skipped")
             return
         }
-        for (id in WEAPON_HULLMOD_IDS) {
+        for (id in ids) {
             cargo.addSpecial(SpecialItemData("modspec", id), MODSPEC_QTY.toFloat())
         }
-        memory.set(WEAPON_HULLMODS_FLAG, true)
-        logger.info("Tester cache: added modspecs $WEAPON_HULLMOD_IDS to $STATION_ID storage (cache predates them)")
+        memory.set(flag, true)
+        logger.info("Tester cache: added modspecs $ids to $STATION_ID storage (cache predates them)")
     }
 }

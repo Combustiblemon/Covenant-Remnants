@@ -62,6 +62,13 @@ vanilla one:
   `shieldDamageTakenMult` stat, so shield-damage modifiers (skills, CR, systems) apply. Every
   source damages the shield equally: no damage-type multipliers, no per-type shield stats
   (developer ruling 2026-10-01).
+- Per-ship modifiers: `systems/CovenantShieldModifiers.kt` holds vanilla dynamic-stat keys
+  (capacity, regen, regen delay, raise time, flux falloff bonus).
+  - The shield-tuning hullmods set them.
+  - `CovenantShieldsStats` applies them to the `shield_data.csv` row when the shield starts, and
+    returns the raise time from `getInOverride` (the engine reads it once per ship, at creation).
+  - The Covenant Shield tooltip shows the modified numbers.
+  - See [implementations/shield-hullmods.md](implementations/shield-hullmods.md).
 - AI: `ai/CovenantShieldsAI.kt`.
 - Fortress Shield (vanilla `fortressshield` on capital1): its damage reduction arrives through
   `shieldDamageTakenMult`. `systems/FortressShield.kt` holds the system id, helpers and tuning
@@ -207,7 +214,10 @@ portal — ships of any side, fighters, shots, hulks, asteroids — to the desti
 `hullmods/SlipspaceDriveHullmod.kt` (flavor marker), and the weapon hullmods
 `hullmods/CapacitorDischarge.kt`, `hullmods/TargetLattice.kt`, `hullmods/OverchargedEmitters.kt`
 (per-ship combat listeners / `advanceInCombat`; see
-[implementations/weapon-hullmods.md](implementations/weapon-hullmods.md)).
+[implementations/weapon-hullmods.md](implementations/weapon-hullmods.md)), and the shield-tuning
+hullmods on the `hullmods/CovenantShieldTweak.kt` base (`HardenedShieldMatrix`,
+`DeepShieldReservoir`, `AcceleratedEmitters`, `StabilizedEmitters`, `ReactiveShell`; see
+[implementations/shield-hullmods.md](implementations/shield-hullmods.md)).
 
 `CovenantShield.ensureBuiltInOnShieldHulls()` runs from `onApplicationLoad`: every hull spec whose
 defense id is `covenant_remnants_covenantshield` gets the Covenant Shield hullmod as built-in, even
