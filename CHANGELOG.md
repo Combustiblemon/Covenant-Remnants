@@ -2,6 +2,12 @@
 
 All notable changes to Covenant Remnants, newest version first.
 
+## Unreleased
+
+### Bug fixes
+
+- Fixed ramming and asteroid collision damage bypassing the Covenant shield and landing on armor, so a raised shield now absorbs collisions like every other hit.
+
 ## v0.1.3 — 2026-10-17
 
 ### Breaking changes

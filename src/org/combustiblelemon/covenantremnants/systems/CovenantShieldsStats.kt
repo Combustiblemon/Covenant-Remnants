@@ -39,6 +39,10 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         )
         val regenTunables: List<ShieldOutline.Tunable> = listOf(FLUX_REGEN_BONUS)
 
+        // Diagnostic logging (developer 2026-10-27): hits that reach the ship while the shield is
+        // up but are not absorbed. See planning/implementations/shield-collision-logging.md.
+        private val log = Global.getLogger(CovenantShieldsStats::class.java)
+
         /**
          * Flux falloff at a flux level (fraction of max flux): min((1 + bonus) / level - 1, 1).
          * Full rate up to [fluxRegenKnee], then down to 0 at (1 + bonus). Clamped at 0 so a
@@ -94,6 +98,10 @@ class CovenantShieldsStats : BaseShipSystemScript() {
     var breakCooldownStartTime = 0f
 
     var shieldInit: Boolean = false
+
+    // Diagnostic: an unabsorbed hit recorded by ShieldDamageListener, completed with the hull /
+    // armor split and logged by ShieldDamageConverter for the same hit.
+    var pendingLog: String? = null
 
     // The stats script instance may outlive a single battle; used to detect a new combat and
     // drop per-battle state (plugins, listeners, shield state) so everything re-initializes.
@@ -304,6 +312,21 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
     class ShieldDamageConverter(private val parent: CovenantShieldsStats) : DamageListener {
         override fun reportDamageApplied(source: Any?, target: CombatEntityAPI?, result: ApplyDamageResultAPI?) {
+            // Diagnostic: complete and emit the unabsorbed-hit line recorded for this hit.
+            val pending = parent.pendingLog
+            parent.pendingLog = null
+            if (pending != null) {
+                val sourceText = when (source) {
+                    null -> "null"
+                    is ShipAPI -> "${source.javaClass.simpleName}:${source.hullSpec.hullId}"
+                    else -> source.javaClass.simpleName
+                }
+                log.info(
+                    "[CovenantShield] unshielded hit $pending source=$sourceText -> " +
+                            "hull=${result?.damageToHull} armor=${result?.totalDamageToArmor} " +
+                            "shields=${result?.damageToShields} emp=${result?.empDamage}"
+                )
+            }
 
             if (!parent.ship!!.isAlive) {
                 return
@@ -325,6 +348,31 @@ class CovenantShieldsStats : BaseShipSystemScript() {
         DamageTakenModifier {
         private val modifierKey = "covenant_remnants_covenant_shields"
 
+        /**
+         * Diagnostic (developer 2026-10-27): record a hit that reached the ship with the shield up
+         * but was not absorbed. [ShieldDamageConverter] appends the hull / armor split and logs it.
+         * Nothing is recorded while the shield is down.
+         */
+        private fun noteUnshielded(
+            reason: String,
+            param: Any?,
+            damage: DamageAPI?,
+            point: Vector2f?,
+            shieldHit: Boolean,
+            extra: String = ""
+        ) {
+            val level = attachedTo.phaseCloak?.effectLevel ?: 0f
+            if (level <= 0f) return
+            val pointText = if (point == null) "null" else "(${point.x.roundToInt()}, ${point.y.roundToInt()})"
+            parent.pendingLog = "reason=$reason ship=${attachedTo.hullSpec.hullId} \"${attachedTo.name}\" " +
+                    "param=${param?.javaClass?.simpleName ?: "null"} " +
+                    "dmg=${damage?.damage} type=${damage?.type} dps=${damage?.isDps} " +
+                    "point=$pointText shieldHit=$shieldHit cloak=${"%.2f".format(level)} " +
+                    "shieldHP=${parent.shieldHealth.roundToInt()}/${parent.maxShieldHealth.roundToInt()} " +
+                    "broken=${parent.breakCooldownActive}" +
+                    (if (extra.isEmpty()) "" else " $extra")
+        }
+
         override fun modifyDamageTaken(
             param: Any?,
             target: CombatEntityAPI?,
@@ -332,9 +380,9 @@ class CovenantShieldsStats : BaseShipSystemScript() {
             point: Vector2f?,
             shieldHit: Boolean
         ): String {
-            if (param === null) {
-                return modifierKey
-            }
+            // A null param is engine collision damage (ramming, asteroids): the collision path never
+            // calls setParamAboutToApplyDamage. It goes through the shield like every other source
+            // (developer ruling 2026-10-27; before that an early return here sent it to armor).
 
             if (attachedTo.phaseCloak.effectLevel > 0) {
                 val engine = Global.getCombatEngine()
@@ -360,6 +408,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
 
 
                 if (point === null || (attachedTo.phaseCloak.effectLevel < 1 && percentPoint === null)) {
+                    noteUnshielded("no-point", param, damage, point, shieldHit)
                     return modifierKey
                 }
 
@@ -378,6 +427,7 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                 } else false
 
                 if (hitPastShield) {
+                    noteUnshielded("past-sweep", param, damage, point, shieldHit)
                     return modifierKey
                 }
 
@@ -430,6 +480,10 @@ class CovenantShieldsStats : BaseShipSystemScript() {
                     damage?.modifier?.modifyMult(
                         "covenant_remnants_covenant_shields",
                         1f - absorbed / damageNumber
+                    )
+                    noteUnshielded(
+                        "break-overflow", param, damage, point, shieldHit,
+                        "absorbed=${absorbed.roundToInt()} passedFraction=${"%.2f".format(1f - absorbed / damageNumber)}"
                     )
 
                     engine.addFloatingDamageText(

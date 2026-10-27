@@ -422,6 +422,19 @@ Keep this file current — tick items off and add new ones as work lands.
       the top-left status list go paused → 50% rate → full rate, gone at full shield and while
       broken; capital1 with Fortress on shows "frozen by Fortress Shield".
 - [x] Decide Suppressor Beam damage type — **ENERGY** (developer ruling 2026-10-01; no change).
+- [x] **Shield collision damage bypassed the shield** — fixed 2026-10-27: engine collision damage
+      reached `ShieldDamageListener` with a null `param` and the listener returned early, so
+      ramming damage skipped the shield pool and landed on armor with the shield up (confirmed in
+      the log: three rams, shield full, all damage to armor). Collisions now go through the
+      shield pool like every other source (developer ruling 2026-10-27). See
+      [implementations/shield-collision-logging.md](implementations/shield-collision-logging.md).
+- [x] **Shield collision fix — in-game check** — developer 2026-10-27: tested after the fix, the
+      log shows no unabsorbed hits (the pre-fix run had three `null-param` rams to armor).
+- [ ] **Remove the shield diagnostic logging (future)** — developer 2026-10-27: keep the
+      `[CovenantShield] unshielded hit` lines for now (`noteUnshielded` / `pendingLog` /
+      companion `log` in `CovenantShieldsStats.kt`, emitted from `ShieldDamageConverter`); remove
+      them in a later pass. See
+      [implementations/shield-collision-logging.md](implementations/shield-collision-logging.md).
 
 ## Rendering / shaders
 
@@ -434,6 +447,9 @@ Keep this file current — tick items off and add new ones as work lands.
       `CURVE_MAX`), no spikes at sharp bow/wing corners, collapse extrusion and sweep still line
       up, honeycomb unaffected, no frame cost on the 56-point hulls. Dial `MARGIN` /
       `ITERATIONS` / `CURVE_DEG`, then bake the winners into `ShieldOutline` defaults.
+      Known and accepted (developer 2026-10-27): the rim is render-only, so other hulls and
+      asteroids stop at the sprite bounds, `MARGIN` units inside the rim. See
+      [implementations/shield-collision-logging.md](implementations/shield-collision-logging.md).
 
 - [x] **Engines below hull — in-game check** — developer 2026-10-10: "all ok". All 16 Covenant hulls now carry the
       `RENDER_ENGINES_BELOW_HULL` hint (2026-10-07): in combat, engine flames should sit under the
