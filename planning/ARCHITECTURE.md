@@ -23,7 +23,7 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
 `mod_info.json`:
 
 - id `combustiblelemon_covenant_remnants`, name `Covenant Remnants`, author `Combustiblelemon`,
-  version `0.1.0`, gameVersion `0.98a`.
+  version `0.1.3`, gameVersion `0.98.5a-RC7`.
 - `modPlugin`: `org.combustiblelemon.covenantremnants.CovenantRemnantsPlugin`.
 - jars: `jars/CovenantRemnants.jar`.
 - **Declared dependencies:** `combustiblelemon_lemonlib` (LemonLib, which also ships the Kotlin
@@ -38,6 +38,10 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
   per-ship shield parameters); compiles the shared shader programs; preloads the slipspace pocket
   background; installs the LunaLib settings bridge when LunaLib is enabled.
 - On game load:
+  - `JitterSaveRepair.repair()` runs first. It fills the `JitterRenderer.collatedOffsets` list that
+    0.98.5a added and that pre-0.98.5a saves lack; without it, a save whose fleet used Slipspace
+    Jump crashes on its first campaign frame. See
+    [implementations/game-0985-update.md](implementations/game-0985-update.md);
   - re-verifies the hullmod incompatibilities;
   - `ensureSlipspaceSystem()` creates or migrates the slipspace pocket system;
   - registers the transient `SlipspaceCampaignPlugin` (exit portal dialog);
@@ -51,7 +55,7 @@ How Covenant Remnants is built. Project context: [CLAUDE.md](../CLAUDE.md). Conv
 ### Codex lore
 
 - **Covenant Archive pages:** `data/codex/covenant_remnants_archive.txt`, in vanilla Codex text markup.
-  - 0.98a does not load mod Codex text files: `CodexDataV2.WITH_GAME_MECHANICS_CAT` is false, so
+  - 0.98a and 0.98.5a do not load mod Codex text files: `CodexDataV2.WITH_GAME_MECHANICS_CAT` is false, so
     `text_codex_entries.csv` is never read.
   - `utils/CodexLore.kt` runs vanilla's parser itself from the plugin's Codex hook, then rebuilds
     the entry map and links the related entries.
@@ -259,6 +263,11 @@ campaign portal shader was replaced by the Ark rupture effect on 2026-10-08. Ref
 Gradle Kotlin DSL, Kotlin JVM 2.2.20, Java 8 target (`build.gradle.kts`; `compilerOptions` with
 `jvmDefault = NO_COMPATIBILITY`, the old `-Xjvm-default=all`):
 
+- **Build JDK:** Starsector's bundled JRE, Zulu 17 at `<Starsector>/jre` (2026-11-18). The
+  `gradlew` / `gradlew.bat` scripts point `JAVA_HOME` at `../../jre` when it exists. The Gradle and
+  Kotlin daemons inherit that JDK, so a system Java 25 cannot break Gradle 8.4, which runs on Java
+  8 to 20 only. VSCode's import uses `java.import.gradle.java.home` in `.vscode/settings.json`. See
+  [implementations/build-jdk17-pin.md](implementations/build-jdk17-pin.md).
 - **sourceSets:** `src` → Kotlin/Java classes. The jar holds **code only** (2026-10-02): Starsector
   reads `data/`, `graphics/`, `sounds/` and `mod_info.json` from the mod folder, so they are not
   packed into it.

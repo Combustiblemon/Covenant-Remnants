@@ -6,6 +6,12 @@ Keep this file current — tick items off and add new ones as work lands.
 
 ## Art / geometry (placeholders in place)
 
+- [x] **Hullmod icons** (2026-11-18) — developer art wired via `hull_mods.csv` `sprite` for 15
+      hullmods; checked loaded in game. See [implementations/hullmod-icons.md](implementations/hullmod-icons.md).
+- [x] **Slipspace Jump ability icon** (2026-11-18) — `CR_Ability_WARP.png` (48×48) in
+      `abilities.csv`, replacing vanilla `direct_jump.png`; checked loaded in game.
+- [ ] **Unused icons** — `CR_Hullmods_MainCannon`, `CR_Hullmods_Fighter`, `CR_Hullmods_Slot` (hullmods)
+      are in `graphics/` but not referenced; decide their targets.
 - [x] **Ship bounds + weapon-slot positions** — done by the developer in the ship editor
       (reported 2026-10-10; hulls committed in `13af425`). See
       [implementations/ships.md](implementations/ships.md) and
@@ -654,6 +660,15 @@ Keep this file current — tick items off and add new ones as work lands.
       - None of our mods has a `sortString`, so they all stay behind it.
       - Rule: none of our mods may set a `sortString` that sorts after `~LemonLib`.
       - See [implementations/lemonlib-sortstring.md](implementations/lemonlib-sortstring.md).
+- [x] **Build JDK pinned to Starsector's Java 17** (2026-11-18, developer choice: wrapper
+      auto-detect). The system Java is 25, and Gradle 8.4 runs on Java 8 to 20 only.
+      - `gradlew` / `gradlew.bat` in this repo and LemonLib use `../../jre` (Zulu 17.0.10) as
+        `JAVA_HOME` when it exists.
+      - `.vscode/settings.json` sets `java.import.gradle.java.home`.
+      - Both builds pass, and the jars stay at class major version 52.
+      - See [implementations/build-jdk17-pin.md](implementations/build-jdk17-pin.md).
+- [ ] **Build JDK pin — LemonLib commit.** LemonLib has the uncommitted `gradlew`, `gradlew.bat`,
+      `README.md` and `CHANGELOG.md` (Unreleased) changes.
 
 ## Campaign Slipspace Jump (built 2026-10-07)
 
@@ -718,6 +733,47 @@ Keep this file current — tick items off and add new ones as work lands.
       in `SlipspacePointMap`, the system-map layout in `SlipspacePointDialog`.
 - [ ] **Slipspace items — art and text** — both items use vanilla placeholder icons (Janus Device,
       hyperspace data) and draft descriptions.
+
+## Starsector 0.98.5a-RC7 update (2026-11-18)
+
+See [implementations/game-0985-update.md](implementations/game-0985-update.md).
+
+- [x] **Compat check + rebuild** — no removed API used, binary scan clean, `gameVersion`
+      `0.98.5a-RC7` here, in LemonLib and the harness; smoke / combat / compat pass on the new game.
+- [x] **Pre-0.98.5a save crash** — `campaign/JitterSaveRepair.kt` fills the new
+      `JitterRenderer.collatedOffsets` that old saves lack (Slipspace Jump jitter); fixture 0.1.1 loads.
+- [x] **Crew salary + d-mod parts** (ruling) — `salMult` 1.25 / 1.5 / 2.0 (frigate-destroyer /
+      cruiser-capital / supercaps), `parts/dmod` 1.5x default; values in [../balance.md](../balance.md).
+- [x] **Torpedoes resist flares** (ruling) — `explodesWhenHittingFlares: false` on the 3 torpedoes.
+- [x] **Dealer leak** — `no_dealer` on hulls, weapons and wings, so custom production contracts
+      cannot offer Covenant gear.
+- [x] **LemonLib wrapper** forwards the `HullModEffect` default methods (2nd pass, added-to-engine,
+      required item).
+- [x] **Harness remap** — `obf-map.json` for 0.98.5a-RC7; `ship` detail reports phase + hull economy.
+- [ ] **In-game feel check** — torpedoes vs flare spam (Afflictor / Paragon flares), and the salary
+      and parts numbers over a few months of campaign play.
+- [ ] **Third-party deps** — MagicLib, Ashlib, LazyLib, LunaLib, Console still declare `0.98a-RCx`
+      (patch-level launcher warning). Recheck when their authors release 0.98.5a builds.
+- [ ] **Harness `gradlew` pin** — the harness wrapper still uses the system Java 25 (Gradle 8.4
+      fails); copy the `../../jre` auto-detect from [implementations/build-jdk17-pin.md](implementations/build-jdk17-pin.md).
+- [x] **`showNoise` reflection** — it never played (`Method.invoke` is blocked by the script
+      classloader); now goes through LemonLib `ReflectionUtils`, checked in game (2026-11-18).
+      See [implementations/slipspace-noise-reflection-fix.md](implementations/slipspace-noise-reflection-fix.md).
+- [ ] **Slipspace noise — real-jump look** — see the static during an actual player Slipspace Jump
+      (the harness cannot drive the destination picker).
+- [ ] **Survival Mode pass** — 0.98.5a's new "extended mode" start changes salvage
+      (`SALVAGE_ENTITY_FULL_DROP_IN_EXT_MODE`, `blockRecoveryIfExtendedMode`) and economy; check the
+      Slipspace items, TesterCache and Slipspace Jump fuel costs in a Survival Mode game.
+- [ ] **Quest-side APIs for the Granting quest** — new in 0.98.5a: faction custom flag
+      `noBountyForDefeating` (no bounty / commission pay for quest enemies), `settings.json`
+      `"rules"` list (split quest rules into their own csv, ids unique across files),
+      `HubMissionWithTriggers.triggerFleetSetFleeFromPlayer` / `triggerMakeHostileAndAggressive(boolean)`,
+      `BaseHubMission.addStandardMarketDesc`.
+- [ ] **Shield draw order** — `ShipRenderListener` fires before a ship's weapons, so the Covenant
+      shield stays on `ABOVE_SHIPS_LAYER` (ruling 2026-11-18). Revisit if a later patch adds a
+      post-weapons hook.
+- [ ] **starsector-knowledge skill** — still 0.98a-RC8; rebuild with its `scripts/build_skill.py`
+      on request.
 
 ## From PLAN.md (still open)
 

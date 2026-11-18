@@ -6,7 +6,7 @@ Roadmap and status: [planning/PLAN.md](planning/PLAN.md).
 
 ## What this is
 
-**Covenant Remnants** is a Starsector mod (game version `0.98a`) that adds the **Covenant** from
+**Covenant Remnants** is a Starsector mod (game version `0.98.5a-RC7`) that adds the **Covenant** from
 Halo to the game: ships, weapons, fighters, and items, plus new quests and campaign content. It is
 built to be compatible with the base game and other mods while giving Covenant content a distinct
 feel — long-range, energy-shielded, plasma-armed, and visually set apart by custom OpenGL shaders.
@@ -49,6 +49,9 @@ These are settled. Do not re-open them without asking the developer.
 ## Stack
 
 - **Language/build:** Kotlin 2.2.20 (JVM, Java 8 target), Gradle Kotlin DSL. See [planning/ARCHITECTURE.md](planning/ARCHITECTURE.md).
+  - Build JDK: Starsector's bundled Zulu 17 (`../../jre`), picked by `gradlew` / `gradlew.bat`
+    here and in LemonLib. The system Java is 25, which Gradle 8.4 cannot run on. Build only
+    through the wrapper.
 - **Declared dependencies (required):** LemonLib, MagicLib, Ashlib (ruling 2026-10-12: its system
   map backs the Slipspace Jump navigation upgrade).
 - **Kotlin runtime (ruling 2026-10-12):** LemonLib ships the runtime (`jars/lib/Kotlin-Runtime.jar`),

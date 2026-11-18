@@ -1,6 +1,6 @@
 # Covenant Remnants
 
-A [Starsector](https://fractalsoftworks.com/) mod (game version `0.98a`) that brings the **Covenant**
+A [Starsector](https://fractalsoftworks.com/) mod (game version `0.98.5a-RC7`) that brings the **Covenant**
 from Halo into the game: ships, weapons, fighters, and items, plus new quests and campaign content.
 
 Covenant ships are **long-range, energy-shielded, plasma-armed elite brawlers** — few but powerful,
@@ -14,7 +14,7 @@ Bungie.
 
 ## Requirements
 
-- Starsector `0.98a`
+- Starsector `0.98.5a-RC7`
 - [LemonLib](https://github.com/Combustiblemon/LemonLib/releases) (also provides the Kotlin runtime)
 - [MagicLib](https://fractalsoftworks.com/forum/index.php?topic=13718.0)
 - [Ashlib](https://fractalsoftworks.com/forum/index.php?topic=30808.0)
@@ -30,8 +30,9 @@ Bungie.
 
 ## Contributing
 
-The mod is written in **Kotlin** and built with **Gradle**. You need JDK 8+ and a local Starsector
-install (the build references the core jars).
+The mod is written in **Kotlin** and built with **Gradle**. You need a local Starsector install
+(the build references the core jars). With the mod in `<Starsector>/mods/`, `gradlew` builds on
+Starsector's bundled Java 17 (`<Starsector>/jre`) automatically; Gradle 8.4 cannot run on Java 21+.
 
 Build steps:
 

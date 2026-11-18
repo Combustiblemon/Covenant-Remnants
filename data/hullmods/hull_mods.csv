@@ -8,11 +8,11 @@ Improves energy weapon stats:
  Increase range by %s/%s/%s/%s depending on hull size.
  Reduce weapon flux generation by %s.
 
-Can not work in conjunction with hullmods that increase weapon range.",,,
+Can not work in conjunction with hullmods that increase weapon range.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Core.png
 Nanolaminate Armor,covenant_remnants_nanolaminate_armor,,,Covenant,"req_spaceport, no_drop_salvage, defensive, engines","Defenses, Requires Dock",,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.NanolaminateArmor,"Reduces damage taken from Energy and High explosive weapons by %s.
 Increases damage taken from other sources by %s.
 Increases speed and acceleration by %s.
-Reduces armor by %s.",,,
+Reduces armor by %s.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Blaster.png
 Covenant Shield,covenant_remnants_covenantshieldhullmod,,,Covenant,"req_spaceport, no_drop_salvage, shields, defensive","Shields, Requires Dock",,FALSE,FALSE,,10,20,30,45,org.combustiblelemon.covenantremnants.hullmods.CovenantShield,"A shimmering envelope of coherent plasma projected by ring emitters woven into the hull, the signature defense of every ship the Covenant ever fielded.
 
 Replaces the ship's defenses with a regenerating Covenant energy shield:
@@ -23,46 +23,46 @@ Replaces the ship's defenses with a regenerating Covenant energy shield:
 
 Reduces maximum flux capacity by %s.
 
-Can not work in conjunction with hullmods that modify shields or phase systems.",,,
+Can not work in conjunction with hullmods that modify shields or phase systems.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Shield.png
 Hardened Shield Matrix,covenant_remnants_hardened_shield_matrix,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.HardenedShieldMatrix,"Reduces the damage taken by the Covenant shield by %s.
 
-Only installable on ships with the Covenant Shield.",,,
+Only installable on ships with the Covenant Shield.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Shield_matrix.png
 Deep Shield Reservoir,covenant_remnants_deep_shield_reservoir,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,4,8,12,20,org.combustiblelemon.covenantremnants.hullmods.DeepShieldReservoir,"Increases Covenant shield capacity by %s.
 
 Downside: the shield waits %s longer before it starts regenerating after a hit.
 
-Only installable on ships with the Covenant Shield. Incompatible with %s.",,,
+Only installable on ships with the Covenant Shield. Incompatible with %s.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Shield_deep.png
 Accelerated Emitters,covenant_remnants_accelerated_emitters,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,3,6,9,15,org.combustiblelemon.covenantremnants.hullmods.AcceleratedEmitters,"Increases the rate at which the Covenant shield is raised by %s, and shortens the wait before it starts regenerating after a hit by %s.
 
-Only installable on ships with the Covenant Shield.",,,
+Only installable on ships with the Covenant Shield.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Weapon_Acc.png
 Stabilized Emitters,covenant_remnants_stabilized_emitters,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,3,6,9,15,org.combustiblelemon.covenantremnants.hullmods.StabilizedEmitters,"Covenant shield regeneration keeps its full rate up to %s flux instead of %s, and still runs at %s at maximum flux instead of %s.
 
-Only installable on ships with the Covenant Shield.",,,
+Only installable on ships with the Covenant Shield.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Weapon_Stabile.png
 Reactive Shell,covenant_remnants_reactive_shell,,,Covenant,"shields, defensive, no_drop_salvage",Shields,,FALSE,FALSE,,3,5,8,12,org.combustiblelemon.covenantremnants.hullmods.ReactiveShell,"Increases Covenant shield regeneration by %s and shortens the wait before it starts regenerating after a hit by %s.
 
 Downside: reduces shield capacity by %s.
 
-Only installable on ships with the Covenant Shield. Incompatible with %s.",,,
+Only installable on ships with the Covenant Shield. Incompatible with %s.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Armor_React.png
 covenant_remnants_Hullmod_Manager,covenant_remnants_hullmodmanager,,,Covenant,"hide_in_codex, no_drop, no_drop_salvage",,,FALSE,TRUE,TRUE,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.HullmodManager,"Hullmod manager facilitating functionality for the rest of the hullmods, you should not be seeing this",,,
 Huragok Crew,covenant_remnants_huragok_crew,,,Covenant,"no_drop_salvage, defensive",,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.HuragokCrew,"Increase repair rate by %s.
 Increase max CR by %s if %s hullmod is present, counteracting its penalties.
 
-In combat, repairs %s of maximum hull per second while damaged; total repair per battle is the higher of %s points or %s of maximum hull.",,,
+In combat, repairs %s of maximum hull per second while damaged; total repair per battle is the higher of %s points or %s of maximum hull.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Engeer.png
 Slipspace Tuning,covenant_remnants_slipspace_tuning,,,Covenant,"req_spaceport, no_drop_salvage","Requires Dock",,FALSE,FALSE,,4,8,12,20,org.combustiblelemon.covenantremnants.hullmods.SlipspaceTuning,"Increases slipspace drive charge regeneration by %s.
 
 Each ship in the fleet carrying this hullmod speeds the fleet's transit through a slipspace corridor by %s, up to %s.
 
-Only installable on ships with a slipspace drive.",,"Each ship carrying this as a built-in (s-mod) hullmod also shortens the fleet's slipspace jump charge-up and cooldown by %s, up to %s.",
+Only installable on ships with a slipspace drive.",,"Each ship carrying this as a built-in (s-mod) hullmod also shortens the fleet's slipspace jump charge-up and cooldown by %s, up to %s.",graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Drive_Plus.png
 Plasma Capacitors,covenant_remnants_plasma_capacitors,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.PlasmaCapacitors,"Increases energy weapon rate of fire and ammo regeneration by %s.
 
-Downside: increases energy weapon flux cost by %s. Beam weapons are exempt.",,,
+Downside: increases energy weapon flux cost by %s. Beam weapons are exempt.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Weapons.png
 Capacitor Discharge,covenant_remnants_capacitor_discharge,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.CapacitorDischarge,"After an active vent, energy weapons deal up to %s more damage for %s seconds. The bonus scales with the flux level when the vent began.
 
-Downside: reduces active venting rate by %s.",,,
+Downside: reduces active venting rate by %s.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Vent.png
 Target Lattice,covenant_remnants_target_lattice,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.TargetLattice,"Sustained fire on one enemy ship locks the targeting lattice onto it. While hits keep landing, the ship's weapons deal %s more damage to it per second of fire, up to %s.
 
-Hitting a different ship moves the lock and resets the bonus. Fighters and missiles are ignored. After %s seconds without a hit, the bonus drains by %s per second.",,,
+Hitting a different ship moves the lock and resets the bonus. Fighters and missiles are ignored. After %s seconds without a hit, the bonus drains by %s per second.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Target.png
 Overcharged Emitters,covenant_remnants_overcharged_emitters,,,Covenant,"offensive, no_drop_salvage",Weapons,,FALSE,FALSE,,5,10,15,25,org.combustiblelemon.covenantremnants.hullmods.OverchargedEmitters,"Above %s flux, energy weapon rate of fire rises with flux level, up to %s at maximum flux.
 
-Downside: increases overload duration by %s.",,,
-Slipspace Drive,covenant_remnants_slipspace_drive,,,Covenant,"no_drop_salvage",,,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.SlipspaceDriveHullmod,"A Covenant slipspace translation drive, integral to the hull. Folds space to carry the ship through slipspace faster than light.",,,
+Downside: increases overload duration by %s.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Energy.png
+Slipspace Drive,covenant_remnants_slipspace_drive,,,Covenant,"no_drop_salvage",,,FALSE,FALSE,,0,0,0,0,org.combustiblelemon.covenantremnants.hullmods.SlipspaceDriveHullmod,"A Covenant slipspace translation drive, integral to the hull. Folds space to carry the ship through slipspace faster than light.",,,graphics/covenant_remnants/icons/hullmods/CR_Hullmods_Drive.png

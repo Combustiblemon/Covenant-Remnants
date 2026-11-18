@@ -2,6 +2,7 @@ package org.combustiblelemon.covenantremnants
 
 import com.fs.starfarer.api.BaseModPlugin
 import com.fs.starfarer.api.Global
+import org.combustiblelemon.covenantremnants.campaign.JitterSaveRepair
 import org.combustiblelemon.covenantremnants.campaign.TesterCache
 import org.combustiblelemon.covenantremnants.campaign.abilities.SlipspaceJumpRules
 import org.combustiblelemon.covenantremnants.campaign.entities.SlipspaceCampaignPlugin
@@ -66,6 +67,8 @@ class CovenantRemnantsPlugin : BaseModPlugin() {
 
     override fun onGameLoad(newGame: Boolean) {
         super.onGameLoad(newGame)
+        // Before the first campaign frame: pre-0.98.5a saves hold jitter renderers that crash it.
+        JitterSaveRepair.repair(Global.getSector())
         HullmodIncompatibilityInstaller.verifyAndReinstall(CovenantIncompatibilities.registry())
 
         // Campaign slipspace jump: the pocket system exists in every save (created or migrated),

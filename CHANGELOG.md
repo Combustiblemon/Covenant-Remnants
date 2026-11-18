@@ -4,9 +4,27 @@ All notable changes to Covenant Remnants, newest version first.
 
 ## Unreleased
 
+### Breaking changes
+
+- Changed Covenant Remnants to require Starsector 0.98.5a-RC7, so update the game before this version; the launcher now lists the mod as made for your game version.
+
+### New features
+
+- Added custom icons to 15 Covenant hullmods, so they stand out in the refit screen and Codex instead of sharing the generic placeholder icon.
+- Added a custom Slipspace Jump ability icon, so the ability no longer borrows the vanilla Transverse Jump icon on the ability bar.
+
+### Behavioral changes
+
+- Changed Covenant hulls to pay higher crew salaries under 0.98.5a's new crew pay (1.25x for frigates and destroyers, 1.5x for cruisers and capitals, 2x for the CAS and CVS), so a Covenant fleet costs more to keep in service, as elite ships should.
+- Changed d-mod repairs on Covenant hulls to cost 1.5x the usual Domain-grade Parts (a CAS takes 90 per d-mod), so restoring a damaged Covenant ship stays a real investment.
+- Changed Covenant plasma torpedoes to take flare damage instead of detonating on contact with a flare, so a flare screen wears a torpedo down rather than stopping it outright.
+
 ### Bug fixes
 
+- Fixed a crash on loading a save made before Starsector 0.98.5a in which the fleet had used Slipspace Jump, so existing campaigns load after the game update.
+- Fixed bar custom production contracts offering Covenant ships, weapons and fighters, so Covenant gear stays quest-gated as intended.
 - Fixed ramming and asteroid collision damage bypassing the Covenant shield and landing on armor, so a raised shield now absorbs collisions like every other hit.
+- Fixed the static-noise flash never playing when the player's fleet starts a Slipspace Jump, so the jump now opens with the same screen static as the game's own jumps.
 
 ## v0.1.3 — 2026-10-17
 

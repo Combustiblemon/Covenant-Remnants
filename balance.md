@@ -45,8 +45,28 @@ pass (developer 2026-10-02: tuning waits until all gameplay systems are finished
   - Heavy: 3000 HE single hit, 8 ammo, 250 su/s, 2500 range, 45°/s, torpedo HP 500, 27 OP.
     Yardsticks Hurricane 7 × 500 HE MIRV / 10 ammo / 25 OP; Cyclone Reaper 2 × 4000 HE unguided / 14
     ammo / 1200 range / 26 OP.
+  - Flares (2026-11-18 ruling, 0.98.5a `explodesWhenHittingFlares: false`): a flare no longer
+    detonates a Covenant torpedo, it only deals its damage to the torpedo HP (150 / 300 / 500 for
+    medium / light / heavy), as vanilla does for Neutron and Rift torpedoes. TODO: check flare-heavy
+    fleets (Paragon, Afflictor screens) still have a counter.
   - TODO: the melt makes every hit worth ~1.5× vs armor (more with damage-to-size skills); the
     guided 3000 HE heavy at 2500 range plus melt may outclass the Hurricane. The light also arms the
     Covenant bomber (3 launchers per fighter, wing of 2): 6 × 2 torpedoes per sortie plus regen in
     flight — check bomber strike strength. Light melt concentrates its 600 pool in a 50 su patch, so
     it strips centre cells on lightly armored hulls (part of the pool is lost there).
+
+## Campaign economy (0.98.5a, 2026-11-18)
+
+0.98.5a pays a salary to each ship's skeleton crew: hull supplies/mo × 50 / 50 / 75 / 150 credits by
+size, times the hull's `salMult`. It also charges Domain-grade Parts per d-mod repaired (default:
+base value / 15000, at least 1 / 2 / 4 / 8). Rulings for Covenant hulls (`ship_data.csv`):
+
+- **Crew salary:** `salMult` 1.25 for frigates and destroyers, 1.5 for cruisers and capitals, 2.0
+  for the CAS and CVS. That gives 375-688/mo for frigates and destroyers, 2250-2812 for cruisers,
+  4500 for the CPV Heavy Destroyer, 11250 for the ORS Heavy Cruiser, 13500 for the Reverence and
+  18000 for each supercap. Vanilla anchors: Paragon 9000, Doom 5250 (phase ships pay 2.0),
+  Onslaught 0.5.
+- **Parts per d-mod:** 1.5x the default: frigates 3, destroyers 5-6, cruisers 12-14, CPV 35,
+  ORS Heavy Cruiser 50, Reverence 54, CVS 80, CAS 90 (Paragon 33).
+- TODO: check after a few months of campaign play that a full Covenant fleet's salary bill stays
+  'expensive but rare', not crippling.

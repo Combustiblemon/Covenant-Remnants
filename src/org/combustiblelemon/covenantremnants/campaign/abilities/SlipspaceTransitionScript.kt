@@ -9,6 +9,7 @@ import com.fs.starfarer.api.util.FaderUtil
 import com.fs.starfarer.api.util.Misc
 import com.fs.starfarer.campaign.fleet.CampaignFleet
 import com.fs.starfarer.campaign.fleet.CampaignFleetMemberView
+import org.combustiblelemon.lemonlib.reflection.ReflectionUtils
 import org.lwjgl.util.vector.Vector2f
 import java.awt.Color
 import kotlin.math.max
@@ -83,16 +84,31 @@ class SlipspaceTransitionScript private constructor(
             obf.jumpDestination = null
         }
 
-        /** The campaign noise overlay the engine plays on its own transitions; obf-only, so optional. */
+        private var noiseFailureLogged = false
+
+        /**
+         * The campaign noise overlay the engine plays on its own transitions; obf-only, so optional.
+         *
+         * Goes through LemonLib's [ReflectionUtils] (MethodHandles): naming `java.lang.reflect.Method`
+         * here is blocked by the script classloader, so a plain `getMethod(...).invoke(...)` never
+         * ran. The live UI object is an anonymous, non-public class (`CampaignEngine$1`), so the
+         * declared lookup (made accessible) comes first; the public lookup is the fallback.
+         */
         private fun showNoise() {
+            val ui = Global.getSector().campaignUI ?: return
             try {
-                val ui = Global.getSector().campaignUI
-                val method = ui.javaClass.getMethod(
-                    "showNoise", java.lang.Float.TYPE, java.lang.Float.TYPE, java.lang.Float.TYPE
-                )
-                method.invoke(ui, 0.5f, 0.25f, 1.5f)
-            } catch (_: Throwable) {
-                // no noise, no harm
+                try {
+                    ReflectionUtils.invoke("showNoise", ui, 0.5f, 0.25f, 1.5f, declared = true)
+                } catch (_: Throwable) {
+                    ReflectionUtils.invoke("showNoise", ui, 0.5f, 0.25f, 1.5f)
+                }
+            } catch (t: Throwable) {
+                // No noise, no harm; say so once so a game patch that renames it is noticed.
+                if (!noiseFailureLogged) {
+                    noiseFailureLogged = true
+                    Global.getLogger(SlipspaceTransitionScript::class.java)
+                        .warn("Covenant Remnants: campaign noise overlay unavailable (${ui.javaClass.name}.showNoise)", t)
+                }
             }
         }
     }

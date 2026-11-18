@@ -2,6 +2,8 @@
 	"id":"covenant_remnants_plasmatorpedo_light",
 	"specClass":"missile",
 	"missileType":"MISSILE",
+	# Flares chip the torpedo's HP instead of detonating it (0.98.5a flag; ruling 2026-11-18).
+	"explodesWhenHittingFlares":false,
 	# Invisible: the Reach space Phantom torpedo look is drawn by utils/render/torpedo/TorpedoRenderer.
 	"sprite":"graphics/covenant_remnants/missiles/covenant_remnants_plasma_torpedo.png",
 	"size":[8,16],

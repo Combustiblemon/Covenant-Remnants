@@ -4,7 +4,10 @@ This project has been converted from IntelliJ IDEA to use Gradle as the build sy
 
 ## Prerequisites
 
-- Java 8 or higher
+- Java 17. With the mod in `<Starsector>/mods/`, `gradlew` / `gradlew.bat` use Starsector's
+  bundled JRE at `<Starsector>/jre` (Zulu 17) automatically, whatever `JAVA_HOME` or `PATH` say.
+  Elsewhere they fall back to `JAVA_HOME` / `PATH`. Gradle 8.4 runs on Java 8 to 20, so a system
+  Java 21+ (for example 25) cannot run the build.
 - Gradle (will be automatically downloaded via wrapper)
 
 ## Setup
@@ -137,6 +140,10 @@ Run that one build with the Windows certificate store:
 2. Open the project folder
 3. Use the Gradle sidebar to run tasks
 
+The IDE's Gradle import does not go through `gradlew`, so `.vscode/settings.json` sets
+`java.import.gradle.java.home` to the bundled JRE. Edit that path if your Starsector install lives
+somewhere else.
+
 ## Troubleshooting
 
 ### Gradle Wrapper Issues
@@ -148,7 +155,8 @@ If you get errors about missing Gradle wrapper:
 
 ### Build Issues
 
-- Check that Java 8+ is installed and `JAVA_HOME` is set
+- Run `gradlew --version` and check that `JVM:` reads 17 (Azul Zulu, the bundled JRE). Errors
+  like `Unsupported class file major version` mean Gradle is running on a JDK newer than 20
 - Ensure all required dependencies are available
 - Check the Gradle build output for specific error messages
 
