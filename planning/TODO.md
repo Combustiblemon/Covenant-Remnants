@@ -734,6 +734,17 @@ Keep this file current — tick items off and add new ones as work lands.
 - [ ] **Slipspace items — art and text** — both items use vanilla placeholder icons (Janus Device,
       hyperspace data) and draft descriptions.
 
+## Kotlin 2.4.21 runtime (2026-11-18)
+
+- [x] **Runtime + compiler on 2.4.21** — LemonLib `Kotlin-Runtime.jar` = stdlib 2.4.21 + coroutines
+      1.11.0 (no kotlin-reflect), built by `LemonLib/scripts/build-kotlin-runtime.py`; Kotlin plugin
+      2.4.21 in Covenant, LemonLib and the harness. Scans + smoke / combat / compat pass. See
+      [implementations/kotlin-2.4.21-runtime.md](implementations/kotlin-2.4.21-runtime.md).
+- [ ] **Kotlin 2.5** — when 2.5.0 final ships: needs Gradle 8.14.4+ (wrapper is 8.4) in all three
+      repos, then rebuild the runtime with the script and bump the plugin.
+- [ ] **LemonLib release** — runtime change is under LemonLib `## Unreleased`; Covenant's
+      `mod_info.json` pins LemonLib 0.1.2 (bump both when releasing).
+
 ## Starsector 0.98.5a-RC7 update (2026-11-18)
 
 See [implementations/game-0985-update.md](implementations/game-0985-update.md).

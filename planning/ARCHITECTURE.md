@@ -260,7 +260,7 @@ campaign portal shader was replaced by the Ark rupture effect on 2026-10-08. Ref
 
 ## Build & data flow
 
-Gradle Kotlin DSL, Kotlin JVM 2.2.20, Java 8 target (`build.gradle.kts`; `compilerOptions` with
+Gradle Kotlin DSL, Kotlin JVM 2.4.21, Java 8 target (`build.gradle.kts`; `compilerOptions` with
 `jvmDefault = NO_COMPATIBILITY`, the old `-Xjvm-default=all`):
 
 - **Build JDK:** Starsector's bundled JRE, Zulu 17 at `<Starsector>/jre` (2026-11-18). The
@@ -294,7 +294,7 @@ Gradle Kotlin DSL, Kotlin JVM 2.2.20, Java 8 target (`build.gradle.kts`; `compil
     wrap it. See [implementations/release-packaging.md](implementations/release-packaging.md).
 
 > **Runtime dependencies:** `mod_info.json` declares LemonLib, MagicLib and Ashlib (required).
-> LemonLib provides the Kotlin 2.2.20 runtime. LazyLib only comes along because MagicLib and Ashlib
+> LemonLib provides the Kotlin 2.4.21 runtime (stdlib + coroutines, no kotlin-reflect). LazyLib only comes along because MagicLib and Ashlib
 > require it. Ashlib (by Kaysaar, GPL-3.0 upstream) is used only for the Slipspace Jump system map
 > (`SlipSpaceJumpCoordinateUI`, `RestrictedArea`, `MapOrbitRenderer`, `ResizableComponent`;
 > developer ruling 2026-10-12); Covenant links to it and ships none of its code.

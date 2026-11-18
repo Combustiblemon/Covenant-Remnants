@@ -103,7 +103,7 @@ The Gradle build system is configured to:
 Every dependency is `compileOnly`; nothing is bundled into `jars/CovenantRemnants.jar`.
 
 - **Kotlin runtime:** LemonLib's `../LemonLib/jars/lib/Kotlin-Runtime.jar`, which holds stdlib
-  2.2.20, reflect and coroutines and is what runs in game. `kotlin.stdlib.default.dependency=false`
+  2.4.21 and coroutines 1.11.0 (no reflect) and is what runs in game. `kotlin.stdlib.default.dependency=false`
   in `gradle.properties` keeps the Kotlin Gradle plugin from adding Maven's stdlib.
 - **Starsector:** the core jars in `../../starsector-core/`.
 - **LemonLib:** compiled classes, through the composite build (`includeBuild("../LemonLib")`).

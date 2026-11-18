@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.2.20"
+    kotlin("jvm") version "2.4.21"
     java
 }
 
@@ -26,8 +26,9 @@ sourceSets {
 }
 
 dependencies {
-    // Kotlin runtime: the jar LemonLib ships (stdlib + reflect + coroutines) is what runs in game, so
-    // compile against it; gradle.properties turns off KGP's default Maven stdlib.
+    // Kotlin runtime: the jar LemonLib ships (stdlib 2.4.21 + coroutines) is what runs in game, so
+    // compile against it with the same Kotlin version; gradle.properties turns off KGP's default
+    // Maven stdlib.
     compileOnly(files("../LemonLib/jars/lib/Kotlin-Runtime.jar"))
 
     // Starsector API

@@ -48,7 +48,7 @@ These are settled. Do not re-open them without asking the developer.
 
 ## Stack
 
-- **Language/build:** Kotlin 2.2.20 (JVM, Java 8 target), Gradle Kotlin DSL. See [planning/ARCHITECTURE.md](planning/ARCHITECTURE.md).
+- **Language/build:** Kotlin 2.4.21 (JVM, Java 8 target), Gradle Kotlin DSL. See [planning/ARCHITECTURE.md](planning/ARCHITECTURE.md).
   - Build JDK: Starsector's bundled Zulu 17 (`../../jre`), picked by `gradlew` / `gradlew.bat`
     here and in LemonLib. The system Java is 25, which Gradle 8.4 cannot run on. Build only
     through the wrapper.
